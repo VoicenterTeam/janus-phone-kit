@@ -1,0 +1,35 @@
+{
+  "name": "janus-phone-kit",
+  "version": "0.1.0",
+  "scripts": {
+    "serve": "npm run docs:dev",
+    "build": "bili",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs",
+    "prepublish": "npm run build",
+    "start": "npm run docs"
+  },
+  "dependencies": {},
+  "peerDependencies": {},
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "bili": "^4.8.0",
+    "eslint": "^5.16.0",
+    "lodash": "^4.17.15",
+    "vuepress": "^1.4.1"
+  },
+  "files": [
+    "dist/janus-phone-kit.common.js",
+    "dist/janus-phone-kit.umd.js",
+    "dist/janus-phone-kit.esm.js",
+    "src"
+  ],
+  "engines": {
+    "node": ">=8.9"
+  },
+  "jsdelivr": "dist/janus-phone-kit.umd.js",
+  "main": "dist/janus-phone-kit.cjs.js",
+  "module": "dist/janus-phone-kit.esm.js",
+  "sideeffects": false,
+  "unpkg": "dist/janus-phone-kit.umd.js"
+}
