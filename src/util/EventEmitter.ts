@@ -9,17 +9,17 @@ class EventEmitter {
   /**
    * Emits an event
    * @param {string} event name
+   * @param {object} payload
    */
-  emit(event) {
+  public emit(event, payload?) {
     let callbacks = this.#events[event]
 
     if (!callbacks) {
       return
     }
     callbacks = callbacks.length > 1 ? toArray(callbacks) : callbacks
-    const args = toArray(arguments, 1)
     for (let i = 0, l = callbacks.length; i < l; i++) {
-      invokeFunction(callbacks[i], args)
+      invokeFunction(callbacks[i], payload)
     }
   }
 
@@ -28,7 +28,7 @@ class EventEmitter {
    * @param {string} event name
    * @param {function} fn
    */
-  on(event, fn) {
+  public on(event, fn) {
     let handlers = this.#events[event]
     if (!handlers) {
       this.#events[event] = []
@@ -37,7 +37,7 @@ class EventEmitter {
     handlers.push(fn)
   }
 
-  once(event, fn) {
+  public once(event, fn) {
     const on = () => {
       this.off(event, on)
       fn.apply(this, arguments)
@@ -46,7 +46,7 @@ class EventEmitter {
     this.on(event, on)
   }
 
-  off(event, fn) {
+  public off(event, fn) {
     // all
     if (!arguments.length) {
       this.#events = Object.create(null)

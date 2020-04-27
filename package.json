@@ -14,11 +14,15 @@
   },
   "peerDependencies": {},
   "devDependencies": {
+    "@babel/plugin-proposal-private-methods": "^7.8.3",
     "babel-eslint": "^10.0.1",
-    "bili": "^4.8.0",
+    "bili": "^4.9.2",
     "eslint": "^5.16.0",
     "lodash": "^4.17.15",
-    "vuepress": "^1.4.1"
+    "rollup-plugin-typescript2": "^0.27.0",
+    "typescript": "^3.8.3",
+    "vuepress": "^1.4.1",
+    "vuepress-plugin-typescript": "^0.2.0"
   },
   "files": [
     "dist/janus-phone-kit.common.js",

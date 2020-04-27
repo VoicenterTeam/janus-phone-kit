@@ -1,5 +1,5 @@
 module.exports = {
-  input: 'src/index.js',
+  input: 'src/index.ts',
   presets: ['bili/babel'],
   output: {
     format: ['esm', 'cjs', 'umd-min'],
@@ -8,5 +8,5 @@ module.exports = {
       return `janus-phone-kit.${format}.js`
     }
   },
-  globals: {}
+  globals: {},
 };

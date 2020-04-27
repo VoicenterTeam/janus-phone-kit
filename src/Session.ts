@@ -1,18 +1,23 @@
 import EventEmitter from './util/EventEmitter';
-import { logger } from './util/logger'
+import {logger} from './util/logger'
+import {BasePlugin} from "./plugins/BasePlugin";
 
-const defaultOptions = {
+type SessionOptions = {
+  timeoutMs: number,
+  keepaliveMs: number,
+}
+const defaultOptions: SessionOptions = {
   timeoutMs: 5000,
   keepaliveMs: 50000,
 }
 
 class Session extends EventEmitter {
 
-  #id = null
+  id = null
   #next_transaction_id = 0
   #keepalive_timeout = null
-  #options = {}
-  #plugins = {}
+  #options: SessionOptions = null
+  #plugins: { [key: string]: { timeout_cleanup?: any, instance: BasePlugin }; } = {}
   #transactions = {}
 
   connected = false
@@ -34,10 +39,10 @@ class Session extends EventEmitter {
    * @returns {Promise} Response from Janus
    */
   async create() {
-    const response = await this.send({ janus: 'create' });
+    const response = await this.send({janus: 'create'});
     // todo check response ...
     this.connected = true;
-    this.#id = response.data.id;
+    this.id = response.data.id;
     return response;
   }
 
@@ -56,7 +61,7 @@ class Session extends EventEmitter {
     });
     await Promise.all(pluginDetachPromises);
 
-    const response = await this.send({ janus: 'destroy' });
+    const response = await this.send({janus: 'destroy'});
     this.#stopKeepalive();
 
     Object.entries(this.#plugins).forEach(([id, plugin]) => {
@@ -92,7 +97,7 @@ class Session extends EventEmitter {
       }, 30000);
     });
 
-    this.#plugins[response.data.id] = { instance: plugin, timeout_cleanup: null };
+    this.#plugins[response.data.id] = {instance: plugin, timeout_cleanup: null};
     logger.info(`Plugin ${plugin.name} attached.`);
 
     /**
@@ -180,14 +185,14 @@ class Session extends EventEmitter {
    * @emits Session#output
    * @returns {Promise} Response from Janus
    */
-  async send(msg) {
+  async send(msg): Promise<any> {
     this.#next_transaction_id += 1; // This could probably also be made into a UUID.
     const transaction = this.#next_transaction_id.toString();
-    const payload = { ...msg, transaction };
+    const payload: any = {...msg, transaction};
 
     // For the session create message we won't have an ID yet.
-    if (this.#id) {
-      payload.session_id = this.#id;
+    if (this.id) {
+      payload.session_id = this.id;
     }
 
     const responsePromise = new Promise((resolve, reject) => {
@@ -229,35 +234,35 @@ class Session extends EventEmitter {
   /**
    * @private
    */
-  async #sendKeepalive() {
+  #sendKeepalive = async () => {
     try {
-      await this.send({ janus: 'keepalive' });
+      await this.send({janus: 'keepalive'});
     } catch (err) {
       logger.error('Keepalive timed out');
       this.emit('keepalive_timout');
     }
-  }
+  };
 
   /**
    * @private
    */
-  #stopKeepalive() {
+  #stopKeepalive = () => {
     logger.debug('stopKeepalive()');
     if (this.#keepalive_timeout) {
       clearTimeout(this.#keepalive_timeout);
     }
-  }
+  };
 
   /**
    * @private
    */
-  #resetKeepalive() {
+  #resetKeepalive = () => {
     this.#stopKeepalive();
 
     this.#keepalive_timeout = setTimeout(async () => {
       await this.#sendKeepalive()
     }, this.#options.keepaliveMs)
-  }
+  };
 
 }
 

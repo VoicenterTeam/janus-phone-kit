@@ -7,8 +7,13 @@ export class ScreenSharePlugin extends BasePlugin {
   memberList = {}
   videoElement = null
   room_id = 1234
-  
-  #rtcConnection = new RTCPeerConnection();
+
+  #rtcConnection: any = new RTCPeerConnection();
+
+  /**
+   * @type {VideoRoomPlugin}
+   */
+  VideoRoomPlugin = null
 
   constructor() {
     super()
@@ -128,6 +133,7 @@ export class ScreenSharePlugin extends BasePlugin {
     let localMedia;
 
     try {
+      // @ts-ignore
       localMedia = await navigator.mediaDevices.getDisplayMedia();
       logger.info('Got local user Screen .');
 
@@ -146,10 +152,11 @@ export class ScreenSharePlugin extends BasePlugin {
     this.#rtcConnection.addStream(localMedia);
     logger.info('Creating SDP offer. Please wait...');
 
-    const jsepOffer = await this.#rtcConnection.createOffer({
+    const options: any = {
       audio: false,
       video: true,
-    });
+    }
+    const jsepOffer = await this.#rtcConnection.createOffer(options);
 
 
     logger.info('SDP offer created.');

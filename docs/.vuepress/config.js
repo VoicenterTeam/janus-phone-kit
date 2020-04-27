@@ -1,4 +1,14 @@
 module.exports = {
+  plugins: [
+    [
+      'vuepress-plugin-typescript',
+      {
+        tsLoaderOptions: {
+          devtool: 'source-map'
+        },
+      },
+    ],
+  ],
   locales: {
     '/': {
       lang: 'en-US',

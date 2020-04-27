@@ -51,8 +51,10 @@ export class BasePlugin extends EventEmitter {
    * @member {array}
    * @instance
    */
+  private_id?: string = null
+
   myFeedList = []
-  VideoRoomPlugin = []
+  opaqueId?: string | null;
 
   constructor() {
     super()
@@ -76,7 +78,7 @@ export class BasePlugin extends EventEmitter {
 
     this.session = session;
 
-    const msg = {
+    const msg: any = {
       janus: 'attach',
       plugin: this.name,
     };
@@ -143,7 +145,7 @@ export class BasePlugin extends EventEmitter {
    *
    * @see {@link https://janus.conf.meetecho.com/docs/rest.html}
    */
-  async send(obj, options = {}) {
+  async send(obj, options: any = {}) {
     logger.debug('send()');
     let sendMsg = {};
     if (options && options.handle_id) {
@@ -171,8 +173,8 @@ export class BasePlugin extends EventEmitter {
    * @param options Should be JSON-serializable. Expected to have a key 'handle_id'
    * @returns {Promise} Response from janus-gateway.
    */
-  async sendMessage(body = {}, jsep, options) {
-    const msg = {
+  public async sendMessage(body = {}, jsep?, options?) {
+    const msg: any = {
       janus: 'message',
       body, // required. 3rd argument in the server-side .handle_message() function
     };

@@ -1,14 +1,15 @@
 import { logger } from './util/logger'
+import {BasePlugin} from "./plugins/BasePlugin";
 
 export class Member {
 
-  #plugin = {}
-  #videoElement = document.createElement('video')
-  #rtcpPeer = new RTCPeerConnection()
+  #plugin: BasePlugin = null
+  #videoElement: any = document.createElement('video')
+  #rtcpPeer: any = new RTCPeerConnection()
   #handleId = 0
   #info = null
 
-  constructor(memberInfo, plugin) {
+  constructor(memberInfo, plugin: BasePlugin) {
     this.#info = memberInfo
     this.#plugin = plugin;
   }
@@ -48,10 +49,11 @@ export class Member {
 
     const RTCPeerOnAddStream = async (event) => {
       logger.debug('on add stream Member', event);
-      const answerSdp = await this.#rtcpPeer.createAnswer({
+      const options: any = {
         audio: true,
         video: true,
-      });
+      }
+      const answerSdp = await this.#rtcpPeer.createAnswer(options);
       await this.#rtcpPeer.setLocalDescription(answerSdp);
       // Send the answer to the remote peer through the signaling server.
       await this.#plugin.sendMessage({
@@ -84,7 +86,7 @@ export class Member {
     this.#disableVideo()
   }
 
-  #disableVideo() {
+  #disableVideo = () => {
     if (!this.#videoElement) {
       return
     }
@@ -92,5 +94,5 @@ export class Member {
     this.#videoElement.removeAttribute('src'); // empty source
     this.#videoElement.load();
     this.#videoElement.disabled = true;
-  }
+  };
 }

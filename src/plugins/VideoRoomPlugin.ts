@@ -5,17 +5,17 @@ import { Member } from "../Member";
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroom'
-  memberList = {}
+  memberList: any = {}
   videoElement = null
   room_id = 1234
+  publishers = null
+  #rtcConnection: any = new RTCPeerConnection();
 
   constructor() {
     super()
 
     this.opaqueId = `videoroomtest-${randomString(12)}`;
     logger.debug('Init plugin', this);
-
-    this.#rtcConnection = new RTCPeerConnection();
     // Send ICE events to Janus.
     this.#rtcConnection.onicecandidate = (event) => {
 
@@ -111,7 +111,7 @@ export class VideoRoomPlugin extends BasePlugin {
 
     if (msg.janus === 'hangup') {
       const members = Object.values(this.memberList)
-      const hangupMember = members.find((member) => member.HandleId === msg.sender);
+      const hangupMember: any = members.find((member: any) => member.HandleId === msg.sender);
       hangupMember.hangup();
       return
 
@@ -146,14 +146,14 @@ export class VideoRoomPlugin extends BasePlugin {
    */
   async onAttached() {
     console.log('onAttached !!!!!!!!!!!!!!!!!!!!!!');
-    this.logger.info('Asking user to share media. Please wait...');
+    logger.info('Asking user to share media. Please wait...');
     let localMedia;
     try {
       localMedia = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true,
       });
-      this.logger.info('Got local user media.');
+      logger.info('Got local user media.');
 
       console.log('Lets Join a room localMedia:', localMedia);
     } catch (e) {
@@ -181,22 +181,23 @@ export class VideoRoomPlugin extends BasePlugin {
 
     this.playVideo(localMedia, joinResult)
 
-    this.logger.info('Adding local user media to RTCPeerConnection.');
+    logger.info('Adding local user media to RTCPeerConnection.');
     this.#rtcConnection.addStream(localMedia);
 
-    this.logger.info('Creating SDP offer. Please wait...');
-    const jsepOffer = await this.#rtcConnection.createOffer({
+    logger.info('Creating SDP offer. Please wait...');
+    const options: any = {
       audio: true,
       video: true,
-    });
+    }
+    const jsepOffer = await this.#rtcConnection.createOffer(options);
 
 
-    this.logger.info('SDP offer created.');
+    logger.info('SDP offer created.');
 
-    this.logger.info('Setting SDP offer on RTCPeerConnection');
+    logger.info('Setting SDP offer on RTCPeerConnection');
     await this.#rtcConnection.setLocalDescription(jsepOffer);
 
-    this.logger.info('Getting SDP answer from Janus to our SDP offer. Please wait...');
+    logger.info('Getting SDP answer from Janus to our SDP offer. Please wait...');
 
     const confResult = await this.sendMessage({
       request: 'configure',
@@ -205,7 +206,7 @@ export class VideoRoomPlugin extends BasePlugin {
     }, jsepOffer);
 
     console.log('Received SDP answer from Janus.', confResult);
-    this.logger.debug('Setting the SDP answer on RTCPeerConnection. The `onaddstream` event will fire soon.');
+    logger.debug('Setting the SDP answer on RTCPeerConnection. The `onaddstream` event will fire soon.');
     await this.#rtcConnection.setRemoteDescription(confResult.jsep);
   }
 

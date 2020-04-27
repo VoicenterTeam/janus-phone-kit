@@ -1,18 +1,32 @@
 <template>
     <div>
       Test
+      <button @click="startVideo">Start video</button>
+      <button @click="startScreenShare">Start screen share</button>
     </div>
 </template>
-<script>
-  import { Session } from '../../../src';
+<script lang="ts">
+  import JanusPhoneKit from '../../../src';
+
   export default {
     data() {
       return {
-        session: null
+        janusSdk: null
+      }
+    },
+    methods: {
+      startVideo() {
+        this.janusSdk.startVideoConference()
+      },
+      startScreenShare() {
+        this.janusSdk.startScreenShare()
       }
     },
     mounted() {
-      this.session = new Session()
+      this.janusSdk = new JanusPhoneKit({
+        roomId: parseInt((new URLSearchParams(window.location.search)).get('room')),
+        url: 'wss://webconf.officering.net/janus'
+      })
     }
   }
 </script>
