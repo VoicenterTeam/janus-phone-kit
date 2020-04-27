@@ -6,9 +6,10 @@
     </div>
 </template>
 <script lang="ts">
+  import Vue from 'vue'
   import JanusPhoneKit from '../../../src';
 
-  export default {
+  export default Vue.extend({
     data() {
       return {
         janusSdk: null
@@ -28,7 +29,7 @@
         url: 'wss://webconf.officering.net/janus'
       })
     }
-  }
+  })
 </script>
 <style>
 </style>

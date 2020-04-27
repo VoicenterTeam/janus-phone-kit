@@ -1,11 +1,11 @@
 /**
  * Invokes a function with given arguments
  * @param handler function
- * @param args arguments array
+ * @param payload
  * @return {*} function result
  */
-export function invokeFunction (handler, args) {
-  return args ? handler.apply(null, args) : handler.call(null)
+export function invokeFunction (handler, payload) {
+  return payload ? handler.apply(null, [payload]) : handler.call(null, payload)
 }
 
 /**

@@ -45,8 +45,6 @@ export class Member {
   }
 
   async answerAttachedStream(attachedStreamInfo) {
-    const that = this;
-
     const RTCPeerOnAddStream = async (event) => {
       logger.debug('on add stream Member', event);
       const options: any = {
