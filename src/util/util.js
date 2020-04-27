@@ -22,3 +22,19 @@ export function toArray(list, start = 0) {
   }
   return ret
 }
+
+/**
+ * Generates random string based on a given string length
+ * @param {number} len
+ * @return {string}
+ */
+export function randomString(len) {
+  const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomStr = '';
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < len; i++) {
+    const randomPoz = Math.floor(Math.random() * charSet.length);
+    randomStr += charSet.substring(randomPoz, randomPoz + 1);
+  }
+  return randomStr;
+}

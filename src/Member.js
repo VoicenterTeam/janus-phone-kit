@@ -3,13 +3,14 @@ import { logger } from './util/logger'
 export class Member {
 
   #plugin = {}
+  #videoElement = document.createElement('video')
+  #rtcpPeer = new RTCPeerConnection()
+  #handleId = 0
+  #info = null
 
   constructor(memberInfo, plugin) {
-    this.Info = memberInfo;
+    this.#info = memberInfo
     this.#plugin = plugin;
-    this.HandleId = 0;
-    this.Video = null;
-    this.RTCPeer = null;
   }
 
   async attachMember() {
@@ -20,64 +21,76 @@ export class Member {
       plugin: 'janus.plugin.videoroom'
     });
     logger.debug('attach member Result ', attachResult);
-    this.HandleId = attachResult.data.id;
+    this.#handleId = attachResult.data.id;
 
     // eslint-disable-next-line no-await-in-loop
     const joinResult = await this.#plugin.sendMessage({
       request: 'join',
       room: this.#plugin.room_id,
-      feed: this.Info.id,
+      feed: this.#info.id,
       ptype: 'subscriber',
       private_id: this.#plugin.private_id,
-    }, undefined, { handle_id: this.HandleId });
+    }, undefined, { handle_id: this.#handleId });
 
     logger.debug('joinResult', joinResult);
-    this.Video = document.createElement('video');
-    this.Video.controls = true;
-    this.Video.muted = true;
-    document.body.appendChild(this.Video);
+    this.createVideoElement()
+  }
+
+  createVideoElement() {
+    this.#videoElement = document.createElement('video');
+    this.#videoElement.controls = true;
+    this.#videoElement.muted = true;
+    document.body.appendChild(this.#videoElement);
   }
 
   async answerAttachedStream(attachedStreamInfo) {
     const that = this;
 
-    async function RTCPeerOnAddStream(event) {
+    const RTCPeerOnAddStream = async (event) => {
       logger.debug('on add stream Member', event);
-      const answerSdp = await that.RTCPeer.createAnswer({
+      const answerSdp = await this.#rtcpPeer.createAnswer({
         audio: true,
         video: true,
       });
-      await that.RTCPeer.setLocalDescription(answerSdp);
+      await this.#rtcpPeer.setLocalDescription(answerSdp);
       // Send the answer to the remote peer through the signaling server.
-      await that.Plugin.sendMessage({
+      await this.#plugin.sendMessage({
         request: 'start',
-        room: that.Plugin.room_id
-      }, answerSdp, { handle_id: that.HandleId });
-      that.Video.srcObject = event.stream;
-      await that.Video.play();
+        room: this.#plugin.room_id
+      }, answerSdp, { handle_id: this.#handleId });
+      this.#videoElement.srcObject = event.stream;
+      await this.#videoElement.play();
     }
 
     // Send ICE events to Janus.
-    function RTCPeerOnIceCandidate(event) {
-      if (that.RTCPeer.signalingState !== 'stable') return;
-      that.Plugin.sendTrickle(event.candidate || null);
+    const RTCPeerOnIceCandidate = (event) => {
+      if (this.#rtcpPeer.signalingState !== 'stable') return;
+      this.#plugin.sendTrickle(event.candidate || null);
     }
 
-    this.RTCPeer = new RTCPeerConnection();
-    this.RTCPeer.onaddstream = RTCPeerOnAddStream;
-    this.RTCPeer.onicecandidate = RTCPeerOnIceCandidate;
+    this.#rtcpPeer = new RTCPeerConnection();
+    this.#rtcpPeer.onaddstream = RTCPeerOnAddStream;
+    this.#rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
     logger.debug('attachedStreamInfo', attachedStreamInfo);
-    this.RTCPeer.sender = attachedStreamInfo.sender;
-    await this.RTCPeer.setRemoteDescription(attachedStreamInfo.jsep);
+    this.#rtcpPeer.sender = attachedStreamInfo.sender;
+    await this.#rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep);
   }
 
   hangup() {
-    logger.debug('hangup', this.Info);
-    this.RTCPeer.close();
-    this.RTCPeer = null;
-    this.Video.pause();
-    this.Video.removeAttribute('src'); // empty source
-    this.Video.load();
-    this.Video.disabled = true;
+    logger.debug('hangup', this.#info);
+    this.#rtcpPeer.close();
+    this.#rtcpPeer = null;
+
+    this.#disableVideo()
+  }
+
+  #disableVideo() {
+    if (!this.#videoElement) {
+      return
+    }
+    this.#videoElement.pause();
+    this.#videoElement.removeAttribute('src'); // empty source
+    this.#videoElement.load();
+    this.#videoElement.disabled = true;
   }
 }
