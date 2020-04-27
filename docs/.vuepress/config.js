@@ -22,6 +22,11 @@ module.exports = {
           link: 'https://github.com/VoicenterTeam/janus-phone-kit/releases'
         }],
         sidebar: [
+          {
+            title: 'Demo',
+            path: '/demo.md',
+            sidebarDepth: 2
+          }
         ]
       }
     }
