@@ -9,7 +9,9 @@
     "prepublish": "npm run build",
     "start": "npm run docs"
   },
-  "dependencies": {},
+  "dependencies": {
+    "loglevel": "^1.6.8"
+  },
   "peerDependencies": {},
   "devDependencies": {
     "babel-eslint": "^10.0.1",

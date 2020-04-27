@@ -1,21 +1,12 @@
-import EventEmitter from "./util/EventEmitter";
+import EventEmitter from './util/EventEmitter';
+import { logger } from './util/logger'
 
 const defaultOptions = {
   timeoutMs: 5000,
   keepaliveMs: 50000,
-  logger: {
-    info() {
-    },
-    warn() {
-    },
-    debug() {
-    },
-    error() {
-    },
-  },
 }
 
-class Session {
+class Session extends EventEmitter {
 
   #id = null
   #next_transaction_id = 0
@@ -23,25 +14,15 @@ class Session {
   #options = {}
   #plugins = {}
   #transactions = {}
-  #eventEmitter = new EventEmitter()
 
   connected = false
 
   constructor(options = {}) {
-
+    super()
     this.#options = {
       ...defaultOptions,
       ...options,
     }
-    this.logger = defaultOptions.logger
-  }
-
-  on(event, fn) {
-    this.#eventEmitter.on(event, fn)
-  }
-
-  emit(event, args) {
-    this.#eventEmitter.emit(event, args)
   }
 
   /**
@@ -70,7 +51,7 @@ class Session {
   async destroy() {
     this.connected = false;
     const pluginDetachPromises = Object.entries(this.#plugins).map(([, plugin]) => {
-      this.logger.debug('Detaching plugin before destroying session', plugin.instance.name);
+      logger.debug('Detaching plugin before destroying session', plugin.instance.name);
       return plugin.instance.detach();
     });
     await Promise.all(pluginDetachPromises);
@@ -79,10 +60,10 @@ class Session {
     this.#stopKeepalive();
 
     Object.entries(this.#plugins).forEach(([id, plugin]) => {
-      this.logger.debug(`Removing reference to plugin ${plugin.instance.name} (${id})`);
+      logger.debug(`Removing reference to plugin ${plugin.instance.name} (${id})`);
       clearTimeout(plugin.timeout_cleanup);
       delete this.#plugins[id];
-      this.logger.debug(`Remaining plugins: ${Object.keys(this.#plugins)}`);
+      logger.debug(`Remaining plugins: ${Object.keys(this.#plugins)}`);
     });
     return response;
   }
@@ -97,22 +78,22 @@ class Session {
    * @returns {Promise} Response from Janus
    */
   async attachPlugin(plugin) {
-    this.logger.debug(`Attaching plugin ${plugin.name}`);
+    logger.debug(`Attaching plugin ${plugin.name}`);
     const response = await plugin.attach(this);
 
     plugin.once('detached', () => {
-      this.logger.debug(`Plugin ${plugin.name} detached.`);
+      logger.debug(`Plugin ${plugin.name} detached.`);
       this.#plugins[plugin.id].timeout_cleanup = setTimeout(() => {
         // Depending on the timing, we may receive a message for this plugin after it has been
         // detached. For this reason we need to keep a reference to this plugin for a bit.
-        this.logger.debug(`Removing reference to plugin ${plugin.name} (${plugin.id})`);
+        logger.debug(`Removing reference to plugin ${plugin.name} (${plugin.id})`);
         delete this.#plugins[plugin.id];
-        this.logger.debug(`Remaining plugins: ${Object.keys(this.#plugins)}`);
+        logger.debug(`Remaining plugins: ${Object.keys(this.#plugins)}`);
       }, 30000);
     });
 
     this.#plugins[response.data.id] = { instance: plugin, timeout_cleanup: null };
-    this.logger.info(`Plugin ${plugin.name} attached.`);
+    logger.info(`Plugin ${plugin.name} attached.`);
 
     /**
      * @event Session#plugin_attached
@@ -133,7 +114,7 @@ class Session {
    * slowlink, hangup`
    */
   receive(msg) {
-    this.logger.debug('Receiving message from Janus', msg);
+    logger.debug('Receiving message from Janus', msg);
     // If there is a transaction property, then this is a reply to a message which we have sent
     // previously.
     if (msg.transaction) {
@@ -151,7 +132,7 @@ class Session {
         delete this.#transactions[msg.transaction];
 
         if (msg.janus === 'error') {
-          this.logger.debug(`Got error ${msg.error.code} from Janus. \
+          logger.debug(`Got error ${msg.error.code} from Janus. \
           Will reject promise.`, msg.error.reason);
           transaction.reject(msg.error);
           return;
@@ -220,7 +201,7 @@ class Session {
       };
     });
 
-    this.logger.debug('Outgoing Janus message', payload);
+    logger.debug('Outgoing Janus message', payload);
     /**
      * The parent application is responsible for serializing this message object and sending it to
      * Janus.
@@ -240,7 +221,7 @@ class Session {
    * @public
    */
   stop() {
-    this.logger.debug('stop()');
+    logger.debug('stop()');
     this.#stopKeepalive();
     this.connected = false;
   }
@@ -252,7 +233,7 @@ class Session {
     try {
       await this.send({ janus: 'keepalive' });
     } catch (err) {
-      this.logger.error('Keepalive timed out');
+      logger.error('Keepalive timed out');
       this.emit('keepalive_timout');
     }
   }
@@ -261,7 +242,7 @@ class Session {
    * @private
    */
   #stopKeepalive() {
-    this.logger.debug('stopKeepalive()');
+    logger.debug('stopKeepalive()');
     if (this.#keepalive_timeout) {
       clearTimeout(this.#keepalive_timeout);
     }
