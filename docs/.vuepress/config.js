@@ -35,6 +35,11 @@ module.exports = {
         }],
         sidebar: [
           {
+            title: 'Getting Started',
+            path: '/README.md',
+            sidebarDepth: 2
+          },
+          {
             title: 'Demo',
             path: '/demo.md',
             sidebarDepth: 2

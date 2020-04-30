@@ -12,7 +12,7 @@
       <div v-for="(streamSource, index) in streamSources"
            :key="index"
            class="mr-2">
-        <span class="mb-2">{{streamSource.joinResult.session_id}}</span>
+        <span class="my-2">{{streamSource.sender}}</span>
         <video :srcObject.prop="streamSource.stream"
                :controls="true"
                width="400"
