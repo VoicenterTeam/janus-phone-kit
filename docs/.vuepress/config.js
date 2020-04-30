@@ -36,7 +36,7 @@ module.exports = {
         sidebar: [
           {
             title: 'Getting Started',
-            path: '/README.md',
+            path: '/',
             sidebarDepth: 2
           },
           {
