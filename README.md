@@ -22,9 +22,7 @@ const janusSdk = new JanusPhoneKit({
   url: 'wss://webconf.officering.net/janus'
 })
 
-janusSdk.startVideoConference()
-
-const session = janusSdk.getSession()
+const session = janusSdk.startVideoConference()
 
 session.on('member:join', data => {
   // Whenever someone joins the video call including yourself

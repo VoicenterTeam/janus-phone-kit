@@ -64,6 +64,8 @@ export default class JanusPhoneKit extends EventEmitter {
 
     this.registerSocketOpenHandler()
     this.registerSocketCloseHandler()
+
+    return this.session
   }
 
   stopVideConference() {
