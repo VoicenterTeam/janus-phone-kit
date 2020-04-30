@@ -1,19 +1,17 @@
-import { BasePlugin } from "./BasePlugin";
-import { randomString } from "../util/util";
-import { logger } from "../util/logger";
-import { Member } from "../Member";
+import {BasePlugin} from "./BasePlugin";
+import {randomString} from "../util/util";
+import {logger} from "../util/logger";
+import {Member} from "../Member";
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroom'
   memberList: any = {}
-  videoElement = null
   room_id = 1234
   publishers = null
   #rtcConnection: any = new RTCPeerConnection();
 
   constructor() {
     super()
-
     this.opaqueId = `videoroomtest-${randomString(12)}`;
     logger.debug('Init plugin', this);
     // Send ICE events to Janus.
@@ -27,31 +25,6 @@ export class VideoRoomPlugin extends BasePlugin {
           logger.warn(err)
         });
     };
-
-    this.createVideoElement()
-  }
-
-  /**
-   * Creates html video element
-   * @return {null}
-   */
-  createVideoElement() {
-    this.videoElement = document.createElement('video')
-    this.videoElement.width = 320;
-    this.videoElement.controls = true;
-    this.videoElement.muted = true;
-    document.body.appendChild(this.videoElement);
-
-    return this.videoElement
-  }
-
-  playVideo(media, joinResult) {
-    logger.info('Playing local user media in video element.', joinResult);
-    if (!media) {
-      return
-    }
-    this.videoElement.srcObject = media;
-    this.videoElement.play();
   }
 
   /**
@@ -61,7 +34,7 @@ export class VideoRoomPlugin extends BasePlugin {
    * @return {Object} The response from Janus
    */
   async enableVideo(enabled) {
-    return this.sendMessage({ video: enabled });
+    return this.sendMessage({video: enabled});
   }
 
   /**
@@ -72,7 +45,7 @@ export class VideoRoomPlugin extends BasePlugin {
    * @return {Object} The response from Janus
    */
   async enableAudio(enabled) {
-    return this.sendMessage({ audio: enabled });
+    return this.sendMessage({audio: enabled});
   }
 
   /**
@@ -83,7 +56,7 @@ export class VideoRoomPlugin extends BasePlugin {
    * @return {Object} The response from Janus
    */
   async setBitrate(bitrate) {
-    return this.sendMessage({ bitrate });
+    return this.sendMessage({bitrate});
   }
 
   /**
@@ -94,58 +67,57 @@ export class VideoRoomPlugin extends BasePlugin {
    */
   async receive(msg) {
     logger.info('Received message from Janus', msg);
-
-    if (msg.plugindata && msg.plugindata.data.error_code) {
+    const {plugindata} = msg
+    if (plugindata?.data?.error_code) {
       logger.error('plugindata.data error :', msg.plugindata.data);
       return
     }
 
-    if (msg.plugindata && msg.plugindata.data.videoroom === 'attached') {
-      if (this.memberList[msg.plugindata.data.id]) {
-        this.memberList[msg.plugindata.data.id].answerAttachedStream(msg);
-      } else {
-        this.answerAttachedStream(msg);
-      }
+    if (plugindata?.data?.videoroom === 'attached') {
+      this.onVideoRoomAttached(msg)
       return
     }
 
-    if (msg.janus === 'hangup') {
-      const members = Object.values(this.memberList)
-      const hangupMember: any = members.find((member: any) => member.HandleId === msg.sender);
-      hangupMember.hangup();
+    if (msg?.janus === 'hangup') {
+      this.onHangup(msg.sender)
       return
 
     }
-    if (msg.plugindata && msg.plugindata.data.publishers) {
-
-      msg.plugindata.data.publishers.forEach((publisher) => {
-        console.log('plugindata.data.publishers', publisher);
-
-        if (!this.memberList[publisher.id] && !this.myFeedList.includes(publisher.id)) {
-          this.memberList[publisher.id] = new Member(publisher, this);
-          this.memberList[publisher.id].attachMember();
-        }
-      });
-
-      this.publishers = msg.plugindata.data.publishers;
-      this.private_id = msg.plugindata.data.private_id;
+    if (msg?.plugindata?.data?.publishers) {
+      this.onReceivePublishers(msg)
     }
   }
 
-  /**
-   * Set up a bi-directional WebRTC connection:
-   *
-   * 1. get local media
-   * 2. create and send a SDP offer
-   * 3. receive a SDP answer and add it to the RTCPeerConnection
-   * 4. negotiate ICE (can happen concurrently with the SDP exchange)
-   * 5. Play the video via the `onaddstream` event of RTCPeerConnection
-   *
-   * @private
-   * @override
-   */
-  async onAttached() {
-    console.log('onAttached !!!!!!!!!!!!!!!!!!!!!!');
+  private onHangup(sender) {
+    const members = Object.values(this.memberList)
+    const hangupMember: any = members.find((member: any) => member.handleId === sender);
+
+    if (!hangupMember) {
+      return
+    }
+    hangupMember.hangup();
+  }
+
+  private onVideoRoomAttached(message) {
+    if (this.memberList[message?.plugindata?.data?.id]) {
+      this.memberList[message?.plugindata?.data?.id].answerAttachedStream(message);
+    }
+  }
+
+  private onReceivePublishers(msg) {
+    msg?.plugindata?.data?.publishers.forEach((publisher) => {
+
+      if (!this.memberList[publisher.id] && !this.myFeedList.includes(publisher.id)) {
+        this.memberList[publisher.id] = new Member(publisher, this);
+        this.memberList[publisher.id].attachMember();
+      }
+    });
+
+    this.publishers = msg?.plugindata?.data?.publishers;
+    this.private_id = msg?.plugindata?.data?.private_id;
+  }
+
+  async requestAudioAndVideoPermissions() {
     logger.info('Asking user to share media. Please wait...');
     let localMedia;
     try {
@@ -155,7 +127,6 @@ export class VideoRoomPlugin extends BasePlugin {
       });
       logger.info('Got local user media.');
 
-      console.log('Lets Join a room localMedia:', localMedia);
     } catch (e) {
       try {
         console.log('Can get Video Lets try audio only ...');
@@ -171,6 +142,24 @@ export class VideoRoomPlugin extends BasePlugin {
         });
       }
     }
+    return localMedia
+  }
+
+  /**
+   * Set up a bi-directional WebRTC connection:
+   *
+   * 1. get local media
+   * 2. create and send a SDP offer
+   * 3. receive a SDP answer and add it to the RTCPeerConnection
+   * 4. negotiate ICE (can happen concurrently with the SDP exchange)
+   * 5. Play the video via the `onaddstream` event of RTCPeerConnection
+   *
+   * @private
+   * @override
+   */
+  async onAttached() {
+    let localMedia = await this.requestAudioAndVideoPermissions();
+
     const joinResult = await this.sendMessage({
       request: 'join',
       room: this.room_id,
@@ -179,25 +168,22 @@ export class VideoRoomPlugin extends BasePlugin {
       opaque_id: this.opaqueId,
     });
 
-    this.playVideo(localMedia, joinResult)
+    this.session.emit('member:join', {
+      stream: localMedia,
+      joinResult,
+      sender: 'me',
+      type: 'publisher',
+    })
 
     logger.info('Adding local user media to RTCPeerConnection.');
     this.#rtcConnection.addStream(localMedia);
 
-    logger.info('Creating SDP offer. Please wait...');
     const options: any = {
       audio: true,
       video: true,
     }
     const jsepOffer = await this.#rtcConnection.createOffer(options);
-
-
-    logger.info('SDP offer created.');
-
-    logger.info('Setting SDP offer on RTCPeerConnection');
     await this.#rtcConnection.setLocalDescription(jsepOffer);
-
-    logger.info('Getting SDP answer from Janus to our SDP offer. Please wait...');
 
     const confResult = await this.sendMessage({
       request: 'configure',
@@ -208,9 +194,5 @@ export class VideoRoomPlugin extends BasePlugin {
     console.log('Received SDP answer from Janus.', confResult);
     logger.debug('Setting the SDP answer on RTCPeerConnection. The `onaddstream` event will fire soon.');
     await this.#rtcConnection.setRemoteDescription(confResult.jsep);
-  }
-
-  answerAttachedStream(attachedStreamInfo) {
-    console.log('attachedStreamInfo for non memeber WTF ???', attachedStreamInfo);
   }
 }

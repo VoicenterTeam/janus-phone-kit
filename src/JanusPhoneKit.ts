@@ -2,6 +2,7 @@ import Session from "./Session";
 import { logger } from './util/logger'
 import { VideoRoomPlugin } from "./plugins/VideoRoomPlugin";
 import { ScreenSharePlugin } from "./plugins/ScreenSharePlugin";
+import EventEmitter from "./util/EventEmitter";
 
 type JanusPhoneKitOptions = {
   roomId?: number,
@@ -12,7 +13,7 @@ const defaultOptions: JanusPhoneKitOptions = {
   url: null,
 }
 
-export default class JanusPhoneKit {
+export default class JanusPhoneKit extends EventEmitter {
   private options: JanusPhoneKitOptions = {}
 
   private session: Session = null
@@ -35,10 +36,15 @@ export default class JanusPhoneKit {
   isConnected = false
 
   constructor(options = {}) {
+    super()
     this.options = {
       ...defaultOptions,
       ...options
     }
+  }
+
+  getSession () {
+    return this.session
   }
 
   startVideoConference() {
@@ -51,7 +57,7 @@ export default class JanusPhoneKit {
     this.session.on('output', (msg) => {
       this.websocket.send(JSON.stringify(msg))
     });
-    // Incoming communications from Janus.
+
     this.websocket.addEventListener('message', (event) => {
       this.session.receive(JSON.parse(event.data))
     });
@@ -60,18 +66,22 @@ export default class JanusPhoneKit {
     this.registerSocketCloseHandler()
   }
 
+  stopVideConference() {
+    this.session.stop();
+    this.isConnected = false
+    this.websocket.close()
+  }
+
   async startScreenShare() {
     if (!this.session.connected || this.screenSharePlugin) {
       return
     }
-    console.log("Start to load screen share ...");
     this.screenSharePlugin = new ScreenSharePlugin();
     this.screenSharePlugin.room_id = this.options.roomId;
     this.screenSharePlugin.VideoRoomPlugin =  this.videoRoomPlugin;
     try {
       await this.session.attachPlugin(this.screenSharePlugin);
       logger.info(`screenSharePlugin plugin attached with handle/ID ${this.screenSharePlugin.id}`);
-      console.log(`screenSharePlugin plugin attached with handle/ID ${this.screenSharePlugin.id}`)
     } catch (err) {
       logger.error('Error during attaching of screenShare plugin', err);
     }

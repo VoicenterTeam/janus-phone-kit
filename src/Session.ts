@@ -40,7 +40,6 @@ class Session extends EventEmitter {
    */
   async create() {
     const response = await this.send({janus: 'create'});
-    // todo check response ...
     this.connected = true;
     this.id = response.data.id;
     return response;

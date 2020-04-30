@@ -13,10 +13,15 @@ class EventEmitter {
    */
   public emit(event, payload?) {
     let callbacks = this.#events[event]
+    let allEventsCallbacks = this.#events['*']
 
     if (!callbacks) {
       return
     }
+    if (allEventsCallbacks) {
+      callbacks = callbacks.concat(allEventsCallbacks)
+    }
+    console.trace(this.#events, "EMIT")
     callbacks = callbacks.length > 1 ? toArray(callbacks) : callbacks
     for (let i = 0, l = callbacks.length; i < l; i++) {
       invokeFunction(callbacks[i], payload)
@@ -29,6 +34,9 @@ class EventEmitter {
    * @param {function} fn
    */
   public on(event, fn) {
+    if (typeof event !== 'string') {
+      return
+    }
     let handlers = this.#events[event]
     if (!handlers) {
       this.#events[event] = []
