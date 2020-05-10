@@ -11,7 +11,7 @@ export class VideoRoomPlugin extends BasePlugin {
   room_id = 1234
   publishers = null
   displayName: string = ''
-  #rtcConnection: any = new RTCPeerConnection();
+  rtcConnection: any = new RTCPeerConnection();
 
   stream: MediaStream;
   offerOptions: any = {}
@@ -22,9 +22,9 @@ export class VideoRoomPlugin extends BasePlugin {
     this.displayName = options.displayName
     logger.debug('Init plugin', this);
     // Send ICE events to Janus.
-    this.#rtcConnection.onicecandidate = (event) => {
+    this.rtcConnection.onicecandidate = (event) => {
 
-      if (this.#rtcConnection.signalingState !== 'stable') {
+      if (this.rtcConnection.signalingState !== 'stable') {
         return;
       }
       this.sendTrickle(event.candidate || null)
@@ -128,7 +128,11 @@ export class VideoRoomPlugin extends BasePlugin {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: true,
+        video: {
+          facingMode: "user",
+          width: { min: 480, ideal: 1280, max: 1920 },
+          height: { min: 320, ideal: 720, max: 1080 }
+        },
       });
       logger.info('Got local user media.');
 
@@ -218,29 +222,29 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async sendConfigureMessage(options) {
-    const jsepOffer = await this.#rtcConnection.createOffer(this.offerOptions);
-    await this.#rtcConnection.setLocalDescription(jsepOffer);
+    const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions);
+    await this.rtcConnection.setLocalDescription(jsepOffer);
 
     const confResult = await this.sendMessage({
       request: 'configure',
       ...options,
     }, jsepOffer);
 
-    await this.#rtcConnection.setRemoteDescription(confResult.jsep);
+    await this.rtcConnection.setRemoteDescription(confResult.jsep);
 
     return confResult
   }
 
   addTracks(stream: MediaStream) {
     stream.getTracks().forEach((track) => {
-      this.#rtcConnection.addTrack(track, stream);
+      this.rtcConnection.addTrack(track, stream);
     });
   }
 
   async hangup() {
-    if (this.#rtcConnection) {
-      this.#rtcConnection.close();
-      this.#rtcConnection = null;
+    if (this.rtcConnection) {
+      this.rtcConnection.close();
+      this.rtcConnection = null;
     }
 
     await this.send({ janus: 'hangup' });
