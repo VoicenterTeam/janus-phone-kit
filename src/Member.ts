@@ -1,5 +1,6 @@
 import { logger } from './util/logger'
 import {BasePlugin} from "./plugins/BasePlugin";
+import { v4 as uuidv4 } from 'uuid';
 
 export class Member {
 
@@ -55,6 +56,8 @@ export class Member {
         joinResult: this.#joinResult,
         sender: this.handleId,
         type: 'subscriber',
+        name: this.#info.display,
+        id: uuidv4(),
       })
     }
 

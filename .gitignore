@@ -2,6 +2,7 @@
 node_modules
 public
 coverage
+dist
 docs/.vuepress/dist
 
 # local env files

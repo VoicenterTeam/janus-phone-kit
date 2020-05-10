@@ -43,14 +43,26 @@ export default class JanusPhoneKit extends EventEmitter {
     }
   }
 
-  getSession () {
-    return this.session
+  on(event, fn) {
+    this.session.on(event, (...params) => {
+      fn.apply(this, params)
+    })
   }
 
-  startVideoConference() {
+  emit(...params) {
+    this.session?.emit.apply(this, params)
+  }
+
+  joinConference(roomId) {
     if (!this.options.url) {
       throw new Error('Could not create websocket connection because url parameter is missing')
     }
+    this.options.roomId = roomId
+
+    if (!this.options.roomId) {
+      throw new Error('A roomId is required in order to join a room')
+    }
+
     this.session = new Session()
 
     this.websocket = new WebSocket(this.options.url, 'janus-protocol');
@@ -68,10 +80,27 @@ export default class JanusPhoneKit extends EventEmitter {
     return this.session
   }
 
-  stopVideConference() {
+  hangup() {
+    this.session.emit('hangup')
     this.session.stop();
     this.isConnected = false
     this.websocket.close()
+  }
+
+  startVideo() {
+    this.videoRoomPlugin?.startVideo()
+  }
+
+  stopVideo() {
+    this.videoRoomPlugin?.stopVideo()
+  }
+
+  startAudio() {
+    this.videoRoomPlugin?.startAudio()
+  }
+
+  stopAudio() {
+    this.videoRoomPlugin?.stopAudio()
   }
 
   async startScreenShare() {
@@ -99,7 +128,9 @@ export default class JanusPhoneKit extends EventEmitter {
         return;
       }
 
-      this.videoRoomPlugin = new VideoRoomPlugin();
+      this.videoRoomPlugin = new VideoRoomPlugin({
+        displayName: 'test'
+      });
       if (this.options.roomId) {
         this.videoRoomPlugin.room_id = this.options.roomId;
       } else {

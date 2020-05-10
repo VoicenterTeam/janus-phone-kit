@@ -109,11 +109,43 @@ class DeviceManager {
     }
   }
 
-  static async getVideoStream() {
+  static toggleAudioMute(stream) {
+    const audioTracks = stream.getAudioTracks();
+    if (audioTracks.length === 0) {
+      return;
+    }
+
+    audioTracks.forEach(track => {
+      track.enabled = !track.enabled
+    })
+
+    return audioTracks[0].enabled
+  }
+
+  static toggleVideoMute(stream) {
+    const videoTracks = stream.getVideoTracks();
+    if (videoTracks.length === 0) {
+      return;
+    }
+
+    videoTracks.forEach(track => {
+      track.enabled = !track.enabled
+    })
+
+    return videoTracks[0].enabled
+  }
+
+  static async getStream(streamOptions = { video: true, audio: true}) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({video: true})
-      const videoTracks = stream.getVideoTracks();
-      if (videoTracks.length === 0) {
+      const stream = await navigator.mediaDevices.getUserMedia(streamOptions)
+
+      let tracks = stream.getTracks()
+      if (streamOptions.video) {
+        tracks = stream.getVideoTracks()
+      } else if (streamOptions.audio) {
+        tracks = stream.getAudioTracks()
+      }
+      if (tracks.length === 0) {
         return {
           stream,
           track: null
@@ -121,7 +153,7 @@ class DeviceManager {
       }
       return {
         stream,
-        track: videoTracks[0]
+        track: tracks[0]
       }
     } catch (err) {
       console.warn(err)

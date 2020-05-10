@@ -21,7 +21,6 @@ class EventEmitter {
     if (allEventsCallbacks) {
       callbacks = callbacks.concat(allEventsCallbacks)
     }
-    console.trace(this.#events, "EMIT")
     callbacks = callbacks.length > 1 ? toArray(callbacks) : callbacks
     for (let i = 0, l = callbacks.length; i < l; i++) {
       invokeFunction(callbacks[i], payload)

@@ -2,17 +2,24 @@ import {BasePlugin} from "./BasePlugin";
 import {randomString} from "../util/util";
 import {logger} from "../util/logger";
 import {Member} from "../Member";
+import DeviceManager from "../util/DeviceManager";
+import { v4 as uuidv4 } from 'uuid';
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroom'
   memberList: any = {}
   room_id = 1234
   publishers = null
+  displayName: string = ''
   #rtcConnection: any = new RTCPeerConnection();
 
-  constructor() {
+  stream: MediaStream;
+  offerOptions: any = {}
+
+  constructor(options: any = {}) {
     super()
     this.opaqueId = `videoroomtest-${randomString(12)}`;
+    this.displayName = options.displayName
     logger.debug('Init plugin', this);
     // Send ICE events to Janus.
     this.#rtcConnection.onicecandidate = (event) => {
@@ -66,14 +73,12 @@ export class VideoRoomPlugin extends BasePlugin {
    * @override
    */
   async receive(msg) {
-    logger.info('Received message from Janus', msg);
-    const {plugindata} = msg
-    if (plugindata?.data?.error_code) {
-      logger.error('plugindata.data error :', msg.plugindata.data);
+
+    if (msg?.plugindata?.data?.error_code) {
       return
     }
 
-    if (plugindata?.data?.videoroom === 'attached') {
+    if (msg?.plugindata?.data?.videoroom === 'attached') {
       this.onVideoRoomAttached(msg)
       return
     }
@@ -83,6 +88,7 @@ export class VideoRoomPlugin extends BasePlugin {
       return
 
     }
+
     if (msg?.plugindata?.data?.publishers) {
       this.onReceivePublishers(msg)
     }
@@ -119,9 +125,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
   async requestAudioAndVideoPermissions() {
     logger.info('Asking user to share media. Please wait...');
-    let localMedia;
     try {
-      localMedia = await navigator.mediaDevices.getUserMedia({
+      this.stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true,
       });
@@ -129,20 +134,19 @@ export class VideoRoomPlugin extends BasePlugin {
 
     } catch (e) {
       try {
-        console.log('Can get Video Lets try audio only ...');
-        localMedia = await navigator.mediaDevices.getUserMedia({
+        this.stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
           video: false,
         });
       } catch (ex) {
-        console.log('Can get audio as well Lets try no input ...', ex);
-        localMedia = await navigator.mediaDevices.getUserMedia({
+
+        this.stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
           video: false,
         });
       }
     }
-    return localMedia
+    return this.stream
   }
 
   /**
@@ -158,41 +162,88 @@ export class VideoRoomPlugin extends BasePlugin {
    * @override
    */
   async onAttached() {
-    let localMedia = await this.requestAudioAndVideoPermissions();
+    await this.requestAudioAndVideoPermissions();
 
     const joinResult = await this.sendMessage({
       request: 'join',
       room: this.room_id,
       ptype: 'publisher',
-      display: '33333',
+      display: this.displayName,
       opaque_id: this.opaqueId,
     });
 
     this.session.emit('member:join', {
-      stream: localMedia,
+      stream: this.stream,
       joinResult,
       sender: 'me',
       type: 'publisher',
+      name: this.displayName,
+      id: uuidv4(),
     })
 
     logger.info('Adding local user media to RTCPeerConnection.');
-    this.#rtcConnection.addStream(localMedia);
+    this.addTracks(this.stream)
 
-    const options: any = {
-      audio: true,
-      video: true,
+    await this.configureRtcpConnection()
+  }
+
+  async startVideo() {
+    DeviceManager.toggleVideoMute(this.stream)
+    await this.enableVideo(true)
+  }
+
+  async stopVideo() {
+    DeviceManager.toggleVideoMute(this.stream)
+    await this.enableVideo(false)
+  }
+
+  async startAudio() {
+    DeviceManager.toggleAudioMute(this.stream)
+    await this.enableAudio(true)
+  }
+
+  async stopAudio() {
+    DeviceManager.toggleAudioMute(this.stream)
+    await this.enableAudio(false)
+  }
+
+  async configureRtcpConnection(options = { audio: true, video: true }) {
+    const { track } = await DeviceManager.getStream(options)
+
+    if (track) {
+      this.stream.addTrack(track)
+      this.#rtcConnection.addTrack(track, this.stream);
     }
-    const jsepOffer = await this.#rtcConnection.createOffer(options);
+
+    await this.sendConfigureMessage(options)
+  }
+
+  async sendConfigureMessage(options) {
+    const jsepOffer = await this.#rtcConnection.createOffer(this.offerOptions);
     await this.#rtcConnection.setLocalDescription(jsepOffer);
 
     const confResult = await this.sendMessage({
       request: 'configure',
-      audio: true,
-      video: true
+      ...options,
     }, jsepOffer);
 
-    console.log('Received SDP answer from Janus.', confResult);
-    logger.debug('Setting the SDP answer on RTCPeerConnection. The `onaddstream` event will fire soon.');
     await this.#rtcConnection.setRemoteDescription(confResult.jsep);
+
+    return confResult
+  }
+
+  addTracks(stream: MediaStream) {
+    stream.getTracks().forEach((track) => {
+      this.#rtcConnection.addTrack(track, stream);
+    });
+  }
+
+  async hangup() {
+    if (this.#rtcConnection) {
+      this.#rtcConnection.close();
+      this.#rtcConnection = null;
+    }
+
+    await this.send({ janus: 'hangup' });
   }
 }

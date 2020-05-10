@@ -1,79 +1,74 @@
 <template>
   <div>
-    <base-button @click="videoStarted ? stopVideo() : startVideo()">
-      {{videoStarted ? 'Stop video': 'Start Video'}}
+    <base-button @click="conferenceStarted ? stopConference() : startConference()">
+      {{conferenceStarted ? 'Stop': 'Start'}}
     </base-button>
     <base-button @click="startScreenShare"
                  :disabled="streamSources.length === 0">
       {{screenShareStarted ? 'Stop screen share': 'Start screen share'}}
     </base-button>
 
-    <div class="flex flex-wrap mt-10">
-      <div v-for="(streamSource, index) in streamSources"
-           :key="index"
-           class="mr-2">
-        <span class="my-2">{{streamSource.sender}}</span>
-        <video :srcObject.prop="streamSource.stream"
-               :controls="true"
-               width="400"
-               autoplay
-        >
-        </video>
-      </div>
-    </div>
+    <conference v-if="conferenceStarted" :stream-sources="streamSources"/>
 
   </div>
 </template>
 <script lang="ts">
   import Vue from 'vue'
-  import JanusPhoneKit from '../../../src';
+  import ElDialog from 'element-ui/packages/dialog'
+  import 'element-ui/packages/theme-chalk/lib/dialog.css'
 
+  import PhoneKit from '../../../src';
   export default Vue.extend({
+    components: {
+      ElDialog
+    },
     data() {
       return {
-        videoStarted: false,
+        conferenceStarted: false,
         screenShareStarted: false,
-        janusSdk: null,
-        streamSources: []
+        PhoneKit: null,
+        roomId: 1234,
+        streamSources: [],
       }
     },
     methods: {
-      startVideo() {
-        this.janusSdk.startVideoConference()
+      startConference() {
+        this.PhoneKit.joinConference(this.roomId)
         this.initListeners()
-        this.videoStarted = true
+        this.conferenceStarted = true
       },
-      stopVideo() {
-        this.janusSdk.stopVideConference()
-        const index = this.streamSources.findIndex(s => s.type === 'publisher')
-
-        if (index !== -1) {
-          this.streamSources.splice(index, 1)
-          this.videoStarted = false
-        }
+      stopConference() {
+        this.PhoneKit.hangup()
+        this.afterHangup()
+      },
+      afterHangup() {
+        this.conferenceStarted = false
+        this.streamSources = []
       },
       startScreenShare() {
-        this.janusSdk.startScreenShare()
+        this.PhoneKit.startScreenShare()
         this.screenShareStarted = true
       },
       initListeners() {
-        const session = this.janusSdk.getSession()
-        session.on('member:join', data => {
+        this.PhoneKit.on('member:join', data => {
           this.streamSources.push(data)
         })
-        session.on('member:hangup', info => {
+
+        this.PhoneKit.on('member:hangup', info => {
           const index = this.streamSources.findIndex(s => s.sender === info.sender)
           if (index !== -1) {
             this.streamSources.splice(index, 1)
           }
         })
+        this.PhoneKit.on('hangup', this.afterHangup)
       }
     },
-    mounted() {
-      this.janusSdk = new JanusPhoneKit({
-        roomId: 1234,
+    async mounted() {
+      this.PhoneKit = new PhoneKit({
         url: 'wss://webconf.officering.net/janus'
       })
+      // @ts-ignore
+      window.PhoneKit = this.PhoneKit
     }
   })
 </script>
