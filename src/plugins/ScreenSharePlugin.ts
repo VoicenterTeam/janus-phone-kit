@@ -51,15 +51,6 @@ export class ScreenSharePlugin extends BasePlugin {
     return this.videoElement
   }
 
-  playVideo(media, joinResult) {
-    logger.info('Playing local user media in video element.', joinResult);
-    if (!media) {
-      return
-    }
-    this.videoElement.srcObject = media;
-    this.videoElement.play();
-  }
-
   /**
    * Start or stop echoing video.
    * @public
@@ -144,9 +135,12 @@ export class ScreenSharePlugin extends BasePlugin {
     }
 
     const joinResult = await this.sendMessage({
-      request: 'join', room: this.room_id, ptype: 'publisher', display: 'Screen Share', opaque_id: this.opaqueId,
+      request: 'join',
+      room: this.room_id,
+      ptype: 'publisher',
+      display: 'Screen Share',
+      opaque_id: this.opaqueId,
     });
-    this.playVideo(localMedia, joinResult)
 
     logger.info('Adding local user media to RTCPeerConnection.');
     this.#rtcConnection.addStream(localMedia);

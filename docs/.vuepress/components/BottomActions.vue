@@ -1,6 +1,6 @@
 <template>
   <div class="fixed bottom-0 h-20 bg-white shadow-lg w-full border-t border-gray-200 flex justify-between">
-    <div></div>
+    <div class="w-56"></div>
     <div class="flex items-center">
       <button v-if="isMicOn"
               @click="toggleMicrophone(false)"
@@ -28,16 +28,20 @@
         <video-off-icon class="w-5 h-5 text-white"></video-off-icon>
       </button>
     </div>
-    <div class="px-4 flex items-center">
+    <div class="flex items-center">
       <button @click="enableScreenShare()"
-              class="px-6 py-4 border border-transparent cursor-pointer hover:border-gray-300 focus:outline-none mr-2">
+              class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
         <monitor-icon class="w-5 h-5"></monitor-icon>
+      </button>
+      <button @click="settingsDialog = true"
+              class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
+        <settings-icon class="w-5 h-5"></settings-icon>
       </button>
     </div>
   </div>
 </template>
 <script>
-  import { MicIcon, MicOffIcon, VideoIcon, VideoOffIcon, PhoneIcon, MonitorIcon } from 'vue-feather-icons'
+  import { MicIcon, MicOffIcon, VideoIcon, VideoOffIcon, PhoneIcon, MonitorIcon, SettingsIcon } from 'vue-feather-icons'
   export default {
     components: {
       MicIcon,
@@ -45,12 +49,14 @@
       VideoOffIcon,
       VideoIcon,
       PhoneIcon,
-      MonitorIcon
+      MonitorIcon,
+      SettingsIcon
     },
     data() {
       return {
         isMicOn: true,
         isVideoOn: true,
+        settingsDialog: false,
       }
     },
     methods: {

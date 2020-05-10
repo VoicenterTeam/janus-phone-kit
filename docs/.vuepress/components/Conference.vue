@@ -7,8 +7,8 @@
              autoplay
       >
       </video>
-      <div class="fixed top-0 top-0 left-0 w-screen conference-content flex justify-center items-center">
-        <avatar v-if="false" :name="mainSource.sender"/>
+      <div class="fixed top-0 left-0 flex justify-center items-center opacity-25 text-white bg-gray-700 rounded-br px-4 text-xl font-semibold">
+        {{mainSource.name || mainSource.sender}}
       </div>
       <bottom-actions/>
     </template>
