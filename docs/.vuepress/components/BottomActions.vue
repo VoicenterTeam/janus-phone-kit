@@ -28,18 +28,24 @@
         <video-off-icon class="w-5 h-5 text-white"></video-off-icon>
       </button>
     </div>
-    <div></div>
+    <div class="px-4 flex items-center">
+      <button @click="enableScreenShare()"
+              class="px-6 py-4 border border-transparent cursor-pointer hover:border-gray-300 focus:outline-none mr-2">
+        <monitor-icon class="w-5 h-5"></monitor-icon>
+      </button>
+    </div>
   </div>
 </template>
 <script>
-  import { MicIcon, MicOffIcon, VideoIcon, VideoOffIcon, PhoneIcon } from 'vue-feather-icons'
+  import { MicIcon, MicOffIcon, VideoIcon, VideoOffIcon, PhoneIcon, MonitorIcon } from 'vue-feather-icons'
   export default {
     components: {
       MicIcon,
       MicOffIcon,
       VideoOffIcon,
       VideoIcon,
-      PhoneIcon
+      PhoneIcon,
+      MonitorIcon
     },
     data() {
       return {
@@ -66,6 +72,9 @@
       },
       hangup() {
         window.PhoneKit.hangup()
+      },
+      enableScreenShare() {
+        window.PhoneKit.startScreenShare()
       }
     }
   }
