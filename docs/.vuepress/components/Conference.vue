@@ -16,7 +16,8 @@
     <div class="fixed top-0 right-0 other-videos">
       <div v-for="(streamSource, index) in sourcesExceptMain"
            :key="index"
-           class="mr-2 mb-2 relative border-2 border-blue-700 rounded">
+           @click="mainSource = streamSource"
+           class="mr-2 mb-2 relative border-2 border-blue-700 rounded cursor-pointer">
         <div class="absolute top-0 left-0 flex justify-center items-center opacity-25 text-white bg-gray-700 rounded-br px-4 text-xl font-semibold">
           {{streamSource.name || streamSource.sender}}
         </div>
@@ -58,8 +59,11 @@
       streamSources: {
         immediate: true,
         handler(newVal) {
-          if (newVal.length > 0 && !this.mainSource) {
-            this.mainSource = this.streamSources.find(source => source.type === 'publisher')
+          if (newVal.length > 0 && (!this.mainSource || this.mainSource.type == 'publisher')) {
+            this.mainSource = this.streamSources.find(source => source.type === 'subscriber')
+            if (!this.mainSource) {
+              this.mainSource = this.streamSources.find(source => source.type === 'publisher')
+            }
           }
         }
       }
