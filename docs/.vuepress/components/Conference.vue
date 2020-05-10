@@ -29,8 +29,8 @@
                :class="{'publisher-video': mainSource.type === 'publisher'}"
                poster="https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_960_720.jpg"
                :controls="false"
-               :muted="mainSource.type === 'publisher'"
-               :volume="mainSource.type === 'publisher' ? 0: 0.9"
+               :muted="streamSource.type === 'publisher'"
+               :volume="streamSource.type === 'publisher' ? 0: 0.9"
                width="200"
                height="150"
                autoplay
