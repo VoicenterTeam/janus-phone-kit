@@ -3,7 +3,9 @@
     <template v-if="mainSource">
       <video :srcObject.prop="mainSource.stream"
              class="main-video"
+             :class="{'publisher-video': mainSource.type === 'publisher'}"
              :controls="false"
+             :muted="mainSource.type === 'publisher'"
              autoplay
       >
       </video>
@@ -22,9 +24,13 @@
           {{streamSource.name || streamSource.sender}}
         </div>
         <video :srcObject.prop="streamSource.stream"
+               class="member-video"
+               :class="{'publisher-video': mainSource.type === 'publisher'}"
                poster="https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_960_720.jpg"
                :controls="false"
-               width="250"
+               :muted="mainSource.type === 'publisher'"
+               width="200"
+               height="150"
                autoplay
         >
         </video>
@@ -59,7 +65,7 @@
       streamSources: {
         immediate: true,
         handler(newVal) {
-          if (newVal.length > 0 && (!this.mainSource || this.mainSource.type == 'publisher')) {
+          if (newVal.length > 0 && (!this.mainSource || this.mainSource.type == 'publisher' || newVal.length === 1)) {
             this.mainSource = this.streamSources.find(source => source.type === 'subscriber')
             if (!this.mainSource) {
               this.mainSource = this.streamSources.find(source => source.type === 'publisher')
@@ -81,5 +87,9 @@
   .other-videos {
     max-height: 100vh;
     overflow-y: auto;
+  }
+  .member-video {
+    min-height: 150px;
+    object-fit: cover;
   }
 </style>

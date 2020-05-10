@@ -11,15 +11,10 @@
 <script lang="ts">
   import Vue from 'vue'
   import MessageBox from 'element-ui/packages/message-box'
-  import ElDialog from 'element-ui/packages/dialog'
-  import 'element-ui/packages/theme-chalk/lib/dialog.css'
   import 'element-ui/packages/theme-chalk/lib/message-box.css'
 
   import PhoneKit from '../../../src';
   export default Vue.extend({
-    components: {
-      ElDialog
-    },
     data() {
       return {
         conferenceStarted: false,

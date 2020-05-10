@@ -63,7 +63,7 @@ class DeviceManager {
     });
   }
 
-  private static async getUserMedia(constraints: any) {
+  static async getUserMedia(constraints: any) {
     stream = await navigator.mediaDevices.getUserMedia(constraints)
     return stream
   }

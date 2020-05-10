@@ -103,6 +103,10 @@ export default class JanusPhoneKit extends EventEmitter {
     this.videoRoomPlugin?.stopAudio()
   }
 
+  changePublisherStream(stream) {
+    this.videoRoomPlugin?.changePublisherStream(stream)
+  }
+
   async startScreenShare() {
     if (!this.session.connected || this.screenSharePlugin) {
       return

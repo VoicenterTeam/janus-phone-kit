@@ -207,6 +207,13 @@ export class VideoRoomPlugin extends BasePlugin {
     await this.enableAudio(false)
   }
 
+  async changePublisherStream(stream) {
+    this.stream.getTracks().forEach(track => {
+      track.stop();
+    });
+    this.stream = stream
+  }
+
   async configureRtcpConnection(options = { audio: true, video: true }) {
     const { track } = await DeviceManager.getStream(options)
 
