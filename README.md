@@ -17,24 +17,33 @@ Please don't use it in production as it's experimental and might change.
 Demo Code on how to create a video conference
 
 ```js
-const janusSdk = new JanusPhoneKit({
-  roomId: 1234,
+const PhoneKit = new JanusPhoneKit({
   url: 'wss://webconf.officering.net/janus'
 })
 
-const session = janusSdk.startVideoConference()
+const roomId = 1234
 
-session.on('member:join', data => {
+PhoneKit.joinConference(roomId, 'User display name')
+
+PhoneKit.on('member:join', data => {
   // Whenever someone joins the video call including yourself
   // {type: 'publisher|subscriber', sender: 'sender id', steam: 'video stream object', joinResult: object }
 })
-session.on('member:hangup', data => {
+PhoneKit.on('member:hangup', data => {
   // Whenever someone exists the video call
   // { sender: 'sender id' }
 })
+PhoneKit.on('hangup', () => {
+  // PhoneKit.hangup() was called somehwere
+})
+
+// Leave the room
+PhoneKit.hangup()
 
 // Share your screen
-janusSdk.startScreenShare()
+PhoneKit.startScreenShare().then(() => {
+ // success, sharing your screen
+})
 ```
 
 You can find a working Vue.js example in the source code located in `src/docs/.vuepress/components/Demo.vue` 
