@@ -184,7 +184,10 @@ export class VideoRoomPlugin extends BasePlugin {
     logger.info('Adding local user media to RTCPeerConnection.');
     this.addTracks(this.stream)
 
-    await this.configureRtcpConnection()
+    await this.sendConfigureMessage({
+      audio: true,
+      video: true,
+    })
   }
 
   async startVideo() {
@@ -212,17 +215,6 @@ export class VideoRoomPlugin extends BasePlugin {
       track.stop();
     });
     this.stream = stream
-  }
-
-  async configureRtcpConnection(options = { audio: true, video: true }) {
-    const { track } = await DeviceManager.getStream(options)
-
-    if (track) {
-      this.stream.addTrack(track)
-      this.#rtcConnection.addTrack(track, this.stream);
-    }
-
-    await this.sendConfigureMessage(options)
   }
 
   async sendConfigureMessage(options) {

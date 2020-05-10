@@ -1,7 +1,4 @@
-let stream: MediaStream
-
 class DeviceManager {
-
   static canGetMediaDevices () {
     if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
       console.log("enumerateDevices() not supported.");
@@ -54,7 +51,7 @@ class DeviceManager {
     })
   }
 
-  static stopStreamTracks() {
+  static stopStreamTracks(stream) {
     if (!stream) {
       return
     }
@@ -64,28 +61,8 @@ class DeviceManager {
   }
 
   static async getUserMedia(constraints: any) {
-    stream = await navigator.mediaDevices.getUserMedia(constraints)
+    const stream = await navigator.mediaDevices.getUserMedia(constraints)
     return stream
-  }
-
-  static async getVideoStreamFrom(deviceId: string) {
-    DeviceManager.stopStreamTracks()
-
-    const constraints = {
-      video: {deviceId: deviceId ? {exact: deviceId} : undefined}
-    };
-
-    return DeviceManager.getUserMedia(constraints)
-  }
-
-  static async getAudioStreamFrom(deviceId: string) {
-    DeviceManager.stopStreamTracks()
-
-    const constraints = {
-      audio: {deviceId: deviceId ? {exact: deviceId} : undefined}
-    };
-
-    return DeviceManager.getUserMedia(constraints)
   }
 
   static async changeAudioOutput(element: any, deviceId: string) {

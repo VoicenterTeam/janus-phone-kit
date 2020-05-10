@@ -6,6 +6,7 @@
              :class="{'publisher-video': mainSource.type === 'publisher'}"
              :controls="false"
              :muted="mainSource.type === 'publisher'"
+             :volume="mainSource.type === 'publisher' ? 0: 0.9"
              autoplay
       >
       </video>
@@ -29,6 +30,7 @@
                poster="https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_960_720.jpg"
                :controls="false"
                :muted="mainSource.type === 'publisher'"
+               :volume="mainSource.type === 'publisher' ? 0: 0.9"
                width="200"
                height="150"
                autoplay
@@ -40,6 +42,7 @@
 </template>
 <script lang="ts">
   import Vue from 'vue'
+  import {DeviceManager} from "../../../src";
 
   export default Vue.extend({
     props: {
@@ -70,6 +73,9 @@
             if (!this.mainSource) {
               this.mainSource = this.streamSources.find(source => source.type === 'publisher')
             }
+          } else if (newVal.length === 0 && this.mainSource) {
+            DeviceManager.stopStreamTracks(this.mainSource.stream)
+            this.mainSource = null
           }
         }
       }

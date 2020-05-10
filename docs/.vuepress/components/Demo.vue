@@ -13,7 +13,7 @@
   import MessageBox from 'element-ui/packages/message-box'
   import 'element-ui/packages/theme-chalk/lib/message-box.css'
 
-  import PhoneKit from '../../../src';
+  import PhoneKit, {DeviceManager} from '../../../src';
   export default Vue.extend({
     data() {
       return {
@@ -43,6 +43,9 @@
       },
       afterHangup() {
         this.conferenceStarted = false
+        this.streamSources.forEach(source => {
+          DeviceManager.stopStreamTracks(source.stream)
+        })
         this.streamSources = []
       },
       initListeners() {
@@ -53,6 +56,7 @@
         this.PhoneKit.on('member:hangup', info => {
           const index = this.streamSources.findIndex(s => s.sender === info.sender)
           if (index !== -1) {
+            DeviceManager.stopStreamTracks(this.streamSources[index].stream)
             this.streamSources.splice(index, 1)
           }
         })
