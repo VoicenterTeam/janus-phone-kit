@@ -18,7 +18,7 @@ Demo Code on how to create a video conference
 
 ```js
 const PhoneKit = new JanusPhoneKit({
-  url: 'wss://webconf.officering.net/janus'
+  url: 'websocket url to janus backend server'
 })
 
 const roomId = 1234
