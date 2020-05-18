@@ -21,7 +21,7 @@ const PhoneKit = new JanusPhoneKit({
   url: 'websocket url to janus backend server'
 })
 
-const roomId = 1234
+const roomId = 1234 // This is basically the conference identifier. Usually it should be part of the url
 
 PhoneKit.joinConference(roomId, 'User display name')
 
