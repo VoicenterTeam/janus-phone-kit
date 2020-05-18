@@ -1,6 +1,6 @@
 # Janus Phone Kit
 
-This Project is a toolkit for creating vide conferences based on [Janus WebRTC Server](https://janus.conf.meetecho.com/docs/)
+This Project is a toolkit for creating video conferences based on [Janus WebRTC Server](https://janus.conf.meetecho.com/docs/)
 The main purpose of it is to create an abstract layer that is easy to use in order to create vide conferences and manage them.
 
 ### Installation
