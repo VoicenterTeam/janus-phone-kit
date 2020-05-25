@@ -3,7 +3,7 @@ import { logger } from '../util/logger'
 import { randomString } from '../util/util'
 
 export class ScreenSharePlugin extends BasePlugin {
-  name = 'janus.plugin.videoroom'
+  name = 'janus.plugin.videoroomjs'
   memberList = {}
   videoElement = null
   room_id = 1234
@@ -15,10 +15,13 @@ export class ScreenSharePlugin extends BasePlugin {
    */
   VideoRoomPlugin = null
 
-  constructor() {
+  constructor(options: any = {}) {
     super()
 
     this.opaqueId = `videoroomtest-${randomString(12)}`;
+    this.room_id = options.roomId
+    this.VideoRoomPlugin = options.videoRoomPlugin
+
     logger.debug('Init plugin', this);
 
     this.#rtcConnection = new RTCPeerConnection();

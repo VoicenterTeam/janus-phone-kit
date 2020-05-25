@@ -6,7 +6,7 @@ import DeviceManager from "../util/DeviceManager";
 import { v4 as uuidv4 } from 'uuid';
 
 export class VideoRoomPlugin extends BasePlugin {
-  name = 'janus.plugin.videoroom'
+  name = 'janus.plugin.videoroomjs'
   memberList: any = {}
   room_id = 1234
   publishers = null
@@ -20,6 +20,7 @@ export class VideoRoomPlugin extends BasePlugin {
     super()
     this.opaqueId = `videoroomtest-${randomString(12)}`;
     this.displayName = options.displayName
+    this.room_id = options.roomId
     logger.debug('Init plugin', this);
     // Send ICE events to Janus.
     this.rtcConnection.onicecandidate = (event) => {

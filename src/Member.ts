@@ -21,7 +21,7 @@ export class Member {
     const attachResult = await this.#plugin.send({
       janus: 'attach',
       opaque_id: this.#plugin.opaqueId,
-      plugin: 'janus.plugin.videoroom'
+      plugin: 'janus.plugin.videoroomjs'
     });
     this.handleId = attachResult.data.id;
 
@@ -37,6 +37,9 @@ export class Member {
 
   async answerAttachedStream(attachedStreamInfo) {
     const RTCPeerOnAddStream = async (event) => {
+      if (!this.#rtcpPeer) {
+        return
+      }
       logger.debug('on add stream Member', event);
       const options: any = {
         audio: true,
