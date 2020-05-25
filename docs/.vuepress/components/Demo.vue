@@ -1,38 +1,74 @@
 <template>
   <div>
-    <base-button @click="conferenceStarted ? hangup() : joinConference()">
+    <base-button @click="conferenceStarted ? hangup() : openJoinModal()">
       {{conferenceStarted ? 'Stop': 'Join Conference'}}
     </base-button>
 
+    <el-dialog :visible.sync="joinDialogVisible">
+      <el-form ref="form"
+               label-position="top"
+               :rules="rules"
+               :model="joinForm"
+               @submit.native.prevent="joinRoom"
+      >
+        <el-form-item label="Room Id" prop="roomId">
+          <el-input placeholder="Room Id" v-model="joinForm.roomId"></el-input>
+        </el-form-item>
+        <el-form-item label="Display Name" prop="displayName">
+          <el-input placeholder="Your name..." v-model="joinForm.displayName"></el-input>
+        </el-form-item>
+
+        <div class="flex justify-center">
+          <base-button type="submit">
+            Join Conference
+          </base-button>
+        </div>
+      </el-form>
+    </el-dialog>
     <conference v-if="conferenceStarted" :stream-sources="streamSources"/>
 
   </div>
 </template>
 <script lang="ts">
   import Vue from 'vue'
-  import MessageBox from 'element-ui/packages/message-box'
-  import 'element-ui/packages/theme-chalk/lib/message-box.css'
 
   import PhoneKit, {DeviceManager} from '../../../src';
   export default Vue.extend({
     data() {
       return {
         conferenceStarted: false,
+        joinDialogVisible: false,
         PhoneKit: null,
-        roomId: 1234,
         streamSources: [],
+        joinForm: {
+          displayName: '',
+          roomId: 1234,
+        },
+        rules: {
+          roomId: [
+            {
+              required: true,
+              message: 'Room Id name is required',
+              trigger: 'blur'
+            },
+          ],
+          displayName: [
+            { required: true, message: 'Display name is required', trigger: 'blur' },
+          ],
+        }
       }
     },
     methods: {
-      async joinConference() {
+      openJoinModal() {
+        this.joinDialogVisible = true
+      },
+      async joinRoom() {
         try {
-          const displayName = await MessageBox.prompt(`What's your name ?`, {
-            confirmButtonText: 'OK',
-            cancelButtonText: 'Cancel',
-          })
-          this.PhoneKit.joinConference(this.roomId, displayName.value)
+          await this.$refs.form.validate()
+          this.PhoneKit.joinRoom({ roomId: this.joinForm.roomId, displayName: this.joinForm.displayName })
           this.initListeners()
           this.conferenceStarted = true
+          this.joinDialogVisible = false
         } catch (err) {
           console.warn(err)
         }
@@ -50,6 +86,7 @@
       },
       initListeners() {
         this.PhoneKit.on('member:join', data => {
+          console.log('JOIN', data)
           this.streamSources.push(data)
         })
 

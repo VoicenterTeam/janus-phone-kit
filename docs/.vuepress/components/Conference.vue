@@ -77,7 +77,6 @@
             DeviceManager.stopStreamTracks(this.mainSource.stream)
             this.mainSource = null
           }
-          newVal.forEach(source => this.monitorAudio(source.stream))
         }
       }
     },
