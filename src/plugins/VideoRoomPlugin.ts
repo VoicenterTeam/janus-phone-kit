@@ -217,11 +217,16 @@ export class VideoRoomPlugin extends BasePlugin {
     await this.enableAudio(false)
   }
 
-  async changePublisherStream(stream) {
+  async changePublisherStream(stream, options = {}) {
     this.stream.getTracks().forEach(track => {
       track.stop();
+      this.rtcConnection.removeTrack(track);
     });
+
     this.stream = stream
+    this.addTracks(this.stream)
+    debugger
+    await this.sendConfigureMessage(options)
   }
 
   async sendConfigureMessage(options) {
