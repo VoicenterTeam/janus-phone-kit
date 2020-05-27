@@ -75,22 +75,24 @@ export class VideoRoomPlugin extends BasePlugin {
    */
   async receive(msg) {
 
-    if (msg?.plugindata?.data?.error_code) {
+    const pluginData = msg?.plugindata?.data
+
+    if (pluginData?.error_code) {
       return
     }
 
-    if (msg?.plugindata?.data?.videoroom === 'attached') {
+    if (pluginData?.videoroom === 'attached') {
       this.onVideoRoomAttached(msg)
       return
     }
 
-    if (msg?.janus === 'hangup') {
+    if (pluginData?.unpublished) {
       this.onHangup(msg.sender)
       return
 
     }
 
-    if (msg?.plugindata?.data?.publishers) {
+    if (pluginData?.publishers) {
       this.onReceivePublishers(msg)
     }
   }
