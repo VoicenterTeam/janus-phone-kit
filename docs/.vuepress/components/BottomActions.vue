@@ -100,16 +100,46 @@
       },
       async saveSettings() {
         const data = this.$refs.deviceControls.model
-        const stream = await DeviceManager.getUserMedia({
-          audio: data.audioInput,
-          video: data.videoInput,
-        })
+        const inputsChanged = data.audioInput !== 'default' && data.videoInput !== 'default'
         const publisherVideo = document.querySelector('.publisher-video')
         if (data.audioOutput && publisherVideo) {
           await DeviceManager.changeAudioOutput(publisherVideo, data.audioOutput)
         }
-        await window.PhoneKit.changePublisherStream(stream)
+        if (!inputsChanged) {
+          this.settingsDialog = false
+          return
+        }
+        await this.tryChangeStreamSource()
         this.settingsDialog = false
+      },
+      async tryChangeStreamSource(data) {
+        const { videoInput, audioInput } = data
+        let video = undefined
+        let audio = undefined
+        if (videoInput === 'default') {
+          video = true
+        } else if (videoInput && videoInput !== 'default') {
+          video = {
+            deviceId: {
+              exact: videoInput
+            }
+          }
+        }
+        if (audioInput === 'default') {
+          audio = true
+        } else if (audioInput && audioInput !== 'default') {
+          audio = {
+            deviceId: {
+              exact: audioInput
+            }
+          }
+        }
+        const constraints = {
+          audio,
+          video,
+        }
+        const stream = await DeviceManager.getUserMedia(constraints)
+        await window.PhoneKit.changePublisherStream(stream, constraints)
       }
     }
   }

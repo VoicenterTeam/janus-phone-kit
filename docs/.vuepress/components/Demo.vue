@@ -41,8 +41,8 @@
         PhoneKit: null,
         streamSources: [],
         joinForm: {
-          displayName: '',
-          roomId: 1234,
+          displayName: 'Test',
+          roomId: 1235,
         },
         rules: {
           roomId: [
@@ -84,10 +84,14 @@
         })
         this.streamSources = []
       },
+      playJoinSound() {
+        const audio = new Audio('/join.mp3');
+        audio.play();
+      },
       initListeners() {
         this.PhoneKit.on('member:join', data => {
-          console.log('JOIN', data)
           this.streamSources.push(data)
+          this.playJoinSound()
         })
 
         this.PhoneKit.on('member:hangup', info => {
