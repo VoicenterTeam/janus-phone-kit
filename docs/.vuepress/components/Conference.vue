@@ -26,7 +26,7 @@
         </div>
         <video :srcObject.prop="streamSource.stream"
                class="member-video"
-               :class="{'publisher-video': mainSource.type === 'publisher'}"
+               :class="{'publisher-video': streamSource.type === 'publisher'}"
                poster="https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_960_720.jpg"
                :controls="false"
                :muted="streamSource.type === 'publisher'"
