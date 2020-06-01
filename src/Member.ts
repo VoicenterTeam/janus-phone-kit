@@ -73,6 +73,9 @@ export class Member {
     this.#rtcpPeer = new RTCPeerConnection();
     this.#rtcpPeer.onaddstream = RTCPeerOnAddStream;
     this.#rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
+    this.#rtcpPeer.ontrack = (evt) => {
+      console.log(evt, 'TRACK')
+    };
     logger.debug('attachedStreamInfo', attachedStreamInfo);
     this.#rtcpPeer.sender = attachedStreamInfo.sender;
     await this.#rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep);

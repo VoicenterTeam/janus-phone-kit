@@ -128,32 +128,32 @@ export class VideoRoomPlugin extends BasePlugin {
 
   async requestAudioAndVideoPermissions() {
     logger.info('Asking user to share media. Please wait...');
+    let options: any = {
+      audio: true,
+      video: {
+        facingMode: "user",
+        width: { min: 480, ideal: 1280, max: 1920 },
+        height: { min: 320, ideal: 720, max: 1080 }
+      },
+    }
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: {
-          facingMode: "user",
-          width: { min: 480, ideal: 1280, max: 1920 },
-          height: { min: 320, ideal: 720, max: 1080 }
-        },
-      });
+      this.stream = await navigator.mediaDevices.getUserMedia(options);
       logger.info('Got local user media.');
 
     } catch (e) {
       try {
-        this.stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: false,
-        });
+        options.video = false
+        this.stream = await navigator.mediaDevices.getUserMedia(options);
       } catch (ex) {
-
-        this.stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: false,
-        });
+        options.audio = false
+        options.video = false
+        this.stream = await navigator.mediaDevices.getUserMedia(options);
       }
     }
-    return this.stream
+    return {
+      stream: this.stream,
+      options
+    }
   }
 
   /**
@@ -169,7 +169,7 @@ export class VideoRoomPlugin extends BasePlugin {
    * @override
    */
   async onAttached() {
-    await this.requestAudioAndVideoPermissions();
+    const{ options } = await this.requestAudioAndVideoPermissions();
 
     const joinResult = await this.sendMessage({
       request: 'join',
@@ -220,12 +220,14 @@ export class VideoRoomPlugin extends BasePlugin {
   async changePublisherStream(stream, options = {}) {
     this.stream.getTracks().forEach(track => {
       track.stop();
-      this.rtcConnection.removeTrack(track);
+      const senders = this.rtcConnection.getSenders()
+      senders.forEach(sender => {
+        this.rtcConnection.removeTrack(sender);
+      })
     });
 
     this.stream = stream
-    this.addTracks(this.stream)
-    debugger
+    this.addTracks(stream)
     await this.sendConfigureMessage(options)
   }
 

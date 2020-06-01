@@ -100,16 +100,18 @@
       },
       async saveSettings() {
         const data = this.$refs.deviceControls.model
-        const inputsChanged = data.audioInput !== 'default' && data.videoInput !== 'default'
-        const publisherVideo = document.querySelector('.publisher-video')
-        if (data.audioOutput && publisherVideo) {
-          await DeviceManager.changeAudioOutput(publisherVideo, data.audioOutput)
+        const inputsChanged = data.audioInput !== 'default' || data.videoInput !== 'default'
+        const videoElements = document.querySelectorAll('video')
+        if (data.audioOutput && videoElements.length) {
+          videoElements.forEach(element => {
+            DeviceManager.changeAudioOutput(element, data.audioOutput)
+          })
         }
         if (!inputsChanged) {
           this.settingsDialog = false
           return
         }
-        await this.tryChangeStreamSource()
+        await this.tryChangeStreamSource(data)
         this.settingsDialog = false
       },
       async tryChangeStreamSource(data) {
@@ -140,6 +142,7 @@
         }
         const stream = await DeviceManager.getUserMedia(constraints)
         await window.PhoneKit.changePublisherStream(stream, constraints)
+        this.$emit('update-publisher-stream', stream)
       }
     }
   }

@@ -13,7 +13,7 @@
       <div class="fixed top-0 left-0 flex justify-center items-center opacity-25 text-white bg-gray-700 rounded-br px-4 text-xl font-semibold">
         {{mainSource.name || mainSource.sender}}
       </div>
-      <bottom-actions/>
+      <bottom-actions @update-publisher-stream="onUpdatePublisherStream"/>
     </template>
 
     <div class="fixed top-0 right-0 other-videos">
@@ -62,6 +62,15 @@
           return this.streamSources
         }
         return this.streamSources.filter(s => s.id !== this.mainSource.id)
+      }
+    },
+    methods: {
+      onUpdatePublisherStream(newStream) {
+        const streamSource = this.streamSources.find(source => source.type === 'publisher')
+        if (!streamSource) {
+          return
+        }
+        streamSource.stream = newStream
       }
     },
     watch: {
