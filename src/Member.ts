@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 export class Member {
 
   #plugin: BasePlugin = null
-  #videoElement: any = document.createElement('video')
   #rtcpPeer: any = new RTCPeerConnection()
   handleId = 0
   #info = null
@@ -52,7 +51,6 @@ export class Member {
         request: 'start',
         room: this.#plugin.room_id
       }, answerSdp, { handle_id: this.handleId });
-      this.#videoElement.srcObject = event.stream;
 
       this.#plugin?.session.emit('member:join', {
         stream: event.stream,
@@ -73,17 +71,15 @@ export class Member {
     this.#rtcpPeer = new RTCPeerConnection();
     this.#rtcpPeer.onaddstream = RTCPeerOnAddStream;
     this.#rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
-    this.#rtcpPeer.ontrack = (evt) => {
-      console.log(evt, 'TRACK')
-    };
-    logger.debug('attachedStreamInfo', attachedStreamInfo);
     this.#rtcpPeer.sender = attachedStreamInfo.sender;
     await this.#rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep);
   }
 
   hangup() {
-    this.#rtcpPeer.close();
-    this.#rtcpPeer = null;
+    if (this.#rtcpPeer) {
+      this.#rtcpPeer.close();
+      this.#rtcpPeer = null;
+    }
 
     this.#plugin.session.emit('member:hangup', {
       info: this.#info,

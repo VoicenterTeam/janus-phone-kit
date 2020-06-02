@@ -1,8 +1,10 @@
+import 'webrtc-adapter'
 import Session from "./Session";
 import { logger } from './util/logger'
 import { VideoRoomPlugin } from "./plugins/VideoRoomPlugin";
 import { ScreenSharePlugin } from "./plugins/ScreenSharePlugin";
 import EventEmitter from "./util/EventEmitter";
+import {DeviceManager} from "./index";
 
 type JanusPhoneKitOptions = {
   roomId?: number,
@@ -103,8 +105,10 @@ export default class JanusPhoneKit extends EventEmitter {
     this.videoRoomPlugin?.stopAudio()
   }
 
-  changePublisherStream(stream) {
+  async changePublisherStream({ videoInput, audioInput }) {
+    const stream = await DeviceManager.getMediaFromInputs({ videoInput, audioInput })
     this.videoRoomPlugin?.changePublisherStream(stream)
+    return stream
   }
 
   async startScreenShare() {

@@ -15,6 +15,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
   stream: MediaStream;
   offerOptions: any = {}
+  isVideoOn: boolean = true
+  isAudioOn: boolean = true
 
   constructor(options: any = {}) {
     super()
@@ -200,35 +202,44 @@ export class VideoRoomPlugin extends BasePlugin {
   async startVideo() {
     DeviceManager.toggleVideoMute(this.stream)
     await this.enableVideo(true)
+    this.isVideoOn = true
   }
 
   async stopVideo() {
     DeviceManager.toggleVideoMute(this.stream)
     await this.enableVideo(false)
+    this.isVideoOn = false
   }
 
   async startAudio() {
     DeviceManager.toggleAudioMute(this.stream)
     await this.enableAudio(true)
+    this.isAudioOn = true
   }
 
   async stopAudio() {
     DeviceManager.toggleAudioMute(this.stream)
     await this.enableAudio(false)
+    this.isAudioOn = false
   }
 
-  async changePublisherStream(stream, options = {}) {
-    this.stream.getTracks().forEach(track => {
-      track.stop();
+  async changePublisherStream(stream) {
+    stream.getTracks().forEach(track => {
       const senders = this.rtcConnection.getSenders()
       senders.forEach(sender => {
-        this.rtcConnection.removeTrack(sender);
+        if (sender.track.kind === track.kind) {
+          if (track.kind === 'audio' && !this.isAudioOn) {
+            track.enabled = false
+          }
+          if (track.kind === 'video' && !this.isVideoOn) {
+            track.enabled = false
+          }
+          sender.replaceTrack(track);
+        }
       })
     });
 
     this.stream = stream
-    this.addTracks(stream)
-    await this.sendConfigureMessage(options)
   }
 
   async sendConfigureMessage(options) {

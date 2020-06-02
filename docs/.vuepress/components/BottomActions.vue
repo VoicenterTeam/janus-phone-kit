@@ -116,32 +116,7 @@
       },
       async tryChangeStreamSource(data) {
         const { videoInput, audioInput } = data
-        let video = undefined
-        let audio = undefined
-        if (videoInput === 'default') {
-          video = true
-        } else if (videoInput && videoInput !== 'default') {
-          video = {
-            deviceId: {
-              exact: videoInput
-            }
-          }
-        }
-        if (audioInput === 'default') {
-          audio = true
-        } else if (audioInput && audioInput !== 'default') {
-          audio = {
-            deviceId: {
-              exact: audioInput
-            }
-          }
-        }
-        const constraints = {
-          audio,
-          video,
-        }
-        const stream = await DeviceManager.getUserMedia(constraints)
-        await window.PhoneKit.changePublisherStream(stream, constraints)
+        const stream = await window.PhoneKit.changePublisherStream({ videoInput, audioInput })
         this.$emit('update-publisher-stream', stream)
       }
     }

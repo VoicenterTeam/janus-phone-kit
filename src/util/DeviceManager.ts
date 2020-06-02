@@ -60,6 +60,34 @@ class DeviceManager {
     });
   }
 
+  static async getMediaFromInputs({ videoInput, audioInput }) {
+    let video = undefined
+    let audio = undefined
+    if (videoInput === 'default') {
+      video = true
+    } else if (videoInput && videoInput !== 'default') {
+      video = {
+        deviceId: {
+          exact: videoInput
+        }
+      }
+    }
+    if (audioInput === 'default') {
+      audio = true
+    } else if (audioInput && audioInput !== 'default') {
+      audio = {
+        deviceId: {
+          exact: audioInput
+        }
+      }
+    }
+    const constraints = {
+      audio,
+      video,
+    }
+    return DeviceManager.getUserMedia(constraints)
+  }
+
   static async getUserMedia(constraints: any) {
     const stream = await navigator.mediaDevices.getUserMedia(constraints)
     return stream
