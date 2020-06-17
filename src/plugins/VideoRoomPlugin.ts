@@ -3,7 +3,7 @@ import {randomString} from "../util/util";
 import {logger} from "../util/logger";
 import {Member} from "../Member";
 import DeviceManager from "../util/DeviceManager";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
@@ -83,6 +83,13 @@ export class VideoRoomPlugin extends BasePlugin {
       return
     }
 
+    console.log(pluginData)
+
+    if(pluginData?.event === 'PublisherStateUpdate') {
+      this.onPublisherStateUpdate(msg)
+      return
+    }
+
     if (pluginData?.videoroom === 'attached') {
       this.onVideoRoomAttached(msg)
       return
@@ -96,6 +103,10 @@ export class VideoRoomPlugin extends BasePlugin {
 
     if (pluginData?.publishers) {
       this.onReceivePublishers(msg)
+    }
+
+    if (pluginData?.videoroom === 'joined') {
+      this.onPublisherInitialStateUpdate(msg)
     }
   }
 
@@ -113,6 +124,21 @@ export class VideoRoomPlugin extends BasePlugin {
     if (this.memberList[message?.plugindata?.data?.id]) {
       this.memberList[message?.plugindata?.data?.id].answerAttachedStream(message);
     }
+  }
+
+  private onPublisherStateUpdate(message) {
+    if (this.memberList[message?.plugindata?.data?.newStatePublisher]) {
+      this.memberList[message?.plugindata?.data?.newStatePublisher].updateMemberStateFromMessage(message);
+    }
+  }
+
+  private onPublisherInitialStateUpdate(message) {
+    const publishers = message?.plugindata?.data?.publishers
+    publishers.forEach(publisher => {
+      if (this.memberList[publisher?.id]) {
+        this.memberList[publisher?.id].updateMemberState(publisher?.state);
+      }
+    })
   }
 
   private onReceivePublishers(msg) {
@@ -134,8 +160,8 @@ export class VideoRoomPlugin extends BasePlugin {
       audio: true,
       video: {
         facingMode: "user",
-        width: { min: 480, ideal: 1280, max: 1920 },
-        height: { min: 320, ideal: 720, max: 1080 }
+        width: {min: 480, ideal: 1280, max: 1920},
+        height: {min: 320, ideal: 720, max: 1080}
       },
     }
     try {
@@ -171,7 +197,7 @@ export class VideoRoomPlugin extends BasePlugin {
    * @override
    */
   async onAttached() {
-    const{ options } = await this.requestAudioAndVideoPermissions();
+    const {options} = await this.requestAudioAndVideoPermissions();
 
     const joinResult = await this.sendMessage({
       request: 'join',
@@ -187,6 +213,7 @@ export class VideoRoomPlugin extends BasePlugin {
       sender: 'me',
       type: 'publisher',
       name: this.displayName,
+      state: {},
       id: uuidv4(),
     })
 
@@ -203,39 +230,53 @@ export class VideoRoomPlugin extends BasePlugin {
     DeviceManager.toggleVideoMute(this.stream)
     await this.enableVideo(true)
     this.isVideoOn = true
+    await this.sendStateMessage({
+      video: true
+    })
   }
 
   async stopVideo() {
     DeviceManager.toggleVideoMute(this.stream)
     await this.enableVideo(false)
     this.isVideoOn = false
+    await this.sendStateMessage({
+      video: false
+    })
   }
 
   async startAudio() {
     DeviceManager.toggleAudioMute(this.stream)
     await this.enableAudio(true)
     this.isAudioOn = true
+    await this.sendStateMessage({
+      audio: true
+    })
   }
 
   async stopAudio() {
     DeviceManager.toggleAudioMute(this.stream)
     await this.enableAudio(false)
     this.isAudioOn = false
+    await this.sendStateMessage({
+      audio: false
+    })
   }
 
   async changePublisherStream(stream) {
     stream.getTracks().forEach(track => {
       const senders = this.rtcConnection.getSenders()
       senders.forEach(sender => {
-        if (sender.track.kind === track.kind) {
-          if (track.kind === 'audio' && !this.isAudioOn) {
-            track.enabled = false
-          }
-          if (track.kind === 'video' && !this.isVideoOn) {
-            track.enabled = false
-          }
-          sender.replaceTrack(track);
+        if (sender.track.kind !== track.kind) {
+          return
         }
+
+        if (track.kind === 'audio' && !this.isAudioOn) {
+          track.enabled = false
+        }
+        if (track.kind === 'video' && !this.isVideoOn) {
+          track.enabled = false
+        }
+        sender.replaceTrack(track);
       })
     });
 
@@ -256,6 +297,13 @@ export class VideoRoomPlugin extends BasePlugin {
     return confResult
   }
 
+  public async sendStateMessage(data = {}) {
+    await this.sendMessage({
+      request: 'state',
+      data,
+    })
+  }
+
   addTracks(stream: MediaStream) {
     stream.getTracks().forEach((track) => {
       this.rtcConnection.addTrack(track, stream);
@@ -263,11 +311,16 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async hangup() {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => {
+        track.stop()
+      })
+    }
     if (this.rtcConnection) {
       this.rtcConnection.close();
       this.rtcConnection = null;
     }
 
-    await this.send({ janus: 'hangup' });
+    await this.send({janus: 'hangup'});
   }
 }

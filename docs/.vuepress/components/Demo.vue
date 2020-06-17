@@ -101,6 +101,15 @@
             this.streamSources.splice(index, 1)
           }
         })
+
+        this.PhoneKit.on('member:update', data => {
+          const index = this.streamSources.findIndex(s => s.sender === data.sender)
+          if (index !== -1) {
+            const source = this.streamSources[index]
+            this.$set(source, 'state', data.state)
+          }
+        })
+
         this.PhoneKit.on('hangup', this.afterHangup)
       }
     },

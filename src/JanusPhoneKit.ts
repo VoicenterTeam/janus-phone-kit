@@ -55,7 +55,7 @@ export default class JanusPhoneKit extends EventEmitter {
     this.session?.emit.apply(this, params)
   }
 
-  joinRoom({ roomId, displayName = '' }) {
+  public joinRoom({ roomId, displayName = '' }) {
     if (!this.options.url) {
       throw new Error('Could not create websocket connection because url parameter is missing')
     }
@@ -82,26 +82,26 @@ export default class JanusPhoneKit extends EventEmitter {
     return this.session
   }
 
-  hangup() {
+  public hangup() {
     this.session.emit('hangup')
     this.session.stop();
     this.isConnected = false
     this.websocket.close()
   }
 
-  startVideo() {
+  public startVideo() {
     this.videoRoomPlugin?.startVideo()
   }
 
-  stopVideo() {
+  public stopVideo() {
     this.videoRoomPlugin?.stopVideo()
   }
 
-  startAudio() {
+  public startAudio() {
     this.videoRoomPlugin?.startAudio()
   }
 
-  stopAudio() {
+  public stopAudio() {
     this.videoRoomPlugin?.stopAudio()
   }
 
@@ -111,7 +111,7 @@ export default class JanusPhoneKit extends EventEmitter {
     return stream
   }
 
-  async startScreenShare() {
+  public async startScreenShare() {
     if (!this.session.connected || this.screenSharePlugin) {
       return
     }
@@ -127,6 +127,10 @@ export default class JanusPhoneKit extends EventEmitter {
     } catch (err) {
       logger.error('Error during attaching of screenShare plugin', err);
     }
+  }
+
+  public async sendStateMessage(data = {}) {
+    await this.videoRoomPlugin.sendStateMessage(data)
   }
 
   private registerSocketOpenHandler (displayName) {
