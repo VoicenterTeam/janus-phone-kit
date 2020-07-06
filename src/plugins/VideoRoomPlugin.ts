@@ -4,6 +4,7 @@ import {logger} from "../util/logger";
 import {Member} from "../Member";
 import DeviceManager from "../util/DeviceManager";
 import {v4 as uuidv4} from 'uuid';
+import {VolumeMeter} from "../util/SoundMeter";
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
@@ -178,6 +179,8 @@ export class VideoRoomPlugin extends BasePlugin {
         this.stream = await navigator.mediaDevices.getUserMedia(options);
       }
     }
+    this.trackMicrophoneVolume()
+
     return {
       stream: this.stream,
       options
@@ -223,6 +226,21 @@ export class VideoRoomPlugin extends BasePlugin {
     await this.sendConfigureMessage({
       audio: true,
       video: true,
+    })
+  }
+
+  trackMicrophoneVolume() {
+    const volumeMeter = new VolumeMeter(this.stream)
+    volumeMeter.onAudioProcess(async (newValue, oldValue) => {
+      if (newValue >= 20 && oldValue < 20) {
+        await this.sendStateMessage({
+          isTalking: true
+        })
+      } else if (newValue <= 20 && oldValue > 20) {
+        await this.sendStateMessage({
+          isTalking: false
+        })
+      }
     })
   }
 

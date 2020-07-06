@@ -98,11 +98,14 @@
       streamSources: {
         immediate: true,
         handler(newVal) {
+          const talkingStream = newVal.find(source => source.state && source.state.isTalking)
           if (newVal.length > 0 && (!this.mainSource || this.mainSource.type == 'publisher' || newVal.length === 1)) {
             this.mainSource = this.streamSources.find(source => source.type === 'subscriber')
             if (!this.mainSource) {
               this.mainSource = this.streamSources.find(source => source.type === 'publisher')
             }
+          } else if (talkingStream) {
+            this.mainSource = talkingStream
           } else if (newVal.length === 0 && this.mainSource) {
             DeviceManager.stopStreamTracks(this.mainSource.stream)
             this.mainSource = null
