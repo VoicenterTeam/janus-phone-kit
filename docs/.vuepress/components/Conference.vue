@@ -10,8 +10,15 @@
              autoplay
       >
       </video>
-      <div class="fixed top-0 left-0 flex justify-center items-center opacity-25 text-white bg-gray-700 rounded-br px-4 text-xl font-semibold">
-        {{mainSource.name || mainSource.sender}}
+      <div class="fixed top-0 left-0 flex justify-center items-center bg-opacity-25 bg-gray-700 rounded-br px-4 text-xl font-semibold">
+        <div v-if="mainSource.state.audio === false" class="mr-2">
+          <el-tooltip placement="top" content="Muted">
+            <mic-off-icon class="w-5 h-5 text-red-500"></mic-off-icon>
+          </el-tooltip>
+        </div>
+        <div class="text-gray-100">
+          {{mainSource.name || mainSource.sender}}
+        </div>
       </div>
       <bottom-actions @update-publisher-stream="onUpdatePublisherStream"/>
     </template>
@@ -21,9 +28,6 @@
            :key="index"
            @click="mainSource = streamSource"
            class="mr-2 mb-2 relative border-2 border-blue-700 rounded cursor-pointer">
-        <div class="absolute top-0 left-0 flex justify-center items-center opacity-25 text-white bg-gray-700 rounded-br px-4 text-xl font-semibold">
-          {{streamSource.name || streamSource.sender}}
-        </div>
         <video :srcObject.prop="streamSource.stream"
                class="member-video"
                :class="{'publisher-video': streamSource.type === 'publisher'}"
@@ -36,15 +40,32 @@
                autoplay
         >
         </video>
+        <div class="absolute top-0 left-0 flex justify-center items-center bg-opacity-25 bg-gray-700 rounded-br px-4 text-xl font-semibold z-10">
+          <div v-if="streamSource.state.audio === false" class="mr-2">
+            <el-tooltip placement="top" content="Muted">
+              <mic-off-icon class="w-5 h-5 text-red-500"></mic-off-icon>
+            </el-tooltip>
+          </div>
+          <div class="text-gray-100">
+            {{streamSource.name || streamSource.sender}}
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 <script lang="ts">
   import Vue from 'vue'
+  import { MicOffIcon } from 'vue-feather-icons'
+  import { Tooltip } from 'element-ui'
+  import 'element-ui/packages/theme-chalk/lib/tooltip.css'
   import {DeviceManager} from "../../../src";
 
   export default Vue.extend({
+    components: {
+      MicOffIcon,
+      [Tooltip.name]: Tooltip,
+    },
     props: {
       streamSources: {
         type: Array,
@@ -77,11 +98,14 @@
       streamSources: {
         immediate: true,
         handler(newVal) {
+          const talkingStream = newVal.find(source => source.state && source.state.isTalking)
           if (newVal.length > 0 && (!this.mainSource || this.mainSource.type == 'publisher' || newVal.length === 1)) {
             this.mainSource = this.streamSources.find(source => source.type === 'subscriber')
             if (!this.mainSource) {
               this.mainSource = this.streamSources.find(source => source.type === 'publisher')
             }
+          } else if (talkingStream) {
+            this.mainSource = talkingStream
           } else if (newVal.length === 0 && this.mainSource) {
             DeviceManager.stopStreamTracks(this.mainSource.stream)
             this.mainSource = null

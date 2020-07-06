@@ -1,42 +1,43 @@
-import { logger } from './util/logger'
+import {logger} from './util/logger'
 import {BasePlugin} from "./plugins/BasePlugin";
-import { v4 as uuidv4 } from 'uuid';
 
 export class Member {
 
-  #plugin: BasePlugin = null
-  #rtcpPeer: any = new RTCPeerConnection()
+  private plugin: BasePlugin = null
+  private rtcpPeer: any = new RTCPeerConnection()
   handleId = 0
-  #info = null
-  #joinResult = null
+  private readonly info = null
+  private joinResult = null
+  private state = {}
+  private stream = null
 
   constructor(memberInfo, plugin: BasePlugin) {
-    this.#info = memberInfo
-    this.#plugin = plugin;
+    this.info = memberInfo
+    this.plugin = plugin;
   }
 
   async attachMember() {
     // eslint-disable-next-line no-await-in-loop
-    const attachResult = await this.#plugin.send({
+    const attachResult = await this.plugin.send({
       janus: 'attach',
-      opaque_id: this.#plugin.opaqueId,
+      opaque_id: this.plugin.opaqueId,
       plugin: 'janus.plugin.videoroomjs'
     });
     this.handleId = attachResult.data.id;
 
     // eslint-disable-next-line no-await-in-loop
-    this.#joinResult = await this.#plugin.sendMessage({
+    this.joinResult = await this.plugin.sendMessage({
       request: 'join',
-      room: this.#plugin.room_id,
-      feed: this.#info.id,
+      room: this.plugin.room_id,
+      feed: this.info.id,
       ptype: 'subscriber',
-      private_id: this.#plugin.private_id,
-    }, undefined, { handle_id: this.handleId });
+      private_id: this.plugin.private_id,
+    }, undefined, {handle_id: this.handleId});
   }
 
   async answerAttachedStream(attachedStreamInfo) {
     const RTCPeerOnAddStream = async (event) => {
-      if (!this.#rtcpPeer) {
+      if (!this.rtcpPeer) {
         return
       }
       logger.debug('on add stream Member', event);
@@ -44,45 +45,68 @@ export class Member {
         audio: true,
         video: true,
       }
-      const answerSdp = await this.#rtcpPeer.createAnswer(options);
-      await this.#rtcpPeer.setLocalDescription(answerSdp);
+      const answerSdp = await this.rtcpPeer.createAnswer(options);
+      await this.rtcpPeer.setLocalDescription(answerSdp);
       // Send the answer to the remote peer through the signaling server.
-      await this.#plugin.sendMessage({
+      await this.plugin.sendMessage({
         request: 'start',
-        room: this.#plugin.room_id
-      }, answerSdp, { handle_id: this.handleId });
+        room: this.plugin.room_id
+      }, answerSdp, {handle_id: this.handleId});
 
-      this.#plugin?.session.emit('member:join', {
-        stream: event.stream,
-        joinResult: this.#joinResult,
-        sender: this.handleId,
-        type: 'subscriber',
-        name: this.#info.display,
-        id: uuidv4(),
-      })
+      this.stream = event.stream;
+
+      this.plugin?.session.emit('member:join', this.memberInfo)
     }
 
     // Send ICE events to Janus.
     const RTCPeerOnIceCandidate = (event) => {
-      if (this.#rtcpPeer.signalingState !== 'stable') return;
-      this.#plugin.sendTrickle(event.candidate || null);
+      if (this.rtcpPeer.signalingState !== 'stable') return;
+      this.plugin.sendTrickle(event.candidate || null);
     }
 
-    this.#rtcpPeer = new RTCPeerConnection();
-    this.#rtcpPeer.onaddstream = RTCPeerOnAddStream;
-    this.#rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
-    this.#rtcpPeer.sender = attachedStreamInfo.sender;
-    await this.#rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep);
+    this.rtcpPeer = new RTCPeerConnection();
+    this.rtcpPeer.onaddstream = RTCPeerOnAddStream;
+    this.rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
+    this.rtcpPeer.sender = attachedStreamInfo.sender;
+    await this.rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep);
+  }
+
+  private get memberInfo() {
+    return {
+      stream: this.stream,
+      joinResult: this.joinResult,
+      sender: this.handleId,
+      type: 'subscriber',
+      name: this.info.display,
+      state: this.state,
+      id: this.handleId,
+    }
+  }
+
+  updateMemberState(newState) {
+    this.state = {
+      ...this.state,
+      ...newState || {}
+    }
+
+    this.plugin?.session.emit('member:update', this.memberInfo)
+  }
+
+  updateMemberStateFromMessage(message) {
+    const publisherId = message?.plugindata?.data?.newStatePublisher
+    const allPublishers = message?.plugindata?.data?.publisher_state
+    const publisherInfo = allPublishers.find(p => p.id === publisherId)
+    this.updateMemberState(publisherInfo?.state)
   }
 
   hangup() {
-    if (this.#rtcpPeer) {
-      this.#rtcpPeer.close();
-      this.#rtcpPeer = null;
+    if (this.rtcpPeer) {
+      this.rtcpPeer.close();
+      this.rtcpPeer = null;
     }
 
-    this.#plugin.session.emit('member:hangup', {
-      info: this.#info,
+    this.plugin.session.emit('member:hangup', {
+      info: this.info,
       sender: this.handleId
     })
   }

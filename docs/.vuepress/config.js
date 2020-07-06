@@ -19,7 +19,7 @@ module.exports = {
     }
   },
   head: [
-    ['link', { rel: 'stylesheet', href: 'https://unpkg.com/tailwindcss@1.3.5/dist/tailwind.min.css'}]
+    ['link', { rel: 'stylesheet', href: 'https://unpkg.com/tailwindcss@1.4.6/dist/tailwind.min.css'}]
   ],
   themeConfig: {
     repo: '/VoicenterTeam/janus-phone-kit',

@@ -25,7 +25,9 @@
         </div>
       </el-form>
     </el-dialog>
-    <conference v-if="conferenceStarted" :stream-sources="streamSources"/>
+    <conference v-if="conferenceStarted"
+                :talking-stream="talkingStream"
+                :stream-sources="streamSources"/>
 
   </div>
 </template>
@@ -40,6 +42,7 @@
         joinDialogVisible: false,
         PhoneKit: null,
         streamSources: [],
+        talkingStream: null,
         joinForm: {
           displayName: 'Test',
           roomId: 1236,
@@ -101,6 +104,16 @@
             this.streamSources.splice(index, 1)
           }
         })
+
+        this.PhoneKit.on('member:update', data => {
+          const index = this.streamSources.findIndex(s => s.sender === data.sender)
+          if (index !== -1) {
+            const source = this.streamSources[index]
+            this.$set(source, 'state', data.state)
+          }
+          this.talkingStream = this.streamSources.find(source => source?.state?.isTalking)
+        })
+
         this.PhoneKit.on('hangup', this.afterHangup)
       }
     },
