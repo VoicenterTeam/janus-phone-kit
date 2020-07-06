@@ -5,14 +5,16 @@ import {Member} from "../Member";
 import DeviceManager from "../util/DeviceManager";
 import {v4 as uuidv4} from 'uuid';
 import {VolumeMeter} from "../util/SoundMeter";
+import {StunServer} from "../types";
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
   memberList: any = {}
   room_id = 1234
+  stunServers: StunServer[]
   publishers = null
   displayName: string = ''
-  rtcConnection: any = new RTCPeerConnection();
+  rtcConnection: any = null;
 
   stream: MediaStream;
   offerOptions: any = {}
@@ -24,6 +26,10 @@ export class VideoRoomPlugin extends BasePlugin {
     this.opaqueId = `videoroomtest-${randomString(12)}`;
     this.displayName = options.displayName
     this.room_id = options.roomId
+    this.stunServers = options.stunServers
+    this.rtcConnection = new RTCPeerConnection({
+      iceServers: this.stunServers,
+    })
     logger.debug('Init plugin', this);
     // Send ICE events to Janus.
     this.rtcConnection.onicecandidate = (event) => {

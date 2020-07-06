@@ -1,14 +1,15 @@
 import { BasePlugin } from "./BasePlugin";
 import { logger } from '../util/logger'
 import { randomString } from '../util/util'
+import {StunServer} from "../types";
 
 export class ScreenSharePlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
   memberList = {}
   videoElement = null
   room_id = 1234
-
-  #rtcConnection: any = new RTCPeerConnection();
+  stunServers: StunServer[]
+  rtcConnection: any = null;
 
   /**
    * @type {VideoRoomPlugin}
@@ -23,12 +24,14 @@ export class ScreenSharePlugin extends BasePlugin {
     this.VideoRoomPlugin = options.videoRoomPlugin
 
     logger.debug('Init plugin', this);
-
-    this.#rtcConnection = new RTCPeerConnection();
+    this.stunServers = options.stunServers
+    this.rtcConnection = new RTCPeerConnection({
+      iceServers: this.stunServers,
+    });
     // Send ICE events to Janus.
-    this.#rtcConnection.onicecandidate = (event) => {
+    this.rtcConnection.onicecandidate = (event) => {
 
-      if (this.#rtcConnection.signalingState !== 'stable') {
+      if (this.rtcConnection.signalingState !== 'stable') {
         return;
       }
       this.sendTrickle(event.candidate || null)
@@ -146,27 +149,27 @@ export class ScreenSharePlugin extends BasePlugin {
     });
 
     logger.info('Adding local user media to RTCPeerConnection.');
-    this.#rtcConnection.addStream(localMedia);
+    this.rtcConnection.addStream(localMedia);
     logger.info('Creating SDP offer. Please wait...');
 
     const options: any = {
       audio: false,
       video: true,
     }
-    const jsepOffer = await this.#rtcConnection.createOffer(options);
+    const jsepOffer = await this.rtcConnection.createOffer(options);
 
 
     logger.info('SDP offer created.');
 
     logger.info('Setting SDP offer on RTCPeerConnection');
-    await this.#rtcConnection.setLocalDescription(jsepOffer);
+    await this.rtcConnection.setLocalDescription(jsepOffer);
 
     logger.info('Getting SDP answer from Janus to our SDP offer. Please wait...');
 
     const confResult = await this.sendMessage({ request: 'configure', audio: false, video: true }, jsepOffer);
     logger.info('Received SDP answer from Janus for ScreenShare.', confResult);
     logger.debug('Setting the SDP answer on RTCPeerConnection. The `onaddstream` event will fire soon.');
-    await this.#rtcConnection.setRemoteDescription(confResult.jsep);
+    await this.rtcConnection.setRemoteDescription(confResult.jsep);
   }
 
 }

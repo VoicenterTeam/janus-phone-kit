@@ -4,7 +4,7 @@ import {BasePlugin} from "./plugins/BasePlugin";
 export class Member {
 
   private plugin: BasePlugin = null
-  private rtcpPeer: any = new RTCPeerConnection()
+  private rtcpPeer: any = null
   handleId = 0
   private readonly info = null
   private joinResult = null
@@ -14,6 +14,9 @@ export class Member {
   constructor(memberInfo, plugin: BasePlugin) {
     this.info = memberInfo
     this.plugin = plugin;
+    this.rtcpPeer = new RTCPeerConnection({
+      iceServers: this.plugin.stunServers,
+    })
   }
 
   async attachMember() {
