@@ -233,6 +233,7 @@ export class VideoRoomPlugin extends BasePlugin {
       audio: true,
       video: true,
     })
+    await this.sendInitialState()
   }
 
   trackMicrophoneVolume() {
@@ -325,6 +326,16 @@ export class VideoRoomPlugin extends BasePlugin {
     await this.sendMessage({
       request: 'state',
       data,
+    })
+  }
+
+  private async sendInitialState() {
+    await this.sendMessage({
+      request: 'state',
+      data: {
+        status: 'online',
+        name: this.displayName
+      },
     })
   }
 
