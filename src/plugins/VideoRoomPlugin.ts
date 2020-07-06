@@ -37,7 +37,10 @@ export class VideoRoomPlugin extends BasePlugin {
       if (this.rtcConnection.signalingState !== 'stable') {
         return;
       }
-      this.sendTrickle(event.candidate || null)
+      if (!event.candidate) {
+        return
+      }
+      this.sendTrickle(event.candidate)
         .catch((err) => {
           logger.warn(err)
         });
@@ -90,7 +93,11 @@ export class VideoRoomPlugin extends BasePlugin {
       return
     }
 
-    console.log(pluginData)
+    console.log(msg)
+
+    if (msg.janus === 'trickle') {
+      this.onTrickle(msg)
+    }
 
     if(pluginData?.event === 'PublisherStateUpdate') {
       this.onPublisherStateUpdate(msg)
@@ -125,6 +132,13 @@ export class VideoRoomPlugin extends BasePlugin {
       return
     }
     hangupMember.hangup();
+  }
+
+  private async onTrickle(message) {
+    if (!message?.candidate?.candidate) {
+      return
+    }
+    await this.rtcConnection.addIceCandidate(message?.candidate?.candidate)
   }
 
   private onVideoRoomAttached(message) {
