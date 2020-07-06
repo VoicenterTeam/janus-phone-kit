@@ -46,4 +46,9 @@ PhoneKit.startScreenShare().then(() => {
 })
 ```
 
+### Available JanusPhoneKit options:
+
+- **url** websocket url of the janus server
+- **stunServers** List of STUN servers. Usually these are needed when the servers don't have public IPs. Defaults to `[{urls: "stun:stun.l.google.com:19302"}]`   
+
 You can find a working Vue.js example in the source code located in `src/docs/.vuepress/components/Demo.vue` 

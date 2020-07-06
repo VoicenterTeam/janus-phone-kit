@@ -1,5 +1,6 @@
 import EventEmitter from "../util/EventEmitter";
 import { logger } from '../util/logger'
+import {StunServer} from "../types";
 
 export class BasePlugin extends EventEmitter {
   /**
@@ -52,6 +53,11 @@ export class BasePlugin extends EventEmitter {
    * @instance
    */
   private_id?: string = null
+
+  /**
+   * List of STUN servers. Needed for servers that don't have public IP.
+   */
+  stunServers: StunServer[] = []
 
   myFeedList = []
   opaqueId?: string | null;
