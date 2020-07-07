@@ -12,6 +12,7 @@ export class VideoRoomPlugin extends BasePlugin {
   memberList: any = {}
   room_id = 1234
   stunServers: StunServer[]
+  iceCandidates: any[] = []
   publishers = null
   displayName: string = ''
   rtcConnection: any = null;
@@ -93,13 +94,11 @@ export class VideoRoomPlugin extends BasePlugin {
       return
     }
 
-    console.log(msg)
-
     if (msg.janus === 'trickle') {
-      this.onTrickle(msg)
+      await this.onTrickle(msg)
     }
 
-    if(pluginData?.event === 'PublisherStateUpdate') {
+    if (pluginData?.event === 'PublisherStateUpdate') {
       this.onPublisherStateUpdate(msg)
       return
     }
@@ -135,10 +134,19 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   private async onTrickle(message) {
-    if (!message?.candidate?.candidate) {
+    const candidate = message?.candidate?.completed ? null : message?.candidate
+    if (this.rtcConnection.remoteDescription) {
+      await this.rtcConnection.addIceCandidate(candidate)
       return
     }
-    await this.rtcConnection.addIceCandidate(message?.candidate?.candidate)
+    this.iceCandidates.push(candidate)
+  }
+
+  private async processIceCandidates() {
+    for(let i = 0; i < this.iceCandidates.length; i++) {
+      await this.rtcConnection.addIceCandidate(this.iceCandidates[i])
+    }
+    this.iceCandidates = []
   }
 
   private onVideoRoomAttached(message) {
@@ -332,6 +340,7 @@ export class VideoRoomPlugin extends BasePlugin {
     }, jsepOffer);
 
     await this.rtcConnection.setRemoteDescription(confResult.jsep);
+    await this.processIceCandidates()
 
     return confResult
   }
