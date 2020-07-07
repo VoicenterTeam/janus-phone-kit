@@ -1,3 +1,3 @@
 # Demo
 
-<demo/>
+<demo-client-only/>
