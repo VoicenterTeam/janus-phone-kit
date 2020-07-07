@@ -1,42 +1,41 @@
 <template>
-  <ClientOnly>
-    <div>
-      <base-button @click="conferenceStarted ? hangup() : openJoinModal()">
-        {{conferenceStarted ? 'Stop': 'Join Conference'}}
-      </base-button>
+  <div>
+    <base-button @click="conferenceStarted ? hangup() : openJoinModal()">
+      {{conferenceStarted ? 'Stop': 'Join Conference'}}
+    </base-button>
 
-      <el-dialog :visible.sync="joinDialogVisible">
-        <el-form ref="form"
-                 label-position="top"
-                 :rules="rules"
-                 :model="joinForm"
-                 @submit.native.prevent="joinRoom"
-        >
-          <el-form-item label="Room Id" prop="roomId">
-            <el-input placeholder="Room Id" v-model="joinForm.roomId"></el-input>
-          </el-form-item>
-          <el-form-item label="Display Name" prop="displayName">
-            <el-input placeholder="Your name..." v-model="joinForm.displayName"></el-input>
-          </el-form-item>
+    <el-dialog :visible.sync="joinDialogVisible">
+      <el-form ref="form"
+               label-position="top"
+               :rules="rules"
+               :model="joinForm"
+               @submit.native.prevent="joinRoom"
+      >
+        <el-form-item label="Room Id" prop="roomId">
+          <el-input placeholder="Room Id" v-model="joinForm.roomId"></el-input>
+        </el-form-item>
+        <el-form-item label="Display Name" prop="displayName">
+          <el-input placeholder="Your name..." v-model="joinForm.displayName"></el-input>
+        </el-form-item>
 
-          <div class="flex justify-center">
-            <base-button type="submit">
-              Join Conference
-            </base-button>
-          </div>
-        </el-form>
-      </el-dialog>
-      <conference v-if="conferenceStarted"
-                  :talking-stream="talkingStream"
-                  :stream-sources="streamSources"/>
+        <div class="flex justify-center">
+          <base-button type="submit">
+            Join Conference
+          </base-button>
+        </div>
+      </el-form>
+    </el-dialog>
+    <conference v-if="conferenceStarted"
+                :talking-stream="talkingStream"
+                :stream-sources="streamSources"/>
 
-    </div>
-  </ClientOnly>
+  </div>
 </template>
 <script lang="ts">
   import Vue from 'vue'
 
   import PhoneKit, {DeviceManager} from '../../../src';
+
   export default Vue.extend({
     data() {
       return {
@@ -58,7 +57,7 @@
             },
           ],
           displayName: [
-            { required: true, message: 'Display name is required', trigger: 'blur' },
+            {required: true, message: 'Display name is required', trigger: 'blur'},
           ],
         }
       }
@@ -70,7 +69,10 @@
       async joinRoom() {
         try {
           await this.$refs.form.validate()
-          this.PhoneKit.joinRoom({ roomId: this.joinForm.roomId, displayName: this.joinForm.displayName })
+          this.PhoneKit.joinRoom({
+            roomId: this.joinForm.roomId,
+            displayName: this.joinForm.displayName
+          })
           this.initListeners()
           this.conferenceStarted = true
           this.joinDialogVisible = false

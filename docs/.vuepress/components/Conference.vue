@@ -20,7 +20,9 @@
           {{mainSource.name || mainSource.sender}}
         </div>
       </div>
-      <bottom-actions @update-publisher-stream="onUpdatePublisherStream"/>
+      <client-only>
+        <bottom-actions @update-publisher-stream="onUpdatePublisherStream"/>
+      </client-only>
     </template>
 
     <div class="fixed top-0 right-0 other-videos">
