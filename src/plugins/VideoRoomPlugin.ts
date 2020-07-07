@@ -12,6 +12,7 @@ export class VideoRoomPlugin extends BasePlugin {
   memberList: any = {}
   room_id = 1234
   stunServers: StunServer[]
+  iceCandidates: any[] = []
   publishers = null
   displayName: string = ''
   rtcConnection: any = null;
@@ -37,7 +38,10 @@ export class VideoRoomPlugin extends BasePlugin {
       if (this.rtcConnection.signalingState !== 'stable') {
         return;
       }
-      this.sendTrickle(event.candidate || null)
+      if (!event.candidate) {
+        return
+      }
+      this.sendTrickle(event.candidate)
         .catch((err) => {
           logger.warn(err)
         });
@@ -90,9 +94,11 @@ export class VideoRoomPlugin extends BasePlugin {
       return
     }
 
-    console.log(pluginData)
+    if (msg.janus === 'trickle') {
+      await this.onTrickle(msg)
+    }
 
-    if(pluginData?.event === 'PublisherStateUpdate') {
+    if (pluginData?.event === 'PublisherStateUpdate') {
       this.onPublisherStateUpdate(msg)
       return
     }
@@ -125,6 +131,22 @@ export class VideoRoomPlugin extends BasePlugin {
       return
     }
     hangupMember.hangup();
+  }
+
+  private async onTrickle(message) {
+    const candidate = message?.candidate?.completed ? null : message?.candidate
+    if (this.rtcConnection.remoteDescription) {
+      await this.rtcConnection.addIceCandidate(candidate)
+      return
+    }
+    this.iceCandidates.push(candidate)
+  }
+
+  private async processIceCandidates() {
+    for(let i = 0; i < this.iceCandidates.length; i++) {
+      await this.rtcConnection.addIceCandidate(this.iceCandidates[i])
+    }
+    this.iceCandidates = []
   }
 
   private onVideoRoomAttached(message) {
@@ -233,6 +255,7 @@ export class VideoRoomPlugin extends BasePlugin {
       audio: true,
       video: true,
     })
+    await this.sendInitialState()
   }
 
   trackMicrophoneVolume() {
@@ -317,6 +340,7 @@ export class VideoRoomPlugin extends BasePlugin {
     }, jsepOffer);
 
     await this.rtcConnection.setRemoteDescription(confResult.jsep);
+    await this.processIceCandidates()
 
     return confResult
   }
@@ -325,6 +349,16 @@ export class VideoRoomPlugin extends BasePlugin {
     await this.sendMessage({
       request: 'state',
       data,
+    })
+  }
+
+  private async sendInitialState() {
+    await this.sendMessage({
+      request: 'state',
+      data: {
+        status: 'online',
+        name: this.displayName
+      },
     })
   }
 
