@@ -1,5 +1,3 @@
 # Demo
 
-<ClientOnly>
-    <demo/>
-</ClientOnly>
+<demo/>
