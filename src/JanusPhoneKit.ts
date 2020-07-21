@@ -6,16 +6,25 @@ import {ScreenSharePlugin} from "./plugins/ScreenSharePlugin";
 import EventEmitter from "./util/EventEmitter";
 import {DeviceManager} from "./index";
 import {StunServer} from "./types";
+import JsSip from "./JsSip";
 
+enum audioTypes {
+  SIP = 'sip',
+  JANUS = 'janus'
+}
 type JanusPhoneKitOptions = {
   roomId?: number,
   url?: string,
-  stunServers?: StunServer[]
+  stunServers?: StunServer[],
+  audio?: string,
+  jsSipConfig?: any
 }
 const defaultOptions: JanusPhoneKitOptions = {
   roomId: null,
   url: null,
-  stunServers: [{urls: "stun:stun.l.google.com:19302"}]
+  stunServers: [{urls: "stun:stun.l.google.com:19302"}],
+  audio: audioTypes.JANUS,
+  jsSipConfig: {}
 }
 
 export default class JanusPhoneKit extends EventEmitter {
@@ -37,7 +46,7 @@ export default class JanusPhoneKit extends EventEmitter {
    * @type {ScreenSharePlugin}
    */
   private screenSharePlugin = null
-
+  private jsSip = null
   isConnected = false
 
   constructor(options = {}) {
@@ -58,7 +67,22 @@ export default class JanusPhoneKit extends EventEmitter {
     this.session?.emit.apply(this, params)
   }
 
-  public joinRoom({roomId, displayName = ''}) {
+  private async tryInitJsSip() {
+    if (this.options.audio === audioTypes.SIP) {
+      const config = {
+        ...this.options.jsSipConfig,
+        roomId: this.options.roomId,
+        session: this.session,
+      }
+      this.jsSip = new JsSip(config)
+      await this.jsSip.register()
+      setTimeout(() => {
+        this.jsSip.startCall()
+      }, 1000)
+    }
+  }
+
+  public async joinRoom({roomId, displayName = ''}) {
     if (!this.options.url) {
       throw new Error('Could not create websocket connection because url parameter is missing')
     }
@@ -69,6 +93,7 @@ export default class JanusPhoneKit extends EventEmitter {
     }
 
     this.session = new Session()
+    await this.tryInitJsSip()
 
     this.websocket = new WebSocket(this.options.url, 'janus-protocol');
     this.session.on('output', (msg) => {

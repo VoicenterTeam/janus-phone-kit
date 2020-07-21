@@ -29,6 +29,7 @@
                 :talking-stream="talkingStream"
                 :stream-sources="streamSources"/>
 
+    <audio v-if="audioSource" :srcObject.prop="audioSource" autoplay></audio>
   </div>
 </template>
 <script lang="ts">
@@ -43,6 +44,8 @@
         joinDialogVisible: false,
         PhoneKit: null,
         streamSources: [],
+        // for js sip only
+        audioSource: null,
         talkingStream: null,
         joinForm: {
           displayName: 'Test',
@@ -69,7 +72,7 @@
       async joinRoom() {
         try {
           await this.$refs.form.validate()
-          this.PhoneKit.joinRoom({
+          await this.PhoneKit.joinRoom({
             roomId: this.joinForm.roomId,
             displayName: this.joinForm.displayName
           })
@@ -118,12 +121,23 @@
           this.talkingStream = this.streamSources.find(source => source?.state?.isTalking)
         })
 
+        this.PhoneKit.on('sip:init', data => {
+          this.audioSource = data.stream;
+        })
+
         this.PhoneKit.on('hangup', this.afterHangup)
       }
     },
     async mounted() {
       this.PhoneKit = new PhoneKit({
-        url: 'wss://webconf.officering.net/janus'
+        url: 'wss://webconf.officering.net/janus',
+        audio: 'sip',
+        jsSipConfig: {
+          socketUrl: 'wss://webrtc.officering.net:8888',
+          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNjE2MjM5MDIyLCJ0YWciOiJ2bGFkIiwiYXBwX2RhdGEiOnsiYXBwX2ludml0ZV9pZCI6MSwiYXBwX3RhcmdldF9pZCI6NjU2LCJhcHBfdHlwZSI6Imp3dCIsImFwcF9uYW1lIjoiQ29uZmVyZW5jZSJ9fQ.-ParTBD5afxIiNe2k6UvRWwERJMkXQeck1hENbK9yzY',
+          sipUrl: 'sip:alex1@c7594.ratetel.com:8888',
+          password: '',
+        }
       })
       // @ts-ignore
       window.PhoneKit = this.PhoneKit

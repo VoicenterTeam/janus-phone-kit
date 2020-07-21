@@ -81,6 +81,7 @@ class DeviceManager {
         }
       }
     }
+    debugger
     const constraints = {
       audio,
       video,
