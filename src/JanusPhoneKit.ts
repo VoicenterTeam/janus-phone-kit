@@ -108,6 +108,14 @@ export default class JanusPhoneKit extends EventEmitter {
     this.videoRoomPlugin?.stopAudio()
   }
 
+  public startNoiseFilter() {
+    this.videoRoomPlugin?.startNoiseFilter();
+  }
+
+  public stopNoiseFilter() {
+    this.videoRoomPlugin?.stopNoiseFilter();
+  }
+
   async changePublisherStream({videoInput, audioInput}) {
     const stream = await DeviceManager.getMediaFromInputs({videoInput, audioInput})
     this.videoRoomPlugin?.changePublisherStream(stream)
@@ -115,7 +123,7 @@ export default class JanusPhoneKit extends EventEmitter {
   }
 
   public async startScreenShare() {
-    if (!this.session.connected || this.screenSharePlugin) {
+    if (!this.session.connected || this.screenSharePlugin && this.screenSharePlugin.rtcConnection) {
       return
     }
 
