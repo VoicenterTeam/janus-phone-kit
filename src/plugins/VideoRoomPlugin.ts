@@ -23,6 +23,7 @@ export class VideoRoomPlugin extends BasePlugin {
   isAudioOn: boolean = true
   isNoiseFilterOn: boolean = false
   isTalking: boolean = false
+  mediaConstraints: any = {}
   private volumeMeter: VolumeMeter;
 
   constructor(options: any = {}) {
@@ -31,6 +32,7 @@ export class VideoRoomPlugin extends BasePlugin {
     this.displayName = options.displayName
     this.room_id = options.roomId
     this.stunServers = options.stunServers
+    this.mediaConstraints = options.mediaConstraints;
     this.rtcConnection = new RTCPeerConnection({
       iceServers: this.stunServers,
     })
@@ -99,6 +101,10 @@ export class VideoRoomPlugin extends BasePlugin {
 
     if (msg.janus === 'trickle') {
       await this.onTrickle(msg)
+    }
+
+    if(msg.janus === 'webrtcup') {
+      this.session.emit('webrtcup');
     }
 
     if (pluginData?.event === 'PublisherStateUpdate') {
@@ -186,16 +192,8 @@ export class VideoRoomPlugin extends BasePlugin {
     this.private_id = msg?.plugindata?.data?.private_id;
   }
 
-  async requestAudioAndVideoPermissions() {
-    logger.info('Asking user to share media. Please wait...');
-    let options: any = {
-      audio: true,
-      video: {
-        facingMode: "user",
-        width: {min: 480, ideal: 1280, max: 1920},
-        height: {min: 320, ideal: 720, max: 1080}
-      },
-    }
+  async loadStream() {
+    const options = {...this.mediaConstraints};
     try {
       this.stream = await navigator.mediaDevices.getUserMedia(options);
       logger.info('Got local user media.');
@@ -210,12 +208,16 @@ export class VideoRoomPlugin extends BasePlugin {
         this.stream = await navigator.mediaDevices.getUserMedia(options);
       }
     }
-    this.trackMicrophoneVolume()
-
+    this.trackMicrophoneVolume();
     return {
       stream: this.stream,
       options
     }
+  }
+
+  async requestAudioAndVideoPermissions() {
+    logger.info('Asking user to share media. Please wait...');
+    return  await this.loadStream();
   }
 
   /**
@@ -327,7 +329,14 @@ export class VideoRoomPlugin extends BasePlugin {
     this.volumeMeter.unmute();
   }
 
-  async changePublisherStream(stream) {
+  async changePublisherStream({ audioInput, videoInput }) {
+    if(videoInput) {
+      this.mediaConstraints.video.deviceId = { exact: videoInput };
+    }
+    if(audioInput) {
+      this.mediaConstraints.audio = {deviceId: {exact: audioInput}};
+    }
+    const { stream } = await this.loadStream();
     stream.getTracks().forEach(track => {
       const senders = this.rtcConnection.getSenders()
       senders.forEach(sender => {
@@ -344,8 +353,7 @@ export class VideoRoomPlugin extends BasePlugin {
         sender.replaceTrack(track);
       })
     });
-
-    this.stream = stream
+    return stream;
   }
 
   async sendConfigureMessage(options) {
