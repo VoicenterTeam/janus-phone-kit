@@ -39,8 +39,6 @@ export class ScreenSharePlugin extends BasePlugin {
           logger.warn(err)
         });
     };
-
-    this.createVideoElement()
   }
 
   /**
@@ -132,11 +130,13 @@ export class ScreenSharePlugin extends BasePlugin {
     try {
       // @ts-ignore
       localMedia = await navigator.mediaDevices.getDisplayMedia();
+      localMedia.getVideoTracks()[0].onended = () => this.stopSharing();
       logger.info('Got local user Screen .');
 
       logger.info('Got local user Screen  localMedia:', localMedia);
     } catch (e) {
       console.error('No screen share on this browser ...');
+      await this.stopSharing();
       return;
     }
 
@@ -170,6 +170,21 @@ export class ScreenSharePlugin extends BasePlugin {
     logger.info('Received SDP answer from Janus for ScreenShare.', confResult);
     logger.debug('Setting the SDP answer on RTCPeerConnection. The `onaddstream` event will fire soon.');
     await this.rtcConnection.setRemoteDescription(confResult.jsep);
+  }
+
+  async stopSharing() {
+    await this.detach();
+    if (this.rtcConnection) {
+      this.rtcConnection.close();
+      this.rtcConnection = null;
+    }
+  }
+
+  close() {
+    if (this.rtcConnection) {
+      this.rtcConnection.close();
+      this.rtcConnection = null;
+    }
   }
 
 }

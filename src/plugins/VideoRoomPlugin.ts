@@ -21,6 +21,9 @@ export class VideoRoomPlugin extends BasePlugin {
   offerOptions: any = {}
   isVideoOn: boolean = true
   isAudioOn: boolean = true
+  isNoiseFilterOn: boolean = false
+  isTalking: boolean = false
+  private volumeMeter: VolumeMeter;
 
   constructor(options: any = {}) {
     super()
@@ -249,7 +252,9 @@ export class VideoRoomPlugin extends BasePlugin {
     })
 
     logger.info('Adding local user media to RTCPeerConnection.');
-    this.addTracks(this.stream)
+    // pass through audio context
+    this.addTracks(this.stream.getVideoTracks());
+    this.addTracks(this.volumeMeter.getOutputStream().getTracks());
 
     await this.sendConfigureMessage({
       audio: true,
@@ -262,15 +267,16 @@ export class VideoRoomPlugin extends BasePlugin {
     const volumeMeter = new VolumeMeter(this.stream)
     volumeMeter.onAudioProcess(async (newValue, oldValue) => {
       if (newValue >= 20 && oldValue < 20) {
-        await this.sendStateMessage({
-          isTalking: true
-        })
+        this.isNoiseFilterOn && volumeMeter.unmute();
+        this.isTalking = true;
+        await this.sendStateMessage({ isTalking: true });
       } else if (newValue <= 20 && oldValue > 20) {
-        await this.sendStateMessage({
-          isTalking: false
-        })
+        this.isNoiseFilterOn && volumeMeter.mute();
+        this.isTalking = false;
+        await this.sendStateMessage({ isTalking: false });
       }
-    })
+    });
+    this.volumeMeter = volumeMeter;
   }
 
   async startVideo() {
@@ -307,6 +313,18 @@ export class VideoRoomPlugin extends BasePlugin {
     await this.sendStateMessage({
       audio: false
     })
+  }
+
+  startNoiseFilter() {
+    this.isNoiseFilterOn = true;
+    if (!this.isTalking) {
+      this.volumeMeter.mute();
+    }
+  }
+
+  stopNoiseFilter() {
+    this.isNoiseFilterOn = false;
+    this.volumeMeter.unmute();
   }
 
   async changePublisherStream(stream) {
@@ -362,9 +380,9 @@ export class VideoRoomPlugin extends BasePlugin {
     })
   }
 
-  addTracks(stream: MediaStream) {
-    stream.getTracks().forEach((track) => {
-      this.rtcConnection.addTrack(track, stream);
+  addTracks(tracks: MediaStreamTrack[]) {
+    tracks.forEach((track) => {
+      this.rtcConnection.addTrack(track);
     });
   }
 
@@ -380,5 +398,14 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     await this.send({janus: 'hangup'});
+  }
+
+  close() {
+    if (this.rtcConnection) {
+      this.rtcConnection.close();
+      this.rtcConnection = null;
+    }
+    const members = Object.values(this.memberList);
+    members.forEach((member: any) => member.hangup());
   }
 }

@@ -122,6 +122,13 @@ export class BasePlugin extends EventEmitter {
   }
 
   /**
+   * Closes rtc peer connections
+   */
+  close() {
+    logger.debug('close() abstract method called');
+  }
+
+  /**
    * Detach this plugin from the session. Meant to be called only from {@link Session}.
    *
    * The method {@link BasePlugin#onDetached} will be called.
