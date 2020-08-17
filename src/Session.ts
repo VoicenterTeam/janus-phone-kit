@@ -204,7 +204,7 @@ class Session extends EventEmitter {
       this.#transactions[transaction] = {
         resolve, reject, timeout, payload,
       };
-    });
+    }).catch(e => console.error(e));
 
     logger.debug('Outgoing Janus message', payload);
     /**

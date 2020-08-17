@@ -4,7 +4,6 @@ import {logger} from './util/logger'
 import {VideoRoomPlugin} from "./plugins/VideoRoomPlugin";
 import {ScreenSharePlugin} from "./plugins/ScreenSharePlugin";
 import EventEmitter from "./util/EventEmitter";
-import {DeviceManager} from "./index";
 import {StunServer} from "./types";
 
 type JanusPhoneKitOptions = {
@@ -58,7 +57,7 @@ export default class JanusPhoneKit extends EventEmitter {
     this.session?.emit.apply(this, params)
   }
 
-  public joinRoom({roomId, displayName = ''}) {
+  public joinRoom({roomId, displayName = '', mediaConstraints}) {
     if (!this.options.url) {
       throw new Error('Could not create websocket connection because url parameter is missing')
     }
@@ -79,7 +78,7 @@ export default class JanusPhoneKit extends EventEmitter {
       this.session.receive(JSON.parse(event.data))
     });
 
-    this.registerSocketOpenHandler(displayName)
+    this.registerSocketOpenHandler(displayName, mediaConstraints)
     this.registerSocketCloseHandler()
 
     return this.session
@@ -116,10 +115,13 @@ export default class JanusPhoneKit extends EventEmitter {
     this.videoRoomPlugin?.stopNoiseFilter();
   }
 
-  async changePublisherStream({videoInput, audioInput}) {
-    const stream = await DeviceManager.getMediaFromInputs({videoInput, audioInput})
-    this.videoRoomPlugin?.changePublisherStream(stream)
-    return stream
+  public setBitrate(bitrate) {
+    this.videoRoomPlugin?.setBitrate(bitrate);
+    this.screenSharePlugin?.setBitrate(bitrate);
+  }
+
+  async changePublisherStream(newSource) {
+    return this.videoRoomPlugin?.changePublisherStream(newSource);
   }
 
   public async startScreenShare() {
@@ -145,7 +147,7 @@ export default class JanusPhoneKit extends EventEmitter {
     await this.videoRoomPlugin.sendStateMessage(data)
   }
 
-  private registerSocketOpenHandler(displayName) {
+  private registerSocketOpenHandler(displayName, mediaConstraints) {
     this.websocket.addEventListener('open', async () => {
       try {
         await this.session.create();
@@ -159,6 +161,7 @@ export default class JanusPhoneKit extends EventEmitter {
         displayName: displayName,
         roomId: this.options.roomId,
         stunServers: this.options.stunServers,
+        mediaConstraints,
       });
 
       try {
