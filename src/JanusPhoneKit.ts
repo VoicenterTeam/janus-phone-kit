@@ -147,6 +147,10 @@ export default class JanusPhoneKit extends EventEmitter {
     await this.videoRoomPlugin.sendStateMessage(data)
   }
 
+  public async syncParticipants() {
+    await this.videoRoomPlugin?.syncParticipants();
+  }
+
   private registerSocketOpenHandler(displayName, mediaConstraints) {
     this.websocket.addEventListener('open', async () => {
       try {
@@ -167,6 +171,7 @@ export default class JanusPhoneKit extends EventEmitter {
       try {
         await this.session.attachPlugin(this.videoRoomPlugin);
         this.isConnected = true;
+        await this.syncParticipants();
         logger.info(`Echotest plugin attached with handle/ID ${this.videoRoomPlugin.id}`);
       } catch (err) {
         logger.error('Error during attaching of plugin', err);

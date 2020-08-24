@@ -118,9 +118,8 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     if (pluginData?.unpublished) {
-      this.onHangup(msg.sender)
+      this.onHangup(pluginData.unpublished)
       return
-
     }
 
     if (pluginData?.publishers) {
@@ -132,14 +131,14 @@ export class VideoRoomPlugin extends BasePlugin {
     }
   }
 
-  private onHangup(sender) {
-    const members = Object.values(this.memberList)
-    const hangupMember: any = members.find((member: any) => member.handleId === sender);
+  private onHangup(unpublished) {
+    const hangupMember = this.memberList[unpublished];
 
     if (!hangupMember) {
       return
     }
     hangupMember.hangup();
+    delete this.memberList[unpublished];
   }
 
   private async onTrickle(message) {
@@ -180,14 +179,22 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   private onReceivePublishers(msg) {
+    const unprocessedMembers = { ...this.memberList };
     msg?.plugindata?.data?.publishers.forEach((publisher) => {
 
+      delete unprocessedMembers[publisher.id];
       if (!this.memberList[publisher.id] && !this.myFeedList.includes(publisher.id)) {
         this.memberList[publisher.id] = new Member(publisher, this);
         this.memberList[publisher.id].attachMember();
       }
     });
 
+    if (msg?.plugindata?.data?.videoroom === 'synced') {
+      Object.keys(unprocessedMembers).forEach(key => {
+        unprocessedMembers[key].hangup();
+        delete this.memberList[key];
+      });
+    }
     this.publishers = msg?.plugindata?.data?.publishers;
     this.private_id = msg?.plugindata?.data?.private_id;
   }
@@ -406,6 +413,12 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     await this.send({janus: 'hangup'});
+  }
+
+  public async syncParticipants() {
+    await this.sendMessage({
+      request: 'sync'
+    });
   }
 
   close() {
