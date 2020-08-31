@@ -21,6 +21,10 @@ export class VideoRoomPlugin extends BasePlugin {
   offerOptions: any = {}
   isVideoOn: boolean = true
   isAudioOn: boolean = true
+  isNoiseFilterOn: boolean = false
+  isTalking: boolean = false
+  mediaConstraints: any = {}
+  private volumeMeter: VolumeMeter;
 
   constructor(options: any = {}) {
     super()
@@ -28,6 +32,7 @@ export class VideoRoomPlugin extends BasePlugin {
     this.displayName = options.displayName
     this.room_id = options.roomId
     this.stunServers = options.stunServers
+    this.mediaConstraints = options.mediaConstraints;
     this.rtcConnection = new RTCPeerConnection({
       iceServers: this.stunServers,
     })
@@ -98,6 +103,10 @@ export class VideoRoomPlugin extends BasePlugin {
       await this.onTrickle(msg)
     }
 
+    if(msg.janus === 'webrtcup') {
+      this.session.emit('webrtcup');
+    }
+
     if (pluginData?.event === 'PublisherStateUpdate') {
       this.onPublisherStateUpdate(msg)
       return
@@ -109,9 +118,8 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     if (pluginData?.unpublished) {
-      this.onHangup(msg.sender)
+      this.onHangup(pluginData.unpublished)
       return
-
     }
 
     if (pluginData?.publishers) {
@@ -123,14 +131,14 @@ export class VideoRoomPlugin extends BasePlugin {
     }
   }
 
-  private onHangup(sender) {
-    const members = Object.values(this.memberList)
-    const hangupMember: any = members.find((member: any) => member.handleId === sender);
+  private onHangup(unpublished) {
+    const hangupMember = this.memberList[unpublished];
 
     if (!hangupMember) {
       return
     }
     hangupMember.hangup();
+    delete this.memberList[unpublished];
   }
 
   private async onTrickle(message) {
@@ -171,28 +179,28 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   private onReceivePublishers(msg) {
+    const unprocessedMembers = { ...this.memberList };
     msg?.plugindata?.data?.publishers.forEach((publisher) => {
 
+      delete unprocessedMembers[publisher.id];
       if (!this.memberList[publisher.id] && !this.myFeedList.includes(publisher.id)) {
         this.memberList[publisher.id] = new Member(publisher, this);
         this.memberList[publisher.id].attachMember();
       }
     });
 
+    if (msg?.plugindata?.data?.videoroom === 'synced') {
+      Object.keys(unprocessedMembers).forEach(key => {
+        unprocessedMembers[key].hangup();
+        delete this.memberList[key];
+      });
+    }
     this.publishers = msg?.plugindata?.data?.publishers;
     this.private_id = msg?.plugindata?.data?.private_id;
   }
 
-  async requestAudioAndVideoPermissions() {
-    logger.info('Asking user to share media. Please wait...');
-    let options: any = {
-      audio: true,
-      video: {
-        facingMode: "user",
-        width: {min: 480, ideal: 1280, max: 1920},
-        height: {min: 320, ideal: 720, max: 1080}
-      },
-    }
+  async loadStream() {
+    const options = {...this.mediaConstraints};
     try {
       this.stream = await navigator.mediaDevices.getUserMedia(options);
       logger.info('Got local user media.');
@@ -207,12 +215,16 @@ export class VideoRoomPlugin extends BasePlugin {
         this.stream = await navigator.mediaDevices.getUserMedia(options);
       }
     }
-    this.trackMicrophoneVolume()
-
+    this.trackMicrophoneVolume();
     return {
       stream: this.stream,
       options
     }
+  }
+
+  async requestAudioAndVideoPermissions() {
+    logger.info('Asking user to share media. Please wait...');
+    return  await this.loadStream();
   }
 
   /**
@@ -249,7 +261,9 @@ export class VideoRoomPlugin extends BasePlugin {
     })
 
     logger.info('Adding local user media to RTCPeerConnection.');
-    this.addTracks(this.stream)
+    // pass through audio context
+    this.addTracks(this.stream.getVideoTracks());
+    this.addTracks(this.volumeMeter.getOutputStream().getTracks());
 
     await this.sendConfigureMessage({
       audio: true,
@@ -262,15 +276,16 @@ export class VideoRoomPlugin extends BasePlugin {
     const volumeMeter = new VolumeMeter(this.stream)
     volumeMeter.onAudioProcess(async (newValue, oldValue) => {
       if (newValue >= 20 && oldValue < 20) {
-        await this.sendStateMessage({
-          isTalking: true
-        })
+        this.isNoiseFilterOn && volumeMeter.unmute();
+        this.isTalking = true;
+        await this.sendStateMessage({ isTalking: true });
       } else if (newValue <= 20 && oldValue > 20) {
-        await this.sendStateMessage({
-          isTalking: false
-        })
+        this.isNoiseFilterOn && volumeMeter.mute();
+        this.isTalking = false;
+        await this.sendStateMessage({ isTalking: false });
       }
-    })
+    });
+    this.volumeMeter = volumeMeter;
   }
 
   async startVideo() {
@@ -309,7 +324,26 @@ export class VideoRoomPlugin extends BasePlugin {
     })
   }
 
-  async changePublisherStream(stream) {
+  startNoiseFilter() {
+    this.isNoiseFilterOn = true;
+    if (!this.isTalking) {
+      this.volumeMeter.mute();
+    }
+  }
+
+  stopNoiseFilter() {
+    this.isNoiseFilterOn = false;
+    this.volumeMeter.unmute();
+  }
+
+  async changePublisherStream({ audioInput, videoInput }) {
+    if(videoInput) {
+      this.mediaConstraints.video.deviceId = { exact: videoInput };
+    }
+    if(audioInput) {
+      this.mediaConstraints.audio = {deviceId: {exact: audioInput}};
+    }
+    const { stream } = await this.loadStream();
     stream.getTracks().forEach(track => {
       const senders = this.rtcConnection.getSenders()
       senders.forEach(sender => {
@@ -326,8 +360,7 @@ export class VideoRoomPlugin extends BasePlugin {
         sender.replaceTrack(track);
       })
     });
-
-    this.stream = stream
+    return stream;
   }
 
   async sendConfigureMessage(options) {
@@ -362,9 +395,9 @@ export class VideoRoomPlugin extends BasePlugin {
     })
   }
 
-  addTracks(stream: MediaStream) {
-    stream.getTracks().forEach((track) => {
-      this.rtcConnection.addTrack(track, stream);
+  addTracks(tracks: MediaStreamTrack[]) {
+    tracks.forEach((track) => {
+      this.rtcConnection.addTrack(track);
     });
   }
 
@@ -380,5 +413,20 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     await this.send({janus: 'hangup'});
+  }
+
+  public async syncParticipants() {
+    await this.sendMessage({
+      request: 'sync'
+    });
+  }
+
+  close() {
+    if (this.rtcConnection) {
+      this.rtcConnection.close();
+      this.rtcConnection = null;
+    }
+    const members = Object.values(this.memberList);
+    members.forEach((member: any) => member.hangup());
   }
 }
