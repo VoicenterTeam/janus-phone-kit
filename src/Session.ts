@@ -66,6 +66,7 @@ class Session extends EventEmitter {
     Object.entries(this.#plugins).forEach(([id, plugin]) => {
       logger.debug(`Removing reference to plugin ${plugin.instance.name} (${id})`);
       clearTimeout(plugin.timeout_cleanup);
+      plugin.instance.close();
       delete this.#plugins[id];
       logger.debug(`Remaining plugins: ${Object.keys(this.#plugins)}`);
     });
@@ -203,7 +204,7 @@ class Session extends EventEmitter {
       this.#transactions[transaction] = {
         resolve, reject, timeout, payload,
       };
-    });
+    }).catch(e => console.error(e));
 
     logger.debug('Outgoing Janus message', payload);
     /**
@@ -226,6 +227,7 @@ class Session extends EventEmitter {
    */
   stop() {
     logger.debug('stop()');
+    Object.entries(this.#plugins).forEach(([, plugin]) => plugin.instance.close());
     this.#stopKeepalive();
     this.connected = false;
   }
