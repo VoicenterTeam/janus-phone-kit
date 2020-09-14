@@ -71,7 +71,11 @@
           await this.$refs.form.validate()
           this.PhoneKit.joinRoom({
             roomId: this.joinForm.roomId,
-            displayName: this.joinForm.displayName
+            displayName: this.joinForm.displayName,
+            mediaConstraints: {
+              audio: true,
+              video: true,
+            }
           })
           this.initListeners()
           this.conferenceStarted = true
