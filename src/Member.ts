@@ -10,6 +10,7 @@ export class Member {
   private joinResult = null
   private state = {}
   private stream = null
+  private handledStreams = {}
 
   constructor(memberInfo, plugin: BasePlugin) {
     this.info = memberInfo
@@ -39,7 +40,16 @@ export class Member {
   }
 
   async answerAttachedStream(attachedStreamInfo) {
+    let isNegotiating = false
     const RTCPeerOnAddStream = async (event) => {
+      if (isNegotiating) {
+        return;
+      }
+      isNegotiating = true;
+      const stream = event.streams[0];
+      if (!stream || !stream.id) {
+        return
+      }
       if (!this.rtcpPeer) {
         return
       }
@@ -56,19 +66,21 @@ export class Member {
         room: this.plugin.room_id
       }, answerSdp, {handle_id: this.handleId});
 
-      this.stream = event.stream;
+      this.stream = stream;
 
       this.plugin?.session.emit('member:join', this.memberInfo)
+      this.handledStreams[this.memberInfo.id] = true
     }
 
     // Send ICE events to Janus.
     const RTCPeerOnIceCandidate = (event) => {
-      if (this.rtcpPeer.signalingState !== 'stable') return;
+      isNegotiating = this.rtcpPeer.signalingState !== 'stable'
+      if (isNegotiating) return;
       this.plugin.sendTrickle(event.candidate || null);
     }
 
     this.rtcpPeer = new RTCPeerConnection();
-    this.rtcpPeer.onaddstream = RTCPeerOnAddStream;
+    this.rtcpPeer.ontrack = RTCPeerOnAddStream;
     this.rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
     this.rtcpPeer.sender = attachedStreamInfo.sender;
     await this.rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep);
