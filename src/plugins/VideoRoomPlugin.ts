@@ -24,7 +24,6 @@ export class VideoRoomPlugin extends BasePlugin {
   isNoiseFilterOn: boolean = false
   isTalking: boolean = false
   mediaConstraints: any = {}
-  private volumeMeter: VolumeMeter;
 
   constructor(options: any = {}) {
     super()
@@ -240,15 +239,15 @@ export class VideoRoomPlugin extends BasePlugin {
    * @override
    */
   async onAttached() {
-    const {options} = await this.requestAudioAndVideoPermissions();
+      const joinResult = await this.sendMessage({
+        request: 'join',
+        room: this.room_id,
+        ptype: 'publisher',
+        display: this.displayName,
+        opaque_id: this.opaqueId,
+      })
 
-    const joinResult = await this.sendMessage({
-      request: 'join',
-      room: this.room_id,
-      ptype: 'publisher',
-      display: this.displayName,
-      opaque_id: this.opaqueId,
-    });
+    const {options} = await this.requestAudioAndVideoPermissions();
 
     this.session.emit('member:join', {
       stream: this.stream,
@@ -263,7 +262,7 @@ export class VideoRoomPlugin extends BasePlugin {
     logger.info('Adding local user media to RTCPeerConnection.');
     // pass through audio context
     this.addTracks(this.stream.getVideoTracks());
-    this.addTracks(this.volumeMeter.getOutputStream().getTracks());
+    this.addTracks(this.stream.getAudioTracks());
 
     await this.sendConfigureMessage({
       audio: true,
@@ -276,16 +275,13 @@ export class VideoRoomPlugin extends BasePlugin {
     const volumeMeter = new VolumeMeter(this.stream)
     volumeMeter.onAudioProcess(async (newValue, oldValue) => {
       if (newValue >= 20 && oldValue < 20) {
-        this.isNoiseFilterOn && volumeMeter.unmute();
         this.isTalking = true;
         await this.sendStateMessage({ isTalking: true });
       } else if (newValue <= 20 && oldValue > 20) {
-        this.isNoiseFilterOn && volumeMeter.mute();
         this.isTalking = false;
         await this.sendStateMessage({ isTalking: false });
       }
     });
-    this.volumeMeter = volumeMeter;
   }
 
   async startVideo() {
@@ -327,21 +323,25 @@ export class VideoRoomPlugin extends BasePlugin {
   startNoiseFilter() {
     this.isNoiseFilterOn = true;
     if (!this.isTalking) {
-      this.volumeMeter.mute();
+      // implementation not ready
     }
   }
 
   stopNoiseFilter() {
     this.isNoiseFilterOn = false;
-    this.volumeMeter.unmute();
+    // implementation not ready
   }
 
   async changePublisherStream({ audioInput, videoInput }) {
-    if(videoInput) {
-      this.mediaConstraints.video.deviceId = { exact: videoInput };
+    if (videoInput) {
+      this.mediaConstraints.video.deviceId = {exact: videoInput};
+    } else if (typeof this.mediaConstraints.video === 'object') {
+      this.mediaConstraints.video.deviceId = undefined;
     }
-    if(audioInput) {
+    if (audioInput) {
       this.mediaConstraints.audio = {deviceId: {exact: audioInput}};
+    } else if (typeof this.mediaConstraints.audio === 'object') {
+      this.mediaConstraints.audio.deviceId = undefined;
     }
     const { stream } = await this.loadStream();
     stream.getTracks().forEach(track => {

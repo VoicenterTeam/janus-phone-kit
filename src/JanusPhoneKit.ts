@@ -143,6 +143,10 @@ export default class JanusPhoneKit extends EventEmitter {
     }
   }
 
+  public async stopScreenShare() {
+    await this.screenSharePlugin?.stopSharing();
+  }
+
   public async sendStateMessage(data = {}) {
     await this.videoRoomPlugin.sendStateMessage(data)
   }

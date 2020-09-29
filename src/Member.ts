@@ -112,6 +112,6 @@ export class Member {
       info: this.info,
       sender: this.handleId
     })
-    this.plugin.send({janus: 'detach'}, {handle_id: this.handleId}).catch(console.log);
+    this.plugin.send({janus: 'detach'}, {handle_id: this.handleId});
   }
 }

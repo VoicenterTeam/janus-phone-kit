@@ -165,10 +165,12 @@ class Session extends EventEmitter {
       }
       if (!plugin) throw new Error(`Could not find plugin with ID ${pluginId}`);
       plugin.instance.receive(msg);
+      return;
     }
 
     // If there is neither `sender` nor `transaction` property on the message, we cannot do anything
     // with it.
+    this.emit('custom-event', msg);
   }
 
   /**
@@ -204,7 +206,7 @@ class Session extends EventEmitter {
       this.#transactions[transaction] = {
         resolve, reject, timeout, payload,
       };
-    }).catch(e => console.error(e));
+    });
 
     logger.debug('Outgoing Janus message', payload);
     /**
