@@ -1,5 +1,6 @@
 import {logger} from './util/logger'
 import {BasePlugin} from "./plugins/BasePlugin";
+import {onceInTimeoutClosure} from "./util/util";
 
 export class Member {
 
@@ -10,6 +11,7 @@ export class Member {
   private joinResult = null
   private state = {}
   private stream = null
+  public onSlowlink = onceInTimeoutClosure(this.reduceBitrate.bind(this), 15000, 2);
 
   constructor(memberInfo, plugin: BasePlugin) {
     this.info = memberInfo
@@ -17,6 +19,9 @@ export class Member {
     this.rtcpPeer = new RTCPeerConnection({
       iceServers: this.plugin.stunServers,
     })
+    this.state = {
+      bitrate: memberInfo.bitrate,
+    };
   }
 
   async attachMember() {
@@ -113,5 +118,12 @@ export class Member {
       sender: this.handleId
     })
     this.plugin.send({janus: 'detach'}, {handle_id: this.handleId});
+  }
+
+  private async reduceBitrate() {
+    await this.plugin.sendMessage({
+      cutBitrate: this.info.id,
+    }, null, { handle_id: this.handleId })
+    logger.info(`Bitrate reduced for handle ${this.handleId}`)
   }
 }
