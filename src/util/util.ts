@@ -38,3 +38,18 @@ export function randomString(len) {
   }
   return randomStr;
 }
+
+export function onceInTimeoutClosure(fun, timeout, threshold = 1) {
+  let counter = 0;
+  let locked = false;
+  return () => {
+    if (!locked && ++counter >= threshold) {
+      locked = true;
+      setTimeout(() => {
+        counter = 0;
+        locked = false;
+      }, timeout);
+      fun();
+    }
+  };
+}

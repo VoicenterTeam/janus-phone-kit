@@ -1,5 +1,5 @@
 import {BasePlugin} from "./BasePlugin";
-import {randomString} from "../util/util";
+import {onceInTimeoutClosure, randomString} from "../util/util";
 import {logger} from "../util/logger";
 import {Member} from "../Member";
 import DeviceManager from "../util/DeviceManager";
@@ -24,6 +24,8 @@ export class VideoRoomPlugin extends BasePlugin {
   isNoiseFilterOn: boolean = false
   isTalking: boolean = false
   mediaConstraints: any = {}
+  bitrate: number = 0
+  private onSlowlink = onceInTimeoutClosure(this.reduceBitrate.bind(this), 15000, 2);
 
   constructor(options: any = {}) {
     super()
@@ -32,6 +34,7 @@ export class VideoRoomPlugin extends BasePlugin {
     this.room_id = options.roomId
     this.stunServers = options.stunServers
     this.mediaConstraints = options.mediaConstraints;
+    this.bitrate = this.mediaConstraints.bitrate;
     this.rtcConnection = new RTCPeerConnection({
       iceServers: this.stunServers,
     })
@@ -78,10 +81,13 @@ export class VideoRoomPlugin extends BasePlugin {
    *
    * @public
    * @param {Number} bitrate - Bits per second
+   * @param {Boolean} force - either bitrate must be forced. If not forced janus may deny message if bitrate was changed recently
+   * and changes did not take effect yet (used in automatical bitrate reduce)
    * @return {Object} The response from Janus
    */
-  async setBitrate(bitrate) {
-    return this.sendMessage({bitrate});
+  async setBitrate(bitrate, force = true) {
+    this.bitrate = bitrate;
+    await this.sendMessage({bitrate, force});
   }
 
   /**
@@ -103,7 +109,7 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     if(msg.janus === 'webrtcup') {
-      this.session.emit('webrtcup');
+      this.session.emit('webrtcup', { ptype: msg.sender === this.id ? 'publisher' : 'subscriber' });
     }
 
     if (pluginData?.event === 'PublisherStateUpdate') {
@@ -127,6 +133,18 @@ export class VideoRoomPlugin extends BasePlugin {
 
     if (pluginData?.videoroom === 'joined') {
       this.onPublisherInitialStateUpdate(msg)
+    }
+
+    if (msg.janus === 'slowlink') {
+      if (msg.uplink) {
+        const slowMember = Object.values(this.memberList).find((member: Member) => member.handleId === msg.sender)
+        if (slowMember) {
+          await (slowMember as Member).onSlowlink();
+        }
+      } else {
+        await this.onSlowlink();
+      }
+      this.session.emit('slowlink', msg);
     }
   }
 
@@ -428,5 +446,10 @@ export class VideoRoomPlugin extends BasePlugin {
     }
     const members = Object.values(this.memberList);
     members.forEach((member: any) => member.hangup());
+  }
+
+  private async reduceBitrate() {
+    await this.setBitrate(this.bitrate / 2, false);
+    logger.info(`Bitrate reduced for uplink to ${this.bitrate / 2} Kbit/s`);
   }
 }
