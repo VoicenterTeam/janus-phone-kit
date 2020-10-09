@@ -68,11 +68,11 @@ export class Member {
 
     // Send ICE events to Janus.
     const RTCPeerOnIceCandidate = (event) => {
-      if (this.rtcpPeer.signalingState !== 'stable') return;
-      this.plugin.sendTrickle(event.candidate || null);
+      if (event.candidate) {
+        this.plugin.sendTrickle(event.candidate);
+      }
     }
 
-    this.rtcpPeer = new RTCPeerConnection();
     this.rtcpPeer.onaddstream = RTCPeerOnAddStream;
     this.rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
     this.rtcpPeer.sender = attachedStreamInfo.sender;
