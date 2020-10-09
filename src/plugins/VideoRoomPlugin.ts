@@ -41,10 +41,6 @@ export class VideoRoomPlugin extends BasePlugin {
     logger.debug('Init plugin', this);
     // Send ICE events to Janus.
     this.rtcConnection.onicecandidate = (event) => {
-
-      if (this.rtcConnection.signalingState !== 'stable') {
-        return;
-      }
       if (!event.candidate) {
         return
       }

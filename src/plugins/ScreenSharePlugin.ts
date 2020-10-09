@@ -31,10 +31,6 @@ export class ScreenSharePlugin extends BasePlugin {
     });
     // Send ICE events to Janus.
     this.rtcConnection.onicecandidate = (event) => {
-
-      if (this.rtcConnection.signalingState !== 'stable') {
-        return;
-      }
       this.sendTrickle(event.candidate || null)
         .catch((err) => {
           logger.warn(err)
