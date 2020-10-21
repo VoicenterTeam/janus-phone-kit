@@ -53,3 +53,21 @@ export function onceInTimeoutClosure(fun, timeout, threshold = 1) {
     }
   };
 }
+
+export function retryPromise(promiseSupplier, maxAttempts = 5) {
+  let counter = 1;
+  const retry = (resolve, reject) => {
+    promiseSupplier()
+      .then(response => resolve(response))
+      .catch(err => {
+        if (counter++ < maxAttempts) {
+          retry(resolve, reject);
+        } else {
+          reject(err);
+        }
+      });
+  };
+  return new Promise((resolve, reject) => {
+    retry(resolve, reject);
+  })
+}

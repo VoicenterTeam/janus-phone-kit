@@ -53,6 +53,10 @@ class EventEmitter {
     this.on(event, on)
   }
 
+  public offAll() {
+    this.#events = Object.create(null)
+  }
+
   public off(event, fn) {
     // all
     if (!arguments.length) {
