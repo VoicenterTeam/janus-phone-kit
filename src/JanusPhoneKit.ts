@@ -73,10 +73,6 @@ export default class JanusPhoneKit extends EventEmitter {
     }
     this.options.roomId = roomId
 
-    if (!this.options.roomId) {
-      throw new Error('A roomId is required in order to join a room')
-    }
-
     this.session = new Session()
 
     this.websocket = new WebSocket(this.options.url, 'janus-protocol');
@@ -173,10 +169,12 @@ export default class JanusPhoneKit extends EventEmitter {
 
   private registerSocketOpenHandler(displayName, mediaConstraints, sessionInfo) {
     this.websocket.addEventListener('open', async () => {
-      window.addEventListener('beforeunload', e => {
+      const unload = e => {
         this.websocket.close()
         e.preventDefault()
-      })
+      };
+      window.addEventListener('beforeunload', unload)
+      window.addEventListener('unload', unload)
       try {
         await this.session.create(sessionInfo);
         logger.info(`Session with ID ${this.session.id} created.`);

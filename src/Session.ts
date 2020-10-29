@@ -122,7 +122,7 @@ class Session extends EventEmitter {
     logger.debug('Receiving message from Janus', msg);
     // If there is a transaction property, then this is a reply to a message which we have sent
     // previously.
-    if(this.id && this.id !== msg.session_id) {
+    if(this.id && msg.session_id && this.id !== msg.session_id) {
       return;
     }
     if (msg.transaction) {
