@@ -12,7 +12,8 @@
   "dependencies": {
     "loglevel": "^1.6.8",
     "uuid": "^8.0.0",
-    "webrtc-adapter": "^7.6.1"
+    "webrtc-adapter": "^7.6.1",
+    "webrtc-stats-gatherer": "^9.0.3"
   },
   "peerDependencies": {},
   "devDependencies": {
