@@ -6,6 +6,7 @@ import DeviceManager from "../util/DeviceManager";
 import {v4 as uuidv4} from 'uuid';
 import {VolumeMeter} from "../util/SoundMeter";
 import {StunServer} from "../types";
+import StatsGatherer from 'webrtc-stats-gatherer';
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
@@ -16,7 +17,7 @@ export class VideoRoomPlugin extends BasePlugin {
   publishers = null
   displayName: string = ''
   rtcConnection: any = null;
-
+  gatherer: any =null;
   stream: MediaStream;
   offerOptions: any = {}
   isVideoOn: boolean = true
@@ -37,6 +38,12 @@ export class VideoRoomPlugin extends BasePlugin {
       iceServers: this.stunServers,
     })
     logger.debug('Init plugin', this);
+    // Activate  gatherer to get rtcConnection Event
+    this.gatherer = new StatsGatherer(this.rtcConnection,{interval:5,conference:this.room_id.toString(),logger:logger,initiator:this.opaqueId});
+    this.gatherer.on('stats', (statsEvent) => {
+      logger.debug('gatherer rtcConnection stats Event', statsEvent)
+      console.log('gatherer rtcConnection stats Event', statsEvent)
+    });
     // Send ICE events to Janus.
     this.rtcConnection.onicecandidate = (event) => {
 
