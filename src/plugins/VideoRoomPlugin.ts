@@ -263,7 +263,7 @@ export class VideoRoomPlugin extends BasePlugin {
     logger.info('Adding local user media to RTCPeerConnection.');
     // pass through audio context
     this.addTracks(this.stream.getVideoTracks());
-    this.addTracks(this.volumeMeter.getOutputStream().getTracks());
+    // this.addTracks(this.volumeMeter.getOutputStream().getTracks());
 
     await this.sendConfigureMessage({
       audio: true,
@@ -396,9 +396,22 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   addTracks(tracks: MediaStreamTrack[]) {
-    tracks.forEach((track) => {
-      this.rtcConnection.addTrack(track);
-    });
+    // tracks.forEach((track) => {
+    //   this.rtcConnection.addTrack(track);
+    // });
+    for(let i = 0; i < tracks.length; i++) {
+      let track = tracks[i];
+      let transceiver = this.rtcConnection.addTransceiver(track, {
+        direction: "sendrecv",
+        streams: [this.stream],
+        sendEncodings: [
+          { rid: "h", active: true, maxBitrate: 900000 },
+          { rid: "m", active: true, maxBitrate: 300000, scaleResolutionDownBy: 2 },
+          { rid: "l", active: true, maxBitrate: 100000, scaleResolutionDownBy: 4 }
+        ]
+      });
+      console.log(transceiver);
+    }
   }
 
   async hangup() {
