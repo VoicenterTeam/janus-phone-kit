@@ -147,15 +147,16 @@ export default class JanusPhoneKit extends EventEmitter {
     await this.videoRoomPlugin.sendStateMessage(data)
   }
 
-  public async setSubstream(i) {
+  public async setSubstream(n) {
     let sessionIds = Object.keys(this.videoRoomPlugin.memberList);
-    await this.videoRoomPlugin.sendMessage({
-      request: 'substream',
-      data: {
-        substreamIndex: i,
-        members: sessionIds
-      },
-    });
+    for (let i = 0; i < sessionIds.length; i++) {
+      console.log(this.videoRoomPlugin.memberList[i]);
+      this.videoRoomPlugin.sendMessage({
+        request: "configure",
+        substream: n,
+        subId: parseInt(sessionIds[i])
+      });
+    }
   }
 
   public async syncParticipants() {

@@ -17,6 +17,8 @@ export class VideoRoomPlugin extends BasePlugin {
   displayName: string = ''
   rtcConnection: any = null;
 
+  subscriberId: any = null;
+
   stream: MediaStream;
   offerOptions: any = {}
   isVideoOn: boolean = true
@@ -129,6 +131,15 @@ export class VideoRoomPlugin extends BasePlugin {
     if (pluginData?.videoroom === 'joined') {
       this.onPublisherInitialStateUpdate(msg)
     }
+    if (pluginData?.videoroom === 'event') {
+      // Check if we got a simulcast-related event from this publisher
+      var substream = pluginData.substream;
+      var temporal = pluginData.temporal;
+      if((substream !== null && substream !== undefined) || (temporal !== null && temporal !== undefined)) {
+        this.onSimulcastUpdate(pluginData);
+      }
+      return;
+    }
   }
 
   private onHangup(unpublished) {
@@ -176,6 +187,17 @@ export class VideoRoomPlugin extends BasePlugin {
         this.memberList[publisher?.id].updateMemberState(publisher?.state);
       }
     })
+  }
+
+  private onSimulcastUpdate(pluginData) {
+    console.log('onSimulcastUpdate call=========================')
+    // if(!remoteFeed.simulcastStarted) {
+    //   remoteFeed.simulcastStarted = true;
+    //   // Add some new buttons
+    //   addSimulcastButtons(remoteFeed.rfindex, remoteFeed.videoCodec === "vp8" || remoteFeed.videoCodec === "h264");
+    // }
+    // // We just received notice that there's been a switch, update the buttons
+    // updateSimulcastButtons(remoteFeed.rfindex, substream, temporal);
   }
 
   private onReceivePublishers(msg) {
@@ -366,7 +388,6 @@ export class VideoRoomPlugin extends BasePlugin {
   async sendConfigureMessage(options) {
     const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions);
     await this.rtcConnection.setLocalDescription(jsepOffer);
-
     const confResult = await this.sendMessage({
       request: 'configure',
       ...options,
@@ -401,16 +422,21 @@ export class VideoRoomPlugin extends BasePlugin {
     // });
     for(let i = 0; i < tracks.length; i++) {
       let track = tracks[i];
-      let transceiver = this.rtcConnection.addTransceiver(track, {
-        direction: "sendrecv",
-        streams: [this.stream],
-        sendEncodings: [
-          { rid: "h", active: true, maxBitrate: 900000 },
-          { rid: "m", active: true, maxBitrate: 300000, scaleResolutionDownBy: 2 },
-          { rid: "l", active: true, maxBitrate: 100000, scaleResolutionDownBy: 4 }
-        ]
-      });
-      console.log(transceiver);
+      if (track.kind === 'video') {
+        // let videoStream = this.stream.getVideoTracks();
+        let transceiver = this.rtcConnection.addTransceiver(track, {
+          direction: 'sendrecv',
+          streams: this.stream,
+          sendEncodings: [
+            { rid: "h", active: true, maxBitrate:  900000 },
+            { rid: "m", active: true, maxBitrate: 600000, scaleResolutionDownBy: 2 },
+            { rid: "l", active: true, maxBitrate: 100000, scaleResolutionDownBy: 4 }
+          ]
+        });
+      } else {
+        //  this.rtcConnection.addTrack(track, this.stream);
+        this.rtcConnection.addTransceiver(track, {direction: 'sendonly'});
+      }
     }
   }
 
