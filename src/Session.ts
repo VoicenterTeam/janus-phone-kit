@@ -38,8 +38,8 @@ class Session extends EventEmitter {
    * @public
    * @returns {Promise} Response from Janus
    */
-  async create() {
-    const response = await this.send({janus: 'create'});
+  async create(sessionInfo) {
+    const response = await this.send({janus: 'create', sessionInfo});
     this.connected = true;
     this.id = response.data.id;
     return response;
@@ -122,6 +122,9 @@ class Session extends EventEmitter {
     logger.debug('Receiving message from Janus', msg);
     // If there is a transaction property, then this is a reply to a message which we have sent
     // previously.
+    if(this.id && this.id !== msg.session_id) {
+      return;
+    }
     if (msg.transaction) {
       // Get the original outgoing message, of which this is a reply to.
       const transaction = this.#transactions[msg.transaction];
@@ -206,6 +209,10 @@ class Session extends EventEmitter {
       this.#transactions[transaction] = {
         resolve, reject, timeout, payload,
       };
+    }).catch(err => {
+      if(this.connected) {
+        throw err
+      }
     });
 
     logger.debug('Outgoing Janus message', payload);
@@ -232,6 +239,7 @@ class Session extends EventEmitter {
     Object.entries(this.#plugins).forEach(([, plugin]) => plugin.instance.close());
     this.#stopKeepalive();
     this.connected = false;
+    this.offAll()
   }
 
   /**

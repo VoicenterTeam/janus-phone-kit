@@ -9,16 +9,21 @@ import {StunServer} from "./types";
 type JanusPhoneKitOptions = {
   roomId?: number,
   url?: string,
-  stunServers?: StunServer[]
+  stunServers?: StunServer[],
+  stream?: MediaStream,
+  screenShareStream?: MediaStream,
 }
 const defaultOptions: JanusPhoneKitOptions = {
   roomId: null,
   url: null,
-  stunServers: [{urls: "stun:stun.l.google.com:19302"}]
+  stunServers: [{urls: "stun:stun.l.google.com:19302"}],
+  stream: null,
+  screenShareStream: null,
 }
 
 export default class JanusPhoneKit extends EventEmitter {
   private options: JanusPhoneKitOptions = {}
+  private sessionInfo: any = {}
 
   private session: Session = null
   /**
@@ -57,7 +62,12 @@ export default class JanusPhoneKit extends EventEmitter {
     this.session?.emit.apply(this, params)
   }
 
-  public joinRoom({roomId, displayName = '', mediaConstraints}) {
+  offAll() {
+    this.session.offAll();
+  }
+
+  public joinRoom({roomId, displayName = '', mediaConstraints, sessionInfo}) {
+    this.sessionInfo = sessionInfo;
     if (!this.options.url) {
       throw new Error('Could not create websocket connection because url parameter is missing')
     }
@@ -78,8 +88,12 @@ export default class JanusPhoneKit extends EventEmitter {
       this.session.receive(JSON.parse(event.data))
     });
 
-    this.registerSocketOpenHandler(displayName, mediaConstraints)
+    this.registerSocketOpenHandler(displayName, mediaConstraints, sessionInfo)
     this.registerSocketCloseHandler()
+
+    this.websocket.onerror = () => {
+      this.session.emit('disconnected');
+    }
 
     return this.session
   }
@@ -133,6 +147,8 @@ export default class JanusPhoneKit extends EventEmitter {
       roomId: this.options.roomId,
       videoRoomPlugin: this.videoRoomPlugin,
       stunServers: this.options.stunServers,
+      stream: this.options.screenShareStream,
+      sessionInfo: this.sessionInfo
     });
 
     try {
@@ -155,10 +171,14 @@ export default class JanusPhoneKit extends EventEmitter {
     await this.videoRoomPlugin?.syncParticipants();
   }
 
-  private registerSocketOpenHandler(displayName, mediaConstraints) {
+  private registerSocketOpenHandler(displayName, mediaConstraints, sessionInfo) {
     this.websocket.addEventListener('open', async () => {
+      window.addEventListener('beforeunload', e => {
+        this.websocket.close()
+        e.preventDefault()
+      })
       try {
-        await this.session.create();
+        await this.session.create(sessionInfo);
         logger.info(`Session with ID ${this.session.id} created.`);
       } catch (err) {
         logger.error('Error during creation of session', err);
@@ -170,6 +190,8 @@ export default class JanusPhoneKit extends EventEmitter {
         roomId: this.options.roomId,
         stunServers: this.options.stunServers,
         mediaConstraints,
+        sessionInfo,
+        stream: this.options.stream,
       });
 
       try {
@@ -184,10 +206,10 @@ export default class JanusPhoneKit extends EventEmitter {
   };
 
   private registerSocketCloseHandler() {
-    this.websocket.addEventListener('close', () => {
+    this.websocket.addEventListener('close', event => {
       this.isConnected = false;
       logger.warn('No connection to Janus');
-
+      this.session.emit('closed', event);
       this.session.stop();
     })
   };

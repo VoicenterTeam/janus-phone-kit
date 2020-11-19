@@ -121,6 +121,10 @@ export class BasePlugin extends EventEmitter {
     logger.debug('onDetached() abstract method called');
   }
 
+  public async syncParticipants() {
+    console.log('syncParticipants() abstract method called');
+  }
+
   /**
    * Closes rtc peer connections
    */

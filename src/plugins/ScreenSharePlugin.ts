@@ -1,6 +1,6 @@
-import { BasePlugin } from "./BasePlugin";
-import { logger } from '../util/logger'
-import { randomString } from '../util/util'
+import {BasePlugin} from "./BasePlugin";
+import {logger} from '../util/logger'
+import {randomString, retryPromise} from '../util/util'
 import {StunServer} from "../types";
 
 export class ScreenSharePlugin extends BasePlugin {
@@ -11,6 +11,7 @@ export class ScreenSharePlugin extends BasePlugin {
   stunServers: StunServer[]
   rtcConnection: any = null
   stream: MediaStream;
+  sessionInfo = {}
 
   /**
    * @type {VideoRoomPlugin}
@@ -23,6 +24,8 @@ export class ScreenSharePlugin extends BasePlugin {
     this.opaqueId = `videoroomtest-${randomString(12)}`;
     this.room_id = options.roomId
     this.VideoRoomPlugin = options.videoRoomPlugin
+    this.stream = options.stream
+    this.sessionInfo = options.sessionInfo
 
     logger.debug('Init plugin', this);
     this.stunServers = options.stunServers
@@ -126,7 +129,7 @@ export class ScreenSharePlugin extends BasePlugin {
 
     try {
       // @ts-ignore
-      localMedia = await navigator.mediaDevices.getDisplayMedia();
+      localMedia = this.stream || await navigator.mediaDevices.getDisplayMedia();
       localMedia.getVideoTracks()[0].onended = () => this.detachSharing();
       logger.info('Got local user Screen .');
 
@@ -143,6 +146,10 @@ export class ScreenSharePlugin extends BasePlugin {
       ptype: 'publisher',
       display: 'Screen Share',
       opaque_id: this.opaqueId,
+      customInfo: {
+        ...this.sessionInfo,
+        screenShare: true,
+      }
     });
 
     logger.info('Adding local user media to RTCPeerConnection.');
@@ -164,11 +171,18 @@ export class ScreenSharePlugin extends BasePlugin {
 
     logger.info('Getting SDP answer from Janus to our SDP offer. Please wait...');
 
-    const confResult = await this.sendMessage({ request: 'configure', audio: false, video: true }, jsepOffer);
+    const confResult = await retryPromise(
+      () => this.sendMessage({request: 'configure', audio: false, video: true}, jsepOffer)
+    ).catch(() => {
+      this.session.emit('disconnected');
+      this.session.offAll()
+    });
     logger.info('Received SDP answer from Janus for ScreenShare.', confResult);
     logger.debug('Setting the SDP answer on RTCPeerConnection. The `onaddstream` event will fire soon.');
+
+    // @ts-ignore
     await this.rtcConnection.setRemoteDescription(confResult.jsep);
-    this.session.emit('screenShare:started')
+    this.session.emit('screenShare:started', this.stream)
   }
 
   async stopSharing() {
@@ -178,6 +192,7 @@ export class ScreenSharePlugin extends BasePlugin {
   }
 
   async detachSharing() {
+    await this.send({janus: 'hangup'});
     await this.detach();
     this.session.emit('screenShare:stopped')
     if (this.rtcConnection) {

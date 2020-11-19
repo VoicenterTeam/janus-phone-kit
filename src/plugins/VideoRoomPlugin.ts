@@ -1,5 +1,5 @@
 import {BasePlugin} from "./BasePlugin";
-import {onceInTimeoutClosure, randomString} from "../util/util";
+import {onceInTimeoutClosure, randomString, retryPromise} from "../util/util";
 import {logger} from "../util/logger";
 import {Member} from "../Member";
 import DeviceManager from "../util/DeviceManager";
@@ -25,6 +25,7 @@ export class VideoRoomPlugin extends BasePlugin {
   isTalking: boolean = false
   mediaConstraints: any = {}
   bitrate: number = 0
+  sessionInfo: any = {}
   private onSlowlink = onceInTimeoutClosure(this.reduceBitrate.bind(this), 15000, 2);
 
   constructor(options: any = {}) {
@@ -35,6 +36,8 @@ export class VideoRoomPlugin extends BasePlugin {
     this.stunServers = options.stunServers
     this.mediaConstraints = options.mediaConstraints;
     this.bitrate = this.mediaConstraints.bitrate;
+    this.sessionInfo = options.sessionInfo;
+    this.stream = options.stream;
     this.rtcConnection = new RTCPeerConnection({
       iceServers: this.stunServers,
     })
@@ -48,6 +51,12 @@ export class VideoRoomPlugin extends BasePlugin {
         .catch((err) => {
           logger.warn(err)
         });
+    };
+    this.rtcConnection.onconnectionstatechange = () => {
+      if (this.rtcConnection.iceConnectionState === 'disconnected') {
+        this.session.emit('disconnected')
+        this.session.off()
+      }
     };
   }
 
@@ -259,9 +268,12 @@ export class VideoRoomPlugin extends BasePlugin {
         ptype: 'publisher',
         display: this.displayName,
         opaque_id: this.opaqueId,
+        customInfo: this.sessionInfo,
       })
 
-    const {options} = await this.requestAudioAndVideoPermissions();
+    if (!this.stream) {
+      await this.requestAudioAndVideoPermissions();
+    }
 
     this.session.emit('member:join', {
       stream: this.stream,
@@ -271,6 +283,7 @@ export class VideoRoomPlugin extends BasePlugin {
       name: this.displayName,
       state: {},
       id: uuidv4(),
+      info: this.sessionInfo,
     })
 
     logger.info('Adding local user media to RTCPeerConnection.');
@@ -381,11 +394,17 @@ export class VideoRoomPlugin extends BasePlugin {
     const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions);
     await this.rtcConnection.setLocalDescription(jsepOffer);
 
-    const confResult = await this.sendMessage({
-      request: 'configure',
-      ...options,
-    }, jsepOffer);
+    const confResult = await retryPromise(
+      () => this.sendMessage({
+        request: 'configure',
+        ...options,
+      }, jsepOffer)
+    ).catch(() => {
+      this.session.emit('disconnected');
+      this.session.offAll()
+    });
 
+    // @ts-ignore
     await this.rtcConnection.setRemoteDescription(confResult.jsep);
     await this.processIceCandidates()
 
@@ -445,7 +464,8 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   private async reduceBitrate() {
-    await this.setBitrate(this.bitrate / 2, false);
-    logger.info(`Bitrate reduced for uplink to ${this.bitrate / 2} Kbit/s`);
+    const newBitrate = this.bitrate / 2;
+    await this.setBitrate(newBitrate, false);
+    logger.info(`Bitrate reduced for uplink to ${newBitrate} Kbit/s`);
   }
 }

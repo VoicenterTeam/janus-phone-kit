@@ -1,6 +1,6 @@
 import {logger} from './util/logger'
 import {BasePlugin} from "./plugins/BasePlugin";
-import {onceInTimeoutClosure} from "./util/util";
+import {onceInTimeoutClosure, retryPromise} from "./util/util";
 
 export class Member {
 
@@ -22,6 +22,7 @@ export class Member {
     this.state = {
       bitrate: memberInfo.bitrate,
     };
+    this.plugin?.session.emit('member:join', this.memberInfo)
   }
 
   async attachMember() {
@@ -56,14 +57,19 @@ export class Member {
       const answerSdp = await this.rtcpPeer.createAnswer(options);
       await this.rtcpPeer.setLocalDescription(answerSdp);
       // Send the answer to the remote peer through the signaling server.
-      await this.plugin.sendMessage({
-        request: 'start',
-        room: this.plugin.room_id
-      }, answerSdp, {handle_id: this.handleId});
+      await retryPromise(
+        () => this.plugin.sendMessage({
+          request: 'start',
+          room: this.plugin.room_id
+        }, answerSdp, {handle_id: this.handleId})
+      ).catch(() => {
+        this.plugin?.session.emit('disconnected');
+        this.plugin.session.offAll()
+      });
 
       this.stream = event.stream;
 
-      this.plugin?.session.emit('member:join', this.memberInfo)
+      this.plugin?.session.emit('member:update', this.memberInfo)
     }
 
     // Send ICE events to Janus.
@@ -73,8 +79,21 @@ export class Member {
       }
     }
 
+    const RTCPeerOnConnectionStateChange = async () => {
+      if (this.rtcpPeer.iceConnectionState === 'disconnected') {
+        this.plugin.session.emit('member:disconnected', this.memberInfo)
+        delete this.plugin.memberList[this.memberInfo.id]
+        await this.plugin.syncParticipants()
+          .catch(() => {
+            this.plugin.session.emit('disconnected')
+            this.plugin.session.offAll()
+          });
+      }
+    };
+
     this.rtcpPeer.onaddstream = RTCPeerOnAddStream;
     this.rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
+    this.rtcpPeer.onconnectionstatechange = RTCPeerOnConnectionStateChange;
     this.rtcpPeer.sender = attachedStreamInfo.sender;
     await this.rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep);
   }
@@ -88,6 +107,7 @@ export class Member {
       name: this.info.display,
       state: this.state,
       id: this.handleId,
+      info: this.info.customInfo,
     }
   }
 
