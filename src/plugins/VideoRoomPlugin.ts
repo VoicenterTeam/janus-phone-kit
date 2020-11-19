@@ -426,7 +426,7 @@ export class VideoRoomPlugin extends BasePlugin {
         // let videoStream = this.stream.getVideoTracks();
         let transceiver = this.rtcConnection.addTransceiver(track, {
           direction: 'sendrecv',
-          streams: this.stream,
+          streams: [this.stream],
           sendEncodings: [
             { rid: "h", active: true, maxBitrate:  900000 },
             { rid: "m", active: true, maxBitrate: 600000, scaleResolutionDownBy: 2 },
