@@ -273,6 +273,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
     if (!this.stream) {
       await this.requestAudioAndVideoPermissions();
+      DeviceManager.toggleAudioMute(this.stream, this.isAudioOn)
+      DeviceManager.toggleAudioMute(this.stream, this.isVideoOn)
     }
 
     this.session.emit('member:join', {
@@ -312,7 +314,7 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async startVideo() {
-    DeviceManager.toggleVideoMute(this.stream)
+    this.stream && DeviceManager.toggleVideoMute(this.stream, true)
     await this.enableVideo(true)
     this.isVideoOn = true
     await this.sendStateMessage({
@@ -321,7 +323,7 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async stopVideo() {
-    DeviceManager.toggleVideoMute(this.stream)
+    this.stream && DeviceManager.toggleVideoMute(this.stream, false)
     await this.enableVideo(false)
     this.isVideoOn = false
     await this.sendStateMessage({
@@ -330,7 +332,7 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async startAudio() {
-    DeviceManager.toggleAudioMute(this.stream)
+    this.stream && DeviceManager.toggleAudioMute(this.stream, true)
     await this.enableAudio(true)
     this.isAudioOn = true
     await this.sendStateMessage({
@@ -339,7 +341,7 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async stopAudio() {
-    DeviceManager.toggleAudioMute(this.stream)
+    this.stream && DeviceManager.toggleAudioMute(this.stream, false)
     await this.enableAudio(false)
     this.isAudioOn = false
     await this.sendStateMessage({
