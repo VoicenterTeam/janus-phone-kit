@@ -114,27 +114,27 @@ class DeviceManager {
     }
   }
 
-  static toggleAudioMute(stream) {
+  static toggleAudioMute(stream, enabled) {
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) {
       return;
     }
 
     audioTracks.forEach(track => {
-      track.enabled = !track.enabled
+      track.enabled = enabled
     })
 
     return audioTracks[0].enabled
   }
 
-  static toggleVideoMute(stream) {
+  static toggleVideoMute(stream, enabled) {
     const videoTracks = stream.getVideoTracks();
     if (videoTracks.length === 0) {
       return;
     }
 
     videoTracks.forEach(track => {
-      track.enabled = !track.enabled
+      track.enabled = enabled
     })
 
     return videoTracks[0].enabled
