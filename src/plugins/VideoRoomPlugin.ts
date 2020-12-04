@@ -271,6 +271,12 @@ export class VideoRoomPlugin extends BasePlugin {
         customInfo: this.sessionInfo,
       })
 
+    if (!joinResult || !joinResult.janus) {
+      this.session.offAll();
+      await this.hangup();
+      return;
+    }
+
     if (!this.stream) {
       await this.requestAudioAndVideoPermissions();
       DeviceManager.toggleAudioMute(this.stream, this.isAudioOn)
