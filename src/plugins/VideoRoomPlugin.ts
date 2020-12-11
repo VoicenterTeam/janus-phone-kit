@@ -309,12 +309,20 @@ export class VideoRoomPlugin extends BasePlugin {
   trackMicrophoneVolume() {
     const volumeMeter = new VolumeMeter(this.stream)
     volumeMeter.onAudioProcess(async (newValue, oldValue) => {
+      const setTalking = isTalking => {
+        this.session.emit('member:update', {
+          sender: 'me',
+          type: 'publisher',
+          state: {isTalking},
+          info: this.sessionInfo,
+        });
+      }
       if (newValue >= 20 && oldValue < 20) {
-        this.isTalking = true;
-        await this.sendStateMessage({ isTalking: true });
+        setTalking(true);
+        await this.sendStateMessage({isTalking: true});
       } else if (newValue <= 20 && oldValue > 20) {
-        this.isTalking = false;
-        await this.sendStateMessage({ isTalking: false });
+        setTalking(false);
+        await this.sendStateMessage({isTalking: false});
       }
     });
   }
