@@ -410,15 +410,18 @@ export class VideoRoomPlugin extends BasePlugin {
     const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions);
     await this.rtcConnection.setLocalDescription(jsepOffer);
 
-    const confResult = await retryPromise(
-      () => this.sendMessage({
+    let confResult
+    try {
+      const configurePromiseCreator = () => this.sendMessage({
         request: 'configure',
         ...options,
-      }, jsepOffer)
-    ).catch(() => {
+      }, jsepOffer);
+      confResult = await retryPromise(configurePromiseCreator);
+    } catch (e) {
       this.session.emit('disconnected');
       this.session.offAll()
-    });
+      return
+    }
 
     // @ts-ignore
     await this.rtcConnection.setRemoteDescription(confResult.jsep);

@@ -57,15 +57,18 @@ export class Member {
       const answerSdp = await this.rtcpPeer.createAnswer(options);
       await this.rtcpPeer.setLocalDescription(answerSdp);
       // Send the answer to the remote peer through the signaling server.
-      await retryPromise(
-        () => this.plugin.sendMessage({
-          request: 'start',
-          room: this.plugin.room_id
-        }, answerSdp, {handle_id: this.handleId})
-      ).catch(() => {
+      try {
+        await retryPromise(
+          () => this.plugin.sendMessage({
+            request: 'start',
+            room: this.plugin.room_id
+          }, answerSdp, {handle_id: this.handleId})
+        )
+      } catch (e) {
         this.plugin?.session.emit('disconnected');
         this.plugin.session.offAll()
-      });
+        return
+      }
 
       this.stream = event.stream;
 
@@ -83,11 +86,12 @@ export class Member {
       if (this.rtcpPeer.iceConnectionState === 'disconnected') {
         this.plugin.session.emit('member:disconnected', this.memberInfo)
         delete this.plugin.memberList[this.memberInfo.id]
-        await this.plugin.syncParticipants()
-          .catch(() => {
-            this.plugin.session.emit('disconnected')
-            this.plugin.session.offAll()
-          });
+        try {
+          await this.plugin.syncParticipants()
+        } catch (e) {
+          this.plugin.session.emit('disconnected')
+          this.plugin.session.offAll()
+        }
       }
     };
 

@@ -171,12 +171,16 @@ export class ScreenSharePlugin extends BasePlugin {
 
     logger.info('Getting SDP answer from Janus to our SDP offer. Please wait...');
 
-    const confResult = await retryPromise(
-      () => this.sendMessage({request: 'configure', audio: false, video: true}, jsepOffer)
-    ).catch(() => {
+    let confResult
+    try {
+      confResult = await retryPromise(
+        () => this.sendMessage({request: 'configure', audio: false, video: true}, jsepOffer)
+      )
+    } catch (e) {
       this.session.emit('disconnected');
       this.session.offAll()
-    });
+      return
+    }
     logger.info('Received SDP answer from Janus for ScreenShare.', confResult);
     logger.debug('Setting the SDP answer on RTCPeerConnection. The `onaddstream` event will fire soon.');
 
