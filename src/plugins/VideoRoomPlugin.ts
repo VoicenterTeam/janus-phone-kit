@@ -35,6 +35,8 @@ export class VideoRoomPlugin extends BasePlugin {
     this.room_id = options.roomId
     this.stunServers = options.stunServers
     this.mediaConstraints = options.mediaConstraints;
+    this.isAudioOn = !!this.mediaConstraints.audio;
+    this.isVideoOn = !!this.mediaConstraints.video;
     this.bitrate = this.mediaConstraints.bitrate;
     this.sessionInfo = options.sessionInfo;
     this.stream = options.stream;
@@ -53,6 +55,13 @@ export class VideoRoomPlugin extends BasePlugin {
         });
     };
     this.rtcConnection.onconnectionstatechange = () => {
+      if (this.rtcConnection.iceConnectionState === 'connected') {
+        this.setBitrate(this.bitrate);
+        this.sendStateMessage({
+          audio: this.isAudioOn,
+          video: this.isVideoOn,
+        });
+      }
       if (this.rtcConnection.iceConnectionState === 'disconnected') {
         this.session.emit('disconnected')
         this.session.off()
@@ -228,16 +237,24 @@ export class VideoRoomPlugin extends BasePlugin {
       logger.info('Got local user media.');
 
     } catch (e) {
+      if (options.video) {
+        this.session.emit('media-error', {
+          type: 'CAPTURE_VIDEO_ERROR',
+          error: e,
+        });
+      }
       try {
         options.video = false
         this.stream = await navigator.mediaDevices.getUserMedia(options);
       } catch (ex) {
         options.audio = false
-        options.video = false
+        options.video = this.mediaConstraints.video
         this.stream = await navigator.mediaDevices.getUserMedia(options);
       }
     }
-    this.trackMicrophoneVolume();
+    if (options.audio) {
+      this.trackMicrophoneVolume();
+    }
     return {
       stream: this.stream,
       options
@@ -289,7 +306,10 @@ export class VideoRoomPlugin extends BasePlugin {
       sender: 'me',
       type: 'publisher',
       name: this.displayName,
-      state: {},
+      state: {
+        audio: !!this.stream.getAudioTracks().length,
+        video: !!this.stream.getVideoTracks().length,
+      },
       id: uuidv4(),
       info: this.sessionInfo,
     })
@@ -299,11 +319,15 @@ export class VideoRoomPlugin extends BasePlugin {
     this.addTracks(this.stream.getVideoTracks());
     this.addTracks(this.stream.getAudioTracks());
 
-    await this.sendConfigureMessage({
-      audio: true,
-      video: true,
-    })
-    await this.sendInitialState()
+    this.rtcConnection.onnegotiationneeded = async () => {
+      const audio = !!this.stream.getAudioTracks().length;
+      const video = !!this.stream.getVideoTracks().length;
+      await this.sendConfigureMessage({
+        audio,
+        video,
+      })
+      await this.sendInitialState()
+    }
   }
 
   trackMicrophoneVolume() {
@@ -328,12 +352,14 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async startVideo() {
-    this.stream && DeviceManager.toggleVideoMute(this.stream, true)
-    await this.enableVideo(true)
-    this.isVideoOn = true
-    await this.sendStateMessage({
-      video: true
-    })
+    if (this.stream.getVideoTracks().length > 0) {
+      this.stream && DeviceManager.toggleVideoMute(this.stream, true)
+      await this.enableVideo(true)
+      this.isVideoOn = true
+      await this.sendStateMessage({
+        video: true
+      })
+    }
   }
 
   async stopVideo() {
@@ -375,35 +401,49 @@ export class VideoRoomPlugin extends BasePlugin {
     // implementation not ready
   }
 
-  async changePublisherStream({ audioInput, videoInput }) {
-    if (videoInput) {
-      this.mediaConstraints.video.deviceId = {exact: videoInput};
-    } else if (typeof this.mediaConstraints.video === 'object') {
-      this.mediaConstraints.video.deviceId = undefined;
-    }
-    if (audioInput) {
-      this.mediaConstraints.audio = {deviceId: {exact: audioInput}};
-    } else if (typeof this.mediaConstraints.audio === 'object') {
-      this.mediaConstraints.audio.deviceId = undefined;
-    }
-    const { stream } = await this.loadStream();
+  async changePublisherStream(newConstraints) {
+    this.adjustMediaConstraints(newConstraints);
+    const {stream} = await this.loadStream();
+    this.session.emit('member:update', {
+      sender: 'me',
+      type: 'publisher',
+      info: this.sessionInfo,
+      stream,
+    });
     stream.getTracks().forEach(track => {
-      const senders = this.rtcConnection.getSenders()
-      senders.forEach(sender => {
-        if (sender.track.kind !== track.kind) {
-          return
-        }
-
-        if (track.kind === 'audio' && !this.isAudioOn) {
-          track.enabled = false
-        }
-        if (track.kind === 'video' && !this.isVideoOn) {
-          track.enabled = false
-        }
-        sender.replaceTrack(track);
-      })
+      const existingSender = this.rtcConnection.getSenders().find(sender => sender.track.kind === track.kind);
+      if (existingSender) {
+        existingSender.replaceTrack(track);
+      } else {
+        this.rtcConnection.addTrack(track);
+      }
+      if (track.kind === 'audio' && !this.isAudioOn) {
+        track.enabled = false
+      }
+      if (track.kind === 'video' && !this.isVideoOn) {
+        track.enabled = false
+      }
     });
     return stream;
+  }
+
+  adjustMediaConstraints({audio, video}) {
+    const adjustConstraint = (type, constraint) => {
+      if (typeof this.mediaConstraints[type] === 'object') {
+        if (typeof audio === 'object') {
+          this.mediaConstraints[type] = {
+            ...this.mediaConstraints[type], ...constraint,
+          };
+        } else {
+          this.mediaConstraints[type] = constraint;
+        }
+      }
+      if (typeof this.mediaConstraints[type] !== 'object') {
+        this.mediaConstraints[type] = constraint;
+      }
+    }
+    adjustConstraint('audio', audio);
+    adjustConstraint('video', video);
   }
 
   async sendConfigureMessage(options) {
