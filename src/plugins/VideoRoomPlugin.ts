@@ -27,6 +27,7 @@ export class VideoRoomPlugin extends BasePlugin {
   bitrate: number = 0
   sessionInfo: any = {}
   private onSlowlink = onceInTimeoutClosure(this.reduceBitrate.bind(this), 15000, 2);
+  private volumeMeter: VolumeMeter;
 
   constructor(options: any = {}) {
     super()
@@ -317,7 +318,7 @@ export class VideoRoomPlugin extends BasePlugin {
     logger.info('Adding local user media to RTCPeerConnection.');
     // pass through audio context
     this.addTracks(this.stream.getVideoTracks());
-    this.addTracks(this.stream.getAudioTracks());
+    this.addTracks(this.volumeMeter.getBypassedAudio().getTracks());
 
     this.rtcConnection.onnegotiationneeded = async () => {
       const audio = !!this.stream.getAudioTracks().length;
@@ -342,13 +343,20 @@ export class VideoRoomPlugin extends BasePlugin {
         });
       }
       if (newValue >= 20 && oldValue < 20) {
-        setTalking(true);
-        await this.sendStateMessage({isTalking: true});
+        if (this.isAudioOn) {
+          setTalking(true);
+          await this.sendStateMessage({isTalking: true});
+        } else {
+          this.session.emit('is-talking-muted')
+        }
       } else if (newValue <= 20 && oldValue > 20) {
-        setTalking(false);
-        await this.sendStateMessage({isTalking: false});
+        if (this.isAudioOn) {
+          setTalking(false);
+          await this.sendStateMessage({isTalking: false});
+        }
       }
     });
+    this.volumeMeter = volumeMeter;
   }
 
   async startVideo() {
@@ -372,7 +380,10 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async startAudio() {
-    this.stream && DeviceManager.toggleAudioMute(this.stream, true)
+    if(this.stream) {
+      DeviceManager.toggleAudioMute(this.stream, true)
+      DeviceManager.toggleAudioMute(this.volumeMeter.getBypassedAudio(), true)
+    }
     await this.enableAudio(true)
     this.isAudioOn = true
     await this.sendStateMessage({
@@ -381,7 +392,7 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async stopAudio() {
-    this.stream && DeviceManager.toggleAudioMute(this.stream, false)
+    this.stream && DeviceManager.toggleAudioMute(this.volumeMeter.getBypassedAudio(), false)
     await this.enableAudio(false)
     this.isAudioOn = false
     await this.sendStateMessage({
@@ -410,17 +421,21 @@ export class VideoRoomPlugin extends BasePlugin {
       info: this.sessionInfo,
       stream,
     });
-    stream.getTracks().forEach(track => {
-      const existingSender = this.rtcConnection.getSenders().find(sender => sender.track.kind === track.kind);
-      if (existingSender) {
-        existingSender.replaceTrack(track);
+    this.volumeMeter.getBypassedAudio().getAudioTracks().forEach(track => {
+      const audioSender = this.rtcConnection.getSenders().find(sender => sender.track.kind === track.kind);
+      audioSender.replaceTrack(track);
+      if (!this.isAudioOn) {
+        track.enabled = false
+      }
+    });
+    stream.getVideoTracks().forEach(track => {
+      const videoSender = this.rtcConnection.getSenders().find(sender => sender.track.kind === track.kind);
+      if (videoSender) {
+        videoSender.replaceTrack(track);
       } else {
         this.rtcConnection.addTrack(track);
       }
-      if (track.kind === 'audio' && !this.isAudioOn) {
-        track.enabled = false
-      }
-      if (track.kind === 'video' && !this.isVideoOn) {
+      if (!this.isVideoOn) {
         track.enabled = false
       }
     });

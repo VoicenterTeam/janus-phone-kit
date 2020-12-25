@@ -2,6 +2,7 @@ export class VolumeMeter {
   private readonly stream
   private scriptNodeProcessor: ScriptProcessorNode;
   private analyser: AnalyserNode;
+  private bypassedAudio: MediaStreamAudioDestinationNode;
 
   constructor(stream) {
     this.stream = stream
@@ -11,13 +12,16 @@ export class VolumeMeter {
   private initMeter() {
     const audioContext = new AudioContext();
     const microphone = audioContext.createMediaStreamSource(this.stream);
+    const splitter = audioContext.createChannelSplitter(2);
     this.analyser = audioContext.createAnalyser();
     this.scriptNodeProcessor = audioContext.createScriptProcessor(2048, 1, 1);
-
+    this.bypassedAudio = audioContext.createMediaStreamDestination();
     this.analyser.smoothingTimeConstant = 0.8;
     this.analyser.fftSize = 1024;
 
-    microphone.connect(this.analyser);
+    microphone.connect(splitter);
+    splitter.connect(this.bypassedAudio, 0);
+    splitter.connect(this.analyser, 1);
     this.analyser.connect(this.scriptNodeProcessor);
     this.scriptNodeProcessor.connect(audioContext.destination);
   }
@@ -40,5 +44,9 @@ export class VolumeMeter {
         oldValue = newValue
       }
     }
+  }
+
+  getBypassedAudio() {
+    return this.bypassedAudio.stream;
   }
 }
