@@ -253,9 +253,7 @@ export class VideoRoomPlugin extends BasePlugin {
         this.stream = await navigator.mediaDevices.getUserMedia(options);
       }
     }
-    if (options.audio) {
-      this.trackMicrophoneVolume();
-    }
+    this.trackMicrophoneVolume();
     return {
       stream: this.stream,
       options
@@ -299,6 +297,8 @@ export class VideoRoomPlugin extends BasePlugin {
       await this.requestAudioAndVideoPermissions();
       DeviceManager.toggleAudioMute(this.stream, this.isAudioOn)
       DeviceManager.toggleAudioMute(this.stream, this.isVideoOn)
+    } else {
+      this.trackMicrophoneVolume();
     }
 
     this.session.emit('member:join', {
