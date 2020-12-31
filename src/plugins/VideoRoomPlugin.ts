@@ -25,7 +25,17 @@ export class VideoRoomPlugin extends BasePlugin {
   isAudioOn: boolean = true
   isNoiseFilterOn: boolean = false
   isTalking: boolean = false
-  mediaConstraints: any = {}
+  mediaConstraints: any = {
+    video: {
+      width: { min: 320, ideal: 640, max: 1280 },
+      height: { min: 180, ideal: 360, max: 720 },
+      aspectRatio: { ideal: 1.7777777778 }
+    },
+    audio: {
+      sampleSize: 16,
+      channelCount: 2
+    }
+  }
   private volumeMeter: VolumeMeter;
 
   constructor(options: any = {}) {
@@ -285,11 +295,17 @@ export class VideoRoomPlugin extends BasePlugin {
     logger.info('Adding local user media to RTCPeerConnection.');
     // pass through audio context
     this.addTracks(this.stream.getVideoTracks());
-    // this.addTracks(this.volumeMeter.getOutputStream().getTracks());
+    this.addTracks(this.volumeMeter.getOutputStream().getTracks());
 
     await this.sendConfigureMessage({
-      audio: true,
-      video: true,
+      audioRecv: false,
+      audioSend: true,
+      keepAudio: false,
+      keepVideo: false,
+      update: false,
+      video: "hires",
+      videoRecv: false,
+      videoSend: true
     })
     await this.sendInitialState()
   }
@@ -387,7 +403,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
   async sendConfigureMessage(options) {
     const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions);
-    await this.rtcConnection.setLocalDescription(jsepOffer);
+    jsepOffer.sdp = this.mungeSdpForSimulcasting(jsepOffer.sdp);
+    await this.rtcConnection.setLocalDescription(jsepOffer.sdp);
     const confResult = await this.sendMessage({
       request: 'configure',
       ...options,
@@ -425,17 +442,20 @@ export class VideoRoomPlugin extends BasePlugin {
       if (track.kind === 'video') {
         // let videoStream = this.stream.getVideoTracks();
         let transceiver = this.rtcConnection.addTransceiver(track, {
-          direction: 'sendrecv',
-          streams: [this.stream],
-          sendEncodings: [
-            { rid: "h", active: true, maxBitrate:  900000 },
-            { rid: "m", active: true, maxBitrate: 600000, scaleResolutionDownBy: 2 },
-            { rid: "l", active: true, maxBitrate: 100000, scaleResolutionDownBy: 4 }
-          ]
+          direction: 'sendonly',
+          streams: [this.stream]//,
+          // sendEncodings: [
+          //   { rid: "h", active: true, maxBitrate:  900000 },
+          //   { rid: "m", active: true, maxBitrate: 600000, scaleResolutionDownBy: 2 },
+          //   { rid: "l", active: true, maxBitrate: 100000, scaleResolutionDownBy: 4 }
+          // ]
         });
       } else {
         //  this.rtcConnection.addTrack(track, this.stream);
-        this.rtcConnection.addTransceiver(track, {direction: 'sendonly'});
+        let transceiver = this.rtcConnection.addTransceiver(track, {
+          direction: 'sendonly',
+          streams: [this.stream]
+        });
       }
     }
   }
@@ -467,5 +487,205 @@ export class VideoRoomPlugin extends BasePlugin {
     }
     const members = Object.values(this.memberList);
     members.forEach((member: any) => member.hangup());
+  }
+
+  mungeSdpForSimulcasting(sdp) {
+    // Let's munge the SDP to add the attributes for enabling simulcasting
+    // (based on https://gist.github.com/ggarber/a19b4c33510028b9c657)
+    var lines = sdp.split("\r\n");
+    var video = false;
+    var ssrc = [ -1 ], ssrc_fid = [ -1 ];
+    var cname = null, msid = null, mslabel = null, label = null;
+    var insertAt = -1;
+    for(var i=0; i<lines.length; i++) {
+      var mline = lines[i].match(/m=(\w+) */);
+      if(mline) {
+        var medium = mline[1];
+        if(medium === "video") {
+          // New video m-line: make sure it's the first one
+          if(ssrc[0] < 0) {
+            video = true;
+          } else {
+            // We're done, let's add the new attributes here
+            insertAt = i;
+            break;
+          }
+        } else {
+          // New non-video m-line: do we have what we were looking for?
+          if(ssrc[0] > -1) {
+            // We're done, let's add the new attributes here
+            insertAt = i;
+            break;
+          }
+        }
+        continue;
+      }
+      if(!video)
+        continue;
+      var fid = lines[i].match(/a=ssrc-group:FID (\d+) (\d+)/);
+      if(fid) {
+        ssrc[0] = fid[1];
+        ssrc_fid[0] = fid[2];
+        lines.splice(i, 1); i--;
+        continue;
+      }
+      if(ssrc[0]) {
+        var match = lines[i].match('a=ssrc:' + ssrc[0] + ' cname:(.+)')
+        if(match) {
+          cname = match[1];
+        }
+        match = lines[i].match('a=ssrc:' + ssrc[0] + ' msid:(.+)')
+        if(match) {
+          msid = match[1];
+        }
+        match = lines[i].match('a=ssrc:' + ssrc[0] + ' mslabel:(.+)')
+        if(match) {
+          mslabel = match[1];
+        }
+        match = lines[i].match('a=ssrc:' + ssrc[0] + ' label:(.+)')
+        if(match) {
+          label = match[1];
+        }
+        if(lines[i].indexOf('a=ssrc:' + ssrc_fid[0]) === 0) {
+          lines.splice(i, 1); i--;
+          continue;
+        }
+        if(lines[i].indexOf('a=ssrc:' + ssrc[0]) === 0) {
+          lines.splice(i, 1); i--;
+          continue;
+        }
+      }
+      if(lines[i].length == 0) {
+        lines.splice(i, 1); i--;
+        continue;
+      }
+    }
+    if(ssrc[0] < 0) {
+      // Couldn't find a FID attribute, let's just take the first video SSRC we find
+      insertAt = -1;
+      video = false;
+      for(var i=0; i<lines.length; i++) {
+        var mline = lines[i].match(/m=(\w+) */);
+        if(mline) {
+          var medium = mline[1];
+          if(medium === "video") {
+            // New video m-line: make sure it's the first one
+            if(ssrc[0] < 0) {
+              video = true;
+            } else {
+              // We're done, let's add the new attributes here
+              insertAt = i;
+              break;
+            }
+          } else {
+            // New non-video m-line: do we have what we were looking for?
+            if(ssrc[0] > -1) {
+              // We're done, let's add the new attributes here
+              insertAt = i;
+              break;
+            }
+          }
+          continue;
+        }
+        if(!video)
+          continue;
+        if(ssrc[0] < 0) {
+          var value = lines[i].match(/a=ssrc:(\d+)/);
+          if(value) {
+            ssrc[0] = value[1];
+            lines.splice(i, 1); i--;
+            continue;
+          }
+        } else {
+          var match = lines[i].match('a=ssrc:' + ssrc[0] + ' cname:(.+)')
+          if(match) {
+            cname = match[1];
+          }
+          match = lines[i].match('a=ssrc:' + ssrc[0] + ' msid:(.+)')
+          if(match) {
+            msid = match[1];
+          }
+          match = lines[i].match('a=ssrc:' + ssrc[0] + ' mslabel:(.+)')
+          if(match) {
+            mslabel = match[1];
+          }
+          match = lines[i].match('a=ssrc:' + ssrc[0] + ' label:(.+)')
+          if(match) {
+            label = match[1];
+          }
+          if(lines[i].indexOf('a=ssrc:' + ssrc_fid[0]) === 0) {
+            lines.splice(i, 1); i--;
+            continue;
+          }
+          if(lines[i].indexOf('a=ssrc:' + ssrc[0]) === 0) {
+            lines.splice(i, 1); i--;
+            continue;
+          }
+        }
+        if(lines[i].length === 0) {
+          lines.splice(i, 1); i--;
+          continue;
+        }
+      }
+    }
+    if(ssrc[0] < 0) {
+      // Still nothing, let's just return the SDP we were asked to munge
+      // Janus.warn("Couldn't find the video SSRC, simulcasting NOT enabled");
+      return sdp;
+    }
+    if(insertAt < 0) {
+      // Append at the end
+      insertAt = lines.length;
+    }
+    // Generate a couple of SSRCs (for retransmissions too)
+    // Note: should we check if there are conflicts, here?
+    ssrc[1] = Math.floor(Math.random()*0xFFFFFFFF);
+    ssrc[2] = Math.floor(Math.random()*0xFFFFFFFF);
+    ssrc_fid[1] = Math.floor(Math.random()*0xFFFFFFFF);
+    ssrc_fid[2] = Math.floor(Math.random()*0xFFFFFFFF);
+    // Add attributes to the SDP
+    for(var i=0; i<ssrc.length; i++) {
+      if(cname) {
+        lines.splice(insertAt, 0, 'a=ssrc:' + ssrc[i] + ' cname:' + cname);
+        insertAt++;
+      }
+      if(msid) {
+        lines.splice(insertAt, 0, 'a=ssrc:' + ssrc[i] + ' msid:' + msid);
+        insertAt++;
+      }
+      if(mslabel) {
+        lines.splice(insertAt, 0, 'a=ssrc:' + ssrc[i] + ' mslabel:' + mslabel);
+        insertAt++;
+      }
+      if(label) {
+        lines.splice(insertAt, 0, 'a=ssrc:' + ssrc[i] + ' label:' + label);
+        insertAt++;
+      }
+      // Add the same info for the retransmission SSRC
+      if(cname) {
+        lines.splice(insertAt, 0, 'a=ssrc:' + ssrc_fid[i] + ' cname:' + cname);
+        insertAt++;
+      }
+      if(msid) {
+        lines.splice(insertAt, 0, 'a=ssrc:' + ssrc_fid[i] + ' msid:' + msid);
+        insertAt++;
+      }
+      if(mslabel) {
+        lines.splice(insertAt, 0, 'a=ssrc:' + ssrc_fid[i] + ' mslabel:' + mslabel);
+        insertAt++;
+      }
+      if(label) {
+        lines.splice(insertAt, 0, 'a=ssrc:' + ssrc_fid[i] + ' label:' + label);
+        insertAt++;
+      }
+    }
+    lines.splice(insertAt, 0, 'a=ssrc-group:FID ' + ssrc[2] + ' ' + ssrc_fid[2]);
+    lines.splice(insertAt, 0, 'a=ssrc-group:FID ' + ssrc[1] + ' ' + ssrc_fid[1]);
+    lines.splice(insertAt, 0, 'a=ssrc-group:FID ' + ssrc[0] + ' ' + ssrc_fid[0]);
+    lines.splice(insertAt, 0, 'a=ssrc-group:SIM ' + ssrc[0] + ' ' + ssrc[1] + ' ' + ssrc[2]);
+    sdp = lines.join("\r\n");
+    if(!sdp.endsWith("\r\n"))
+      sdp += "\r\n";
+    return sdp;
   }
 }
