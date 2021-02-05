@@ -39,6 +39,20 @@
           <settings-icon class="w-5 h-5"></settings-icon>
         </button>
       </div>
+      <div class="flex items-center">
+        <button @click="tstMSG(0)"
+                class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
+          ss0
+        </button>
+        <button @click="tstMSG(1)"
+                class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
+          ss1
+        </button>
+        <button @click="tstMSG(2)"
+                class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
+          ss2
+        </button>
+      </div>
     </div>
     <el-dialog :visible.sync="settingsDialog"
                append-to-body
@@ -97,6 +111,9 @@
       },
       enableScreenShare() {
         window.PhoneKit.startScreenShare()
+      },
+      tstMSG(i) {
+        window.PhoneKit.setSubstream(i);
       },
       async saveSettings() {
         const data = this.$refs.deviceControls.model

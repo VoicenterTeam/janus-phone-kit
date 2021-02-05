@@ -122,12 +122,12 @@
           this.talkingStream = this.streamSources.find(source => source?.state?.isTalking)
         })
 
-        this.PhoneKit.on('hangup', this.afterHangup)
+        this.PhoneKit.on('hangup', this.afterHangup);
       }
     },
     async mounted() {
       this.PhoneKit = new PhoneKit({
-        url: 'wss://webconf.officering.net/janus'
+        url: 'wss://webconf01.voicenter.co/janus'
       })
       // @ts-ignore
       window.PhoneKit = this.PhoneKit

@@ -3,11 +3,14 @@
     <template v-if="mainSource">
       <video :srcObject.prop="mainSource.stream"
              class="main-video"
+             id="main_video"
+             ref="main_video"
              :class="{'publisher-video': mainSource.type === 'publisher'}"
              :controls="false"
              :muted="mainSource.type === 'publisher'"
              :volume="mainSource.type === 'publisher' ? 0: 0.9"
              autoplay
+             @
       >
       </video>
       <div class="fixed top-0 left-0 flex justify-center items-center bg-opacity-25 bg-gray-700 rounded-br px-4 text-xl font-semibold">
@@ -18,6 +21,9 @@
         </div>
         <div class="text-gray-100">
           {{mainSource.name || mainSource.sender}}
+        </div>
+        <div class="text-gray-100">
+          {{width}}X{{height}}
         </div>
       </div>
       <client-only>
@@ -76,7 +82,9 @@
     },
     data() {
       return {
-        mainSource: null
+        mainSource: null,
+        height: 0,
+        width: 0
       }
     },
     computed: {
@@ -94,6 +102,10 @@
           return
         }
         streamSource.stream = newStream
+      },
+      calcRes() {
+        this.width = this.$refs.main_video.videoWidth
+        this.height = this.$refs.main_video.videoHeight
       }
     },
     watch: {
@@ -112,6 +124,7 @@
             DeviceManager.stopStreamTracks(this.mainSource.stream)
             this.mainSource = null
           }
+          this.calcRes();
         }
       }
     },
