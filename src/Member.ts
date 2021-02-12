@@ -112,6 +112,7 @@ export class Member {
       state: this.state,
       id: this.handleId,
       info: this.info.customInfo,
+      rtcPeer: this.rtcpPeer,
     }
   }
 

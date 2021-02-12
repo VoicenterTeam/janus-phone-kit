@@ -12,6 +12,7 @@ type JanusPhoneKitOptions = {
   stunServers?: StunServer[],
   stream?: MediaStream,
   screenShareStream?: MediaStream,
+  mediaConstraints?: {},
 }
 const defaultOptions: JanusPhoneKitOptions = {
   roomId: null,
@@ -19,6 +20,7 @@ const defaultOptions: JanusPhoneKitOptions = {
   stunServers: [{urls: "stun:stun.l.google.com:19302"}],
   stream: null,
   screenShareStream: null,
+  mediaConstraints: null,
 }
 
 export default class JanusPhoneKit extends EventEmitter {
@@ -41,6 +43,11 @@ export default class JanusPhoneKit extends EventEmitter {
    * @type {ScreenSharePlugin}
    */
   private screenSharePlugin = null
+
+  /**
+   * Media constraints for audio, video, screen share tracks
+   */
+  private mediaConstraints = null
 
   isConnected = false
 
@@ -66,7 +73,8 @@ export default class JanusPhoneKit extends EventEmitter {
     this.session.offAll();
   }
 
-  public joinRoom({roomId, displayName = '', mediaConstraints, sessionInfo}) {
+  public joinRoom({roomId, displayName = '', mediaConstraints, sessionInfo, state}) {
+    this.mediaConstraints = mediaConstraints;
     this.sessionInfo = sessionInfo;
     if (!this.options.url) {
       throw new Error('Could not create websocket connection because url parameter is missing')
@@ -84,7 +92,7 @@ export default class JanusPhoneKit extends EventEmitter {
       this.session.receive(JSON.parse(event.data))
     });
 
-    this.registerSocketOpenHandler(displayName, mediaConstraints, sessionInfo)
+    this.registerSocketOpenHandler(displayName, mediaConstraints, sessionInfo, state)
     this.registerSocketCloseHandler()
 
     this.websocket.onerror = () => {
@@ -144,7 +152,8 @@ export default class JanusPhoneKit extends EventEmitter {
       videoRoomPlugin: this.videoRoomPlugin,
       stunServers: this.options.stunServers,
       stream: this.options.screenShareStream,
-      sessionInfo: this.sessionInfo
+      sessionInfo: this.sessionInfo,
+      mediaConstraints: this.mediaConstraints,
     });
 
     try {
@@ -167,7 +176,7 @@ export default class JanusPhoneKit extends EventEmitter {
     await this.videoRoomPlugin?.syncParticipants();
   }
 
-  private registerSocketOpenHandler(displayName, mediaConstraints, sessionInfo) {
+  private registerSocketOpenHandler(displayName, mediaConstraints, sessionInfo, state) {
     this.websocket.addEventListener('open', async () => {
       const unload = e => {
         this.websocket.close()
@@ -190,6 +199,7 @@ export default class JanusPhoneKit extends EventEmitter {
         mediaConstraints,
         sessionInfo,
         stream: this.options.stream,
+        state,
       });
 
       try {

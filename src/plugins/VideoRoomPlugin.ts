@@ -36,8 +36,8 @@ export class VideoRoomPlugin extends BasePlugin {
     this.room_id = options.roomId
     this.stunServers = options.stunServers
     this.mediaConstraints = options.mediaConstraints;
-    this.isAudioOn = !!this.mediaConstraints.audio;
-    this.isVideoOn = !!this.mediaConstraints.video;
+    this.isAudioOn = options.state.isAudioOn;
+    this.isVideoOn = options.state.isVideoOn;
     this.bitrate = this.mediaConstraints.bitrate;
     this.sessionInfo = options.sessionInfo;
     this.stream = options.stream;
@@ -77,7 +77,7 @@ export class VideoRoomPlugin extends BasePlugin {
    * @return {Object} The response from Janus
    */
   async enableVideo(enabled) {
-    return this.sendMessage({video: enabled});
+    return this.sendStateMessage({video: enabled});
   }
 
   /**
@@ -88,7 +88,7 @@ export class VideoRoomPlugin extends BasePlugin {
    * @return {Object} The response from Janus
    */
   async enableAudio(enabled) {
-    return this.sendMessage({audio: enabled});
+    return this.sendStateMessage({audio: enabled});
   }
 
   /**
@@ -295,8 +295,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
     if (!this.stream) {
       await this.requestAudioAndVideoPermissions();
-      DeviceManager.toggleAudioMute(this.stream, this.isAudioOn)
-      DeviceManager.toggleAudioMute(this.stream, this.isVideoOn)
+      DeviceManager.toggleAudioMute(this.volumeMeter.getBypassedAudio(), this.isAudioOn)
+      DeviceManager.toggleVideoMute(this.stream, this.isVideoOn)
     } else {
       this.trackMicrophoneVolume();
     }
@@ -308,11 +308,12 @@ export class VideoRoomPlugin extends BasePlugin {
       type: 'publisher',
       name: this.displayName,
       state: {
-        audio: !!this.stream.getAudioTracks().length,
-        video: !!this.stream.getVideoTracks().length,
+        audio: this.isAudioOn,
+        video: this.isVideoOn,
       },
       id: uuidv4(),
       info: this.sessionInfo,
+      rtcPeer: this.rtcConnection,
     })
 
     logger.info('Adding local user media to RTCPeerConnection.');
@@ -340,6 +341,7 @@ export class VideoRoomPlugin extends BasePlugin {
           type: 'publisher',
           state: {isTalking},
           info: this.sessionInfo,
+          rtcPeer: this.rtcConnection,
         });
       }
       if (newValue >= 20 && oldValue < 20) {
@@ -362,21 +364,15 @@ export class VideoRoomPlugin extends BasePlugin {
   async startVideo() {
     if (this.stream.getVideoTracks().length > 0) {
       this.stream && DeviceManager.toggleVideoMute(this.stream, true)
-      await this.enableVideo(true)
       this.isVideoOn = true
-      await this.sendStateMessage({
-        video: true
-      })
+      await this.enableVideo(true)
     }
   }
 
   async stopVideo() {
     this.stream && DeviceManager.toggleVideoMute(this.stream, false)
-    await this.enableVideo(false)
     this.isVideoOn = false
-    await this.sendStateMessage({
-      video: false
-    })
+    await this.enableVideo(false)
   }
 
   async startAudio() {
@@ -384,20 +380,14 @@ export class VideoRoomPlugin extends BasePlugin {
       DeviceManager.toggleAudioMute(this.stream, true)
       DeviceManager.toggleAudioMute(this.volumeMeter.getBypassedAudio(), true)
     }
-    await this.enableAudio(true)
     this.isAudioOn = true
-    await this.sendStateMessage({
-      audio: true
-    })
+    await this.enableAudio(true)
   }
 
   async stopAudio() {
     this.stream && DeviceManager.toggleAudioMute(this.volumeMeter.getBypassedAudio(), false)
-    await this.enableAudio(false)
     this.isAudioOn = false
-    await this.sendStateMessage({
-      audio: false
-    })
+    await this.enableAudio(false)
   }
 
   startNoiseFilter() {
@@ -420,6 +410,7 @@ export class VideoRoomPlugin extends BasePlugin {
       type: 'publisher',
       info: this.sessionInfo,
       stream,
+      rtcPeer: this.rtcConnection,
     });
     this.volumeMeter.getBypassedAudio().getAudioTracks().forEach(track => {
       const audioSender = this.rtcConnection.getSenders().find(sender => sender.track.kind === track.kind);

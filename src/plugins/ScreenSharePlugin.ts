@@ -12,6 +12,7 @@ export class ScreenSharePlugin extends BasePlugin {
   rtcConnection: any = null
   stream: MediaStream;
   sessionInfo = {}
+  private mediaConstraints: any = {}
 
   /**
    * @type {VideoRoomPlugin}
@@ -26,6 +27,7 @@ export class ScreenSharePlugin extends BasePlugin {
     this.VideoRoomPlugin = options.videoRoomPlugin
     this.stream = options.stream
     this.sessionInfo = options.sessionInfo
+    this.mediaConstraints = options.mediaConstraints
 
     logger.debug('Init plugin', this);
     this.stunServers = options.stunServers
@@ -96,11 +98,13 @@ export class ScreenSharePlugin extends BasePlugin {
   async receive(msg) {
     // const that = this;
     logger.info('on receive ScreenSharePlugin', msg);
+    if (msg.janus === 'webrtcup') {
+      await this.setBitrate(this.mediaConstraints.screenShare.bitrate);
+    }
     if (msg.plugindata && msg.plugindata.data.error_code) {
       logger.error('plugindata.data ScreenSharePlugin error :', msg.plugindata.data);
     } else if (msg.plugindata && msg.plugindata.data.videoroom === 'joined') {
       logger.info('Self Joiend event ', msg.plugindata.data.id);
-
       // TODO a plugin shouldn't depend on another plugin
       if (this.VideoRoomPlugin) {
         logger.info('VideoRoomPlugin ', this.VideoRoomPlugin);
@@ -129,7 +133,9 @@ export class ScreenSharePlugin extends BasePlugin {
 
     try {
       // @ts-ignore
-      localMedia = this.stream || await navigator.mediaDevices.getDisplayMedia();
+      localMedia = this.stream || await navigator.mediaDevices.getDisplayMedia({
+        video: this.mediaConstraints.screenShare
+      });
       localMedia.getVideoTracks()[0].onended = () => this.detachSharing();
       logger.info('Got local user Screen .');
 
@@ -174,7 +180,11 @@ export class ScreenSharePlugin extends BasePlugin {
     let confResult
     try {
       confResult = await retryPromise(
-        () => this.sendMessage({request: 'configure', audio: false, video: true}, jsepOffer)
+        () => this.sendMessage({
+          request: 'configure',
+          audio: false,
+          video: true,
+        }, jsepOffer)
       )
     } catch (e) {
       this.session.emit('disconnected');
