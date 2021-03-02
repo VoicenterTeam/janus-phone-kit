@@ -6,6 +6,10 @@ import DeviceManager from "../util/DeviceManager";
 import {v4 as uuidv4} from 'uuid';
 import {VolumeMeter} from "../util/SoundMeter";
 import {StunServer} from "../types";
+import debounce from 'lodash/debounce.js';
+import VideoRoomSimulcastFacade from "../simulcast/VideoRoomSimulcastFacade";
+import VideoRoomSimulcastFacadeImpl from "../simulcast/VideoRoomSimulcastFacadeImpl";
+import {addRtcSimulcastTrack} from "../util/rtcUtil";
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
@@ -24,9 +28,13 @@ export class VideoRoomPlugin extends BasePlugin {
   isNoiseFilterOn: boolean = false
   isTalking: boolean = false
   mediaConstraints: any = {}
+  simulcastSettings: any = {}
   bitrate: number = 0
   sessionInfo: any = {}
-  private onSlowlink = onceInTimeoutClosure(this.reduceBitrate.bind(this), 15000, 2);
+  private reduceUplink = onceInTimeoutClosure(() => this.simulcastFacade.reduceUplink(), 5000, 3);
+  public reduceDownlink = onceInTimeoutClosure(() => this.simulcastFacade.reduceDownlink(), 15000, 1);
+  private adjustBandwidth = debounce(() => this.simulcastFacade.adjustBandwidth(), 5000)
+  private simulcastFacade: VideoRoomSimulcastFacade;
   private volumeMeter: VolumeMeter;
 
   constructor(options: any = {}) {
@@ -36,6 +44,7 @@ export class VideoRoomPlugin extends BasePlugin {
     this.room_id = options.roomId
     this.stunServers = options.stunServers
     this.mediaConstraints = options.mediaConstraints;
+    this.simulcastSettings = options.simulcastSettings;
     this.isAudioOn = options.state.isAudioOn;
     this.isVideoOn = options.state.isVideoOn;
     this.bitrate = this.mediaConstraints.bitrate;
@@ -57,7 +66,6 @@ export class VideoRoomPlugin extends BasePlugin {
     };
     this.rtcConnection.onconnectionstatechange = () => {
       if (this.rtcConnection.iceConnectionState === 'connected') {
-        this.setBitrate(this.bitrate);
         this.sendStateMessage({
           audio: this.isAudioOn,
           video: this.isVideoOn,
@@ -96,13 +104,11 @@ export class VideoRoomPlugin extends BasePlugin {
    *
    * @public
    * @param {Number} bitrate - Bits per second
-   * @param {Boolean} force - either bitrate must be forced. If not forced janus may deny message if bitrate was changed recently
-   * and changes did not take effect yet (used in automatical bitrate reduce)
    * @return {Object} The response from Janus
    */
-  async setBitrate(bitrate, force = true) {
+  async setBitrate(bitrate) {
     this.bitrate = bitrate;
-    await this.sendMessage({bitrate, force});
+    await this.sendMessage({bitrate});
   }
 
   /**
@@ -157,9 +163,8 @@ export class VideoRoomPlugin extends BasePlugin {
           await (slowMember as Member).onSlowlink();
         }
       } else {
-        await this.onSlowlink();
+        await this.reduceUplink();
       }
-      this.session.emit('slowlink', msg);
     }
   }
 
@@ -170,7 +175,7 @@ export class VideoRoomPlugin extends BasePlugin {
       return
     }
     hangupMember.hangup();
-    delete this.memberList[unpublished];
+    this.removeMember(unpublished);
   }
 
   private async onTrickle(message) {
@@ -216,15 +221,14 @@ export class VideoRoomPlugin extends BasePlugin {
 
       delete unprocessedMembers[publisher.id];
       if (!this.memberList[publisher.id] && !this.myFeedList.includes(publisher.id)) {
-        this.memberList[publisher.id] = new Member(publisher, this);
-        this.memberList[publisher.id].attachMember();
+        this.addMember(publisher);
       }
     });
 
     if (msg?.plugindata?.data?.videoroom === 'synced') {
       Object.keys(unprocessedMembers).forEach(key => {
         unprocessedMembers[key].hangup();
-        delete this.memberList[key];
+        this.removeMember(key);
       });
     }
     this.publishers = msg?.plugindata?.data?.publishers;
@@ -262,7 +266,7 @@ export class VideoRoomPlugin extends BasePlugin {
 
   async requestAudioAndVideoPermissions() {
     logger.info('Asking user to share media. Please wait...');
-    return  await this.loadStream();
+    return await this.loadStream();
   }
 
   /**
@@ -292,6 +296,10 @@ export class VideoRoomPlugin extends BasePlugin {
       await this.hangup();
       return;
     }
+
+    this.simulcastFacade = new VideoRoomSimulcastFacadeImpl(
+      this.rtcConnection, this.session, this.simulcastSettings, this.memberList
+    );
 
     if (!this.stream) {
       await this.requestAudioAndVideoPermissions();
@@ -424,7 +432,7 @@ export class VideoRoomPlugin extends BasePlugin {
       if (videoSender) {
         videoSender.replaceTrack(track);
       } else {
-        this.rtcConnection.addTrack(track);
+        this.addTracks([track])
       }
       if (!this.isVideoOn) {
         track.enabled = false
@@ -454,6 +462,10 @@ export class VideoRoomPlugin extends BasePlugin {
 
   async sendConfigureMessage(options) {
     const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions);
+    /*    const mungedSdp = {
+          ...jsepOffer,
+          sdp: mungeSdpForSimulcasting(jsepOffer.sdp, this.simulcastSettings)
+        }*/
     await this.rtcConnection.setLocalDescription(jsepOffer);
 
     let confResult
@@ -495,8 +507,16 @@ export class VideoRoomPlugin extends BasePlugin {
 
   addTracks(tracks: MediaStreamTrack[]) {
     tracks.forEach((track) => {
-      this.rtcConnection.addTrack(track);
+      if (track.kind === 'video') {
+        this.simulcastFacade.addVideoSimulcastTrack(track);
+      } else {
+        this.rtcConnection.addTransceiver(track, {direction: 'sendonly'});
+      }
     });
+  }
+
+  getActiveDownlinkSubstream(): number {
+    return this.simulcastFacade.getActiveDownlinkSubstream();
   }
 
   async hangup() {
@@ -519,6 +539,17 @@ export class VideoRoomPlugin extends BasePlugin {
     });
   }
 
+  private addMember(publisher) {
+    this.memberList[publisher.id] = new Member(publisher, this);
+    this.memberList[publisher.id].attachMember();
+    this.adjustBandwidth();
+  }
+
+  private removeMember(unpublished) {
+    delete this.memberList[unpublished];
+    this.adjustBandwidth();
+  }
+
   close() {
     if (this.rtcConnection) {
       this.rtcConnection.close();
@@ -526,11 +557,5 @@ export class VideoRoomPlugin extends BasePlugin {
     }
     const members = Object.values(this.memberList);
     members.forEach((member: any) => member.hangup());
-  }
-
-  private async reduceBitrate() {
-    const newBitrate = this.bitrate / 2;
-    await this.setBitrate(newBitrate, false);
-    logger.info(`Bitrate reduced for uplink to ${newBitrate} Kbit/s`);
   }
 }

@@ -1,27 +1,26 @@
 import {logger} from './util/logger'
-import {BasePlugin} from "./plugins/BasePlugin";
 import {onceInTimeoutClosure, retryPromise} from "./util/util";
+import {VideoRoomPlugin} from "./plugins/VideoRoomPlugin";
 
 export class Member {
 
-  private plugin: BasePlugin = null
+  private plugin: VideoRoomPlugin = null
   private rtcpPeer: any = null
   handleId = 0
+  subscriberId = 0
   private readonly info = null
   private joinResult = null
   private state = {}
   private stream = null
-  public onSlowlink = onceInTimeoutClosure(this.reduceBitrate.bind(this), 15000, 2);
+  public onSlowlink = onceInTimeoutClosure(() => this.plugin.reduceDownlink(), 5000, 3);
 
-  constructor(memberInfo, plugin: BasePlugin) {
+  constructor(memberInfo, plugin: VideoRoomPlugin) {
     this.info = memberInfo
     this.plugin = plugin;
     this.rtcpPeer = new RTCPeerConnection({
       iceServers: this.plugin.stunServers,
     })
-    this.state = {
-      bitrate: memberInfo.bitrate,
-    };
+    this.state = {};
     this.plugin?.session.emit('member:join', this.memberInfo)
   }
 
@@ -33,6 +32,7 @@ export class Member {
       plugin: 'janus.plugin.videoroomjs'
     });
     this.handleId = attachResult.data.id;
+    this.subscriberId = attachResult.data.subscriberId
 
     // eslint-disable-next-line no-await-in-loop
     this.joinResult = await this.plugin.sendMessage({
@@ -41,6 +41,7 @@ export class Member {
       feed: this.info.id,
       ptype: 'subscriber',
       private_id: this.plugin.private_id,
+      initialSubstream: this.plugin.getActiveDownlinkSubstream(),
     }, undefined, {handle_id: this.handleId});
   }
 
@@ -113,6 +114,8 @@ export class Member {
       id: this.handleId,
       info: this.info.customInfo,
       rtcPeer: this.rtcpPeer,
+      setSubstream: substream => this.setSubstream(substream),
+      setTemporal: temporal => this.setTemporal(temporal),
     }
   }
 
@@ -145,10 +148,15 @@ export class Member {
     this.plugin.send({janus: 'detach'}, {handle_id: this.handleId});
   }
 
-  private async reduceBitrate() {
-    await this.plugin.sendMessage({
-      cutBitrate: this.info.id,
-    }, null, { handle_id: this.handleId })
-    logger.info(`Bitrate reduced for handle ${this.handleId}`)
+  public isSharedScreen() {
+    return this.info.customInfo.screenShare;
+  }
+
+  public async setSubstream(substream) {
+      await this.plugin.sendMessage({substream}, null, {handle_id: this.handleId});
+  }
+
+  public async setTemporal(temporal) {
+      await this.plugin.sendMessage({temporal}, null, { handle_id: this.handleId });
   }
 }

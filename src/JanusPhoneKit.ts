@@ -48,6 +48,10 @@ export default class JanusPhoneKit extends EventEmitter {
    * Media constraints for audio, video, screen share tracks
    */
   private mediaConstraints = null
+  /**
+   * Simulcast settings defining video quality for each simulcast substream
+   */
+  private simulcastSettings = null
 
   isConnected = false
 
@@ -73,8 +77,9 @@ export default class JanusPhoneKit extends EventEmitter {
     this.session.offAll();
   }
 
-  public joinRoom({roomId, displayName = '', mediaConstraints, sessionInfo, state}) {
+  public joinRoom({roomId, displayName = '', mediaConstraints, simulcastSettings, sessionInfo, state}) {
     this.mediaConstraints = mediaConstraints;
+    this.simulcastSettings = simulcastSettings;
     this.sessionInfo = sessionInfo;
     if (!this.options.url) {
       throw new Error('Could not create websocket connection because url parameter is missing')
@@ -154,6 +159,7 @@ export default class JanusPhoneKit extends EventEmitter {
       stream: this.options.screenShareStream,
       sessionInfo: this.sessionInfo,
       mediaConstraints: this.mediaConstraints,
+      simulcastSettings: this.simulcastSettings.screenShareSimulcastSettings,
     });
 
     try {
@@ -197,6 +203,7 @@ export default class JanusPhoneKit extends EventEmitter {
         roomId: this.options.roomId,
         stunServers: this.options.stunServers,
         mediaConstraints,
+        simulcastSettings: this.simulcastSettings.videoSimulcastSettings,
         sessionInfo,
         stream: this.options.stream,
         state,
