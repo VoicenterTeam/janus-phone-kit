@@ -78,7 +78,7 @@ export const disableSimulcastTopLayer = (rtcConnection): boolean => {
     }
     return false;
   }
-  return true;
+  return false;
 };
 
 export const toggleSimulcastLayer = (rtcRtpSender, rid, active) => {

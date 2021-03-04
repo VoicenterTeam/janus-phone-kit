@@ -58,14 +58,18 @@ export default class VideoRoomSimulcastFacadeImpl implements VideoRoomSimulcastF
 
   public reduceDownlink(): void {
     const isReduced = this.subscriberStrategy.reduceDownlink();
-    if (!isReduced) {
+    if (isReduced) {
+      this.session.emit('info', 'Downlink reduced due to network issues');
+    } else {
       this.session.emit('poor-connection', {type: 'downlink'});
     }
   }
 
   public reduceUplink(): void {
     const isReduced = this.publisherStrategy.reduceUplink();
-    if (!isReduced) {
+    if (isReduced) {
+      this.session.emit('info', 'Uplink reduced due to network issues');
+    } else {
       this.session.emit('poor-connection', {type: 'uplink'});
     }
   }

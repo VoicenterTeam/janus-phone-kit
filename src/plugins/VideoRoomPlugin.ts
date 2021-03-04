@@ -9,7 +9,6 @@ import {StunServer} from "../types";
 import debounce from 'lodash/debounce.js';
 import VideoRoomSimulcastFacade from "../simulcast/VideoRoomSimulcastFacade";
 import VideoRoomSimulcastFacadeImpl from "../simulcast/VideoRoomSimulcastFacadeImpl";
-import {addRtcSimulcastTrack} from "../util/rtcUtil";
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
@@ -156,14 +155,21 @@ export class VideoRoomPlugin extends BasePlugin {
       this.onPublisherInitialStateUpdate(msg)
     }
 
-    if (msg.janus === 'slowlink') {
-      if (msg.uplink) {
-        const slowMember = Object.values(this.memberList).find((member: Member) => member.handleId === msg.sender)
-        if (slowMember) {
-          await (slowMember as Member).onSlowlink();
-        }
+    if (pluginData?.videoroom === 'slow_publisher') {
+      const slowMember = this.findMember(msg.sender);
+      if (slowMember) {
+        (slowMember as Member).lockSlowLink();
+      }
+    }
+
+    if (msg.janus === 'slowlink' && msg.media === 'video') {
+      if (msg.sender === this.id) {
+        this.reduceUplink();
       } else {
-        await this.reduceUplink();
+        const slowMember = this.findMember(msg.sender);
+        if (slowMember) {
+          (slowMember as Member).onSlowlink();
+        }
       }
     }
   }
@@ -548,6 +554,11 @@ export class VideoRoomPlugin extends BasePlugin {
   private removeMember(unpublished) {
     delete this.memberList[unpublished];
     this.adjustBandwidth();
+  }
+
+  private findMember(sender): Member {
+    const member = Object.values(this.memberList).find((member: Member) => member.handleId === sender)
+    return (member as Member);
   }
 
   close() {

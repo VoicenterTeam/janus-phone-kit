@@ -19,8 +19,13 @@ export default class SimulcastSubscriberStrategy {
   constructor(session: Session, memberList, simulcastSettings: SimulcastSettings) {
     this.session = session;
     this.memberList = memberList;
-    this.substream = simulcastSettings.forceSubstream || SIMULCAST.high;
-    this.bandwidthLimit = simulcastSettings.forceSubstream || SIMULCAST.high;
+    if (typeof simulcastSettings.forceSubstream === 'number') {
+      this.substream = simulcastSettings.forceSubstream;
+      this.bandwidthLimit = simulcastSettings.forceSubstream;
+    } else {
+      this.substream = SIMULCAST.high;
+      this.bandwidthLimit = SIMULCAST.high;
+    }
   }
 
   public adjustSubscriberBandwidth(substream: number): boolean {
@@ -57,6 +62,12 @@ export default class SimulcastSubscriberStrategy {
   }
 
   public reduceDownlink(): boolean {
+    const reduced = this.switchToLowerSubstream();
+    this.bandwidthLimit = this.substream;
+    return reduced;
+  }
+
+  private switchToLowerSubstream(): boolean {
     switch (this.substream) {
       case SIMULCAST.high:
         return this.setSubstream(SIMULCAST.medium);
@@ -77,9 +88,9 @@ export default class SimulcastSubscriberStrategy {
         }
       default: {
         logger.error('Illegal simulcast substream number', this.substream);
+        return false;
       }
     }
-    this.bandwidthLimit = this.substream;
   }
 
   public switchToThumbnail(): void {

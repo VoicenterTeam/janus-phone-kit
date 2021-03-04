@@ -1,6 +1,7 @@
 import {logger} from './util/logger'
 import {onceInTimeoutClosure, retryPromise} from "./util/util";
 import {VideoRoomPlugin} from "./plugins/VideoRoomPlugin";
+import delay from 'lodash/delay';
 
 export class Member {
 
@@ -12,7 +13,14 @@ export class Member {
   private joinResult = null
   private state = {}
   private stream = null
-  public onSlowlink = onceInTimeoutClosure(() => this.plugin.reduceDownlink(), 5000, 3);
+  public onSlowlinkHandler = onceInTimeoutClosure(
+    // () => this.plugin.reduceDownlink(),
+    delay(() => !this.slowLinkLock && this.plugin.reduceDownlink(), 1000),
+    5000, 3
+  );
+  private slowLinkLock: boolean = false;
+  private slowLinkTimer: NodeJS.Timeout
+  private static slowLinkLockTimeout: number = 15000;
 
   constructor(memberInfo, plugin: VideoRoomPlugin) {
     this.info = memberInfo
@@ -158,5 +166,23 @@ export class Member {
 
   public async setTemporal(temporal) {
       await this.plugin.sendMessage({temporal}, null, { handle_id: this.handleId });
+  }
+
+  /**
+   * Once publisher uplink problem detected, janus sends slowlink to that publisher and all subscribers
+   * To prevent reducing downlink on subscriber side we lock slowlink handling
+   */
+  public lockSlowLink() {
+    this.slowLinkLock = true;
+    clearTimeout(this.slowLinkTimer);
+    this.slowLinkTimer = setTimeout(() => {
+      this.slowLinkLock = false;
+    }, Member.slowLinkLockTimeout);
+  }
+
+  public onSlowlink() {
+    if (!this.slowLinkLock) {
+      this.onSlowlinkHandler();
+    }
   }
 }
