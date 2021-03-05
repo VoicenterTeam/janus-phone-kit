@@ -13,7 +13,6 @@ export class ScreenSharePlugin extends BasePlugin {
   rtcConnection: any = null
   stream: MediaStream;
   sessionInfo = {}
-  private mediaConstraints: any = {}
   private simulcastSettings: any = {}
   // private onSlowlink = onceInTimeoutClosure(() => disableSimulcastTopLayer(this.rtcConnection, this.session), 5000, 3);
 
@@ -30,7 +29,6 @@ export class ScreenSharePlugin extends BasePlugin {
     this.VideoRoomPlugin = options.videoRoomPlugin
     this.stream = options.stream
     this.sessionInfo = options.sessionInfo
-    this.mediaConstraints = options.mediaConstraints
     this.simulcastSettings = options.simulcastSettings
 
     logger.debug('Init plugin', this);
@@ -135,18 +133,11 @@ export class ScreenSharePlugin extends BasePlugin {
   async onAttached() {
     logger.info('onAttached ScreenSharePlugin !!!!!!!!!!!!!!!!!!!!!!');
     logger.info('Asking user to share media. Please wait...');
-
-    let localMedia;
-
     try {
-      // @ts-ignore
-      localMedia = this.stream || await navigator.mediaDevices.getDisplayMedia({
-        video: this.mediaConstraints.screenShare
-      });
-      localMedia.getVideoTracks()[0].onended = () => this.detachSharing();
+      this.stream.getVideoTracks()[0].onended = () => this.detachSharing();
       logger.info('Got local user Screen .');
 
-      logger.info('Got local user Screen  localMedia:', localMedia);
+      logger.info('Got local user Screen  localMedia:', this.stream);
     } catch (e) {
       console.error('No screen share on this browser ...');
       await this.detachSharing();
@@ -166,10 +157,9 @@ export class ScreenSharePlugin extends BasePlugin {
     });
 
     logger.info('Adding local user media to RTCPeerConnection.');
-    localMedia.getVideoTracks().forEach(track => {
+    this.stream.getVideoTracks().forEach(track => {
       addRtcSimulcastTrack(this.rtcConnection, track, this.simulcastSettings, { high: true })
     });
-    this.stream = localMedia;
     logger.info('Creating SDP offer. Please wait...');
 
     const options: any = {

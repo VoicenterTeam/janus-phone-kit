@@ -26,7 +26,6 @@ export class VideoRoomPlugin extends BasePlugin {
   isAudioOn: boolean = true
   isNoiseFilterOn: boolean = false
   isTalking: boolean = false
-  mediaConstraints: any = {}
   simulcastSettings: any = {}
   bitrate: number = 0
   sessionInfo: any = {}
@@ -42,13 +41,11 @@ export class VideoRoomPlugin extends BasePlugin {
     this.displayName = options.displayName
     this.room_id = options.roomId
     this.stunServers = options.stunServers
-    this.mediaConstraints = options.mediaConstraints;
     this.simulcastSettings = options.simulcastSettings;
-    this.isAudioOn = options.state.isAudioOn;
-    this.isVideoOn = options.state.isVideoOn;
-    this.bitrate = this.mediaConstraints.bitrate;
-    this.sessionInfo = options.sessionInfo;
     this.stream = options.stream;
+    this.isAudioOn = this.stream.getAudioTracks().some(track => track.enabled && track.readyState === 'live');
+    this.isVideoOn = this.stream.getVideoTracks().some(track => track.enabled && track.readyState === 'live');
+    this.sessionInfo = options.sessionInfo;
     this.rtcConnection = new RTCPeerConnection({
       iceServers: this.stunServers,
     })
@@ -241,40 +238,6 @@ export class VideoRoomPlugin extends BasePlugin {
     this.private_id = msg?.plugindata?.data?.private_id;
   }
 
-  async loadStream() {
-    const options = {...this.mediaConstraints};
-    try {
-      this.stream = await navigator.mediaDevices.getUserMedia(options);
-      logger.info('Got local user media.');
-
-    } catch (e) {
-      if (options.video) {
-        this.session.emit('media-error', {
-          type: 'CAPTURE_VIDEO_ERROR',
-          error: e,
-        });
-      }
-      try {
-        options.video = false
-        this.stream = await navigator.mediaDevices.getUserMedia(options);
-      } catch (ex) {
-        options.audio = false
-        options.video = this.mediaConstraints.video
-        this.stream = await navigator.mediaDevices.getUserMedia(options);
-      }
-    }
-    this.trackMicrophoneVolume();
-    return {
-      stream: this.stream,
-      options
-    }
-  }
-
-  async requestAudioAndVideoPermissions() {
-    logger.info('Asking user to share media. Please wait...');
-    return await this.loadStream();
-  }
-
   /**
    * Set up a bi-directional WebRTC connection:
    *
@@ -306,14 +269,7 @@ export class VideoRoomPlugin extends BasePlugin {
     this.simulcastFacade = new VideoRoomSimulcastFacadeImpl(
       this.rtcConnection, this.session, this.simulcastSettings, this.memberList
     );
-
-    if (!this.stream) {
-      await this.requestAudioAndVideoPermissions();
-      DeviceManager.toggleAudioMute(this.volumeMeter.getBypassedAudio(), this.isAudioOn)
-      DeviceManager.toggleVideoMute(this.stream, this.isVideoOn)
-    } else {
-      this.trackMicrophoneVolume();
-    }
+    this.trackMicrophoneVolume();
 
     this.session.emit('member:join', {
       stream: this.stream,
@@ -416,9 +372,7 @@ export class VideoRoomPlugin extends BasePlugin {
     // implementation not ready
   }
 
-  async changePublisherStream(newConstraints) {
-    this.adjustMediaConstraints(newConstraints);
-    const {stream} = await this.loadStream();
+  async changePublisherStream(stream) {
     this.session.emit('member:update', {
       sender: 'me',
       type: 'publisher',
@@ -445,25 +399,6 @@ export class VideoRoomPlugin extends BasePlugin {
       }
     });
     return stream;
-  }
-
-  adjustMediaConstraints({audio, video}) {
-    const adjustConstraint = (type, constraint) => {
-      if (typeof this.mediaConstraints[type] === 'object') {
-        if (typeof audio === 'object') {
-          this.mediaConstraints[type] = {
-            ...this.mediaConstraints[type], ...constraint,
-          };
-        } else {
-          this.mediaConstraints[type] = constraint;
-        }
-      }
-      if (typeof this.mediaConstraints[type] !== 'object') {
-        this.mediaConstraints[type] = constraint;
-      }
-    }
-    adjustConstraint('audio', audio);
-    adjustConstraint('video', video);
   }
 
   async sendConfigureMessage(options) {
