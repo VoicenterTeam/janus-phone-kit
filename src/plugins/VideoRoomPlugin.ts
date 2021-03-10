@@ -43,8 +43,8 @@ export class VideoRoomPlugin extends BasePlugin {
     this.stunServers = options.stunServers
     this.simulcastSettings = options.simulcastSettings;
     this.stream = options.stream;
-    this.isAudioOn = this.stream.getAudioTracks().some(track => track.enabled && track.readyState === 'live');
-    this.isVideoOn = this.stream.getVideoTracks().some(track => track.enabled && track.readyState === 'live');
+    this.isAudioOn = options.state.isAudioOn;
+    this.isVideoOn = options.state.isVideoOn;
     this.sessionInfo = options.sessionInfo;
     this.rtcConnection = new RTCPeerConnection({
       iceServers: this.stunServers,
@@ -270,6 +270,9 @@ export class VideoRoomPlugin extends BasePlugin {
       this.rtcConnection, this.session, this.simulcastSettings, this.memberList
     );
     this.trackMicrophoneVolume();
+    if (!this.isAudioOn) {
+      DeviceManager.toggleAudioMute(this.volumeMeter.getBypassedAudio(), false);
+    }
 
     this.session.emit('member:join', {
       stream: this.stream,

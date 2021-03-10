@@ -71,7 +71,7 @@ export default class JanusPhoneKit extends EventEmitter {
     this.session.offAll();
   }
 
-  public joinRoom({roomId, displayName = '', simulcastSettings, sessionInfo}) {
+  public joinRoom({roomId, displayName = '', simulcastSettings, sessionInfo, state}) {
     this.simulcastSettings = simulcastSettings;
     this.sessionInfo = sessionInfo;
     if (!this.options.url) {
@@ -90,7 +90,7 @@ export default class JanusPhoneKit extends EventEmitter {
       this.session.receive(JSON.parse(event.data))
     });
 
-    this.registerSocketOpenHandler(displayName, sessionInfo)
+    this.registerSocketOpenHandler(displayName, sessionInfo, state)
     this.registerSocketCloseHandler()
 
     this.websocket.onerror = () => {
@@ -174,7 +174,7 @@ export default class JanusPhoneKit extends EventEmitter {
     await this.videoRoomPlugin?.syncParticipants();
   }
 
-  private registerSocketOpenHandler(displayName, sessionInfo) {
+  private registerSocketOpenHandler(displayName, sessionInfo, state) {
     this.websocket.addEventListener('open', async () => {
       const unload = e => {
         this.websocket.close()
@@ -197,6 +197,7 @@ export default class JanusPhoneKit extends EventEmitter {
         simulcastSettings: this.simulcastSettings.videoSimulcastSettings,
         sessionInfo,
         stream: this.options.stream,
+        state,
       });
 
       try {
