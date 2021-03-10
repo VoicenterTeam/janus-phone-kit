@@ -22,8 +22,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
   stream: MediaStream;
   offerOptions: any = {}
-  isVideoOn: boolean = true
-  isAudioOn: boolean = true
+  isVideoOn: boolean
+  isAudioOn: boolean
   isNoiseFilterOn: boolean = false
   isTalking: boolean = false
   simulcastSettings: any = {}
@@ -373,6 +373,7 @@ export class VideoRoomPlugin extends BasePlugin {
   }
 
   async changePublisherStream(stream) {
+    this.stream = stream;
     this.session.emit('member:update', {
       sender: 'me',
       type: 'publisher',
