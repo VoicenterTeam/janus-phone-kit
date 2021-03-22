@@ -378,6 +378,7 @@ export class VideoRoomPlugin extends BasePlugin {
 
   async changePublisherStream(stream) {
     this.stream = stream;
+    this.trackMicrophoneVolume();
     this.session.emit('member:update', {
       sender: 'me',
       type: 'publisher',
@@ -386,7 +387,6 @@ export class VideoRoomPlugin extends BasePlugin {
       rtcPeer: this.rtcConnection,
     });
     this.volumeMeter.getBypassedAudio().getAudioTracks().forEach(track => {
-      this.trackMicrophoneVolume();
       const audioSender = this.rtcConnection.getSenders().find(sender => sender.track.kind === track.kind);
       audioSender.replaceTrack(track);
       if (!this.isAudioOn) {
