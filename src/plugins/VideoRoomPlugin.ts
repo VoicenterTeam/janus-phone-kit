@@ -331,6 +331,7 @@ export class VideoRoomPlugin extends BasePlugin {
         }
       }
     });
+    this.volumeMeter?.destroy();
     this.volumeMeter = volumeMeter;
   }
 
@@ -385,6 +386,7 @@ export class VideoRoomPlugin extends BasePlugin {
       rtcPeer: this.rtcConnection,
     });
     this.volumeMeter.getBypassedAudio().getAudioTracks().forEach(track => {
+      this.trackMicrophoneVolume();
       const audioSender = this.rtcConnection.getSenders().find(sender => sender.track.kind === track.kind);
       audioSender.replaceTrack(track);
       if (!this.isAudioOn) {

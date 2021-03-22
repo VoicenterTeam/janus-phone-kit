@@ -3,6 +3,7 @@ export class VolumeMeter {
   private scriptNodeProcessor: ScriptProcessorNode;
   private analyser: AnalyserNode;
   private bypassedAudio: MediaStreamAudioDestinationNode;
+  private audioContext: AudioContext
 
   constructor(stream) {
     this.stream = stream
@@ -11,6 +12,7 @@ export class VolumeMeter {
 
   private initMeter() {
     const audioContext = new AudioContext();
+    this.audioContext = audioContext;
     const microphone = audioContext.createMediaStreamSource(this.stream);
     const splitter = audioContext.createChannelSplitter(2);
     this.analyser = audioContext.createAnalyser();
@@ -34,7 +36,7 @@ export class VolumeMeter {
       let values: number = 0;
 
       array.forEach(value => {
-        values+=value
+        values += value
       })
 
       let newValue = Math.round(values / array.length);
@@ -48,5 +50,9 @@ export class VolumeMeter {
 
   getBypassedAudio() {
     return this.bypassedAudio.stream;
+  }
+
+  destroy() {
+    this.audioContext?.close();
   }
 }
