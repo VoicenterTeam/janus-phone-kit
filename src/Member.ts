@@ -15,7 +15,7 @@ export class Member {
   private stream = null
   public onSlowlinkHandler = onceInTimeoutClosure(
     // () => this.plugin.reduceDownlink(),
-    delay(() => !this.slowLinkLock && this.plugin.reduceDownlink(), 1000),
+    () => delay(() => !this.slowLinkLock && this.plugin.reduceDownlink(), 1000),
     5000, 3
   );
   private slowLinkLock: boolean = false;
