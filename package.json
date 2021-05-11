@@ -23,7 +23,7 @@
     "core-js": "2",
     "element-ui": "^2.13.1",
     "eslint": "^5.16.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "rollup-plugin-typescript2": "^0.27.0",
     "typescript": "^3.8.3",
     "vue-feather-icons": "^5.0.0",
