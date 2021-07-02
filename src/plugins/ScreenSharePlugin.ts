@@ -2,6 +2,7 @@ import {BasePlugin} from "./BasePlugin";
 import {logger} from '../util/logger'
 import {randomString, retryPromise} from '../util/util'
 import {StunServer} from "../types";
+import {addRtcSimulcastTrack} from "../util/rtcUtil";
 
 export class ScreenSharePlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
@@ -12,6 +13,8 @@ export class ScreenSharePlugin extends BasePlugin {
   rtcConnection: any = null
   stream: MediaStream;
   sessionInfo = {}
+  private simulcastSettings: any = {}
+  // private onSlowlink = onceInTimeoutClosure(() => disableSimulcastTopLayer(this.rtcConnection, this.session), 5000, 3);
 
   /**
    * @type {VideoRoomPlugin}
@@ -26,6 +29,7 @@ export class ScreenSharePlugin extends BasePlugin {
     this.VideoRoomPlugin = options.videoRoomPlugin
     this.stream = options.stream
     this.sessionInfo = options.sessionInfo
+    this.simulcastSettings = options.simulcastSettings
 
     logger.debug('Init plugin', this);
     this.stunServers = options.stunServers
@@ -84,7 +88,7 @@ export class ScreenSharePlugin extends BasePlugin {
    * @return {Object} The response from Janus
    */
   async setBitrate(bitrate) {
-    return this.sendMessage({ bitrate });
+    return this.sendMessage({ request: 'bitrate', bitrate });
   }
 
   /**
@@ -100,13 +104,18 @@ export class ScreenSharePlugin extends BasePlugin {
       logger.error('plugindata.data ScreenSharePlugin error :', msg.plugindata.data);
     } else if (msg.plugindata && msg.plugindata.data.videoroom === 'joined') {
       logger.info('Self Joiend event ', msg.plugindata.data.id);
-
       // TODO a plugin shouldn't depend on another plugin
       if (this.VideoRoomPlugin) {
         logger.info('VideoRoomPlugin ', this.VideoRoomPlugin);
         this.VideoRoomPlugin.myFeedList.push(msg.plugindata.data.id);
       }
     }
+/*    if (msg.janus === 'slowlink') {
+      if (!msg.uplink) {
+        await this.onSlowlink();
+      }
+      this.session.emit('slowlink', msg);
+    }*/
     logger.info('Received  message from Janus ScreenSharePlugin', msg);
   }
   /**
@@ -124,16 +133,11 @@ export class ScreenSharePlugin extends BasePlugin {
   async onAttached() {
     logger.info('onAttached ScreenSharePlugin !!!!!!!!!!!!!!!!!!!!!!');
     logger.info('Asking user to share media. Please wait...');
-
-    let localMedia;
-
     try {
-      // @ts-ignore
-      localMedia = this.stream || await navigator.mediaDevices.getDisplayMedia();
-      localMedia.getVideoTracks()[0].onended = () => this.detachSharing();
+      this.stream.getVideoTracks()[0].onended = () => this.detachSharing();
       logger.info('Got local user Screen .');
 
-      logger.info('Got local user Screen  localMedia:', localMedia);
+      logger.info('Got local user Screen  localMedia:', this.stream);
     } catch (e) {
       console.error('No screen share on this browser ...');
       await this.detachSharing();
@@ -153,8 +157,9 @@ export class ScreenSharePlugin extends BasePlugin {
     });
 
     logger.info('Adding local user media to RTCPeerConnection.');
-    this.rtcConnection.addStream(localMedia);
-    this.stream = localMedia;
+    this.stream.getVideoTracks().forEach(track => {
+      addRtcSimulcastTrack(this.rtcConnection, track, this.simulcastSettings, { high: true })
+    });
     logger.info('Creating SDP offer. Please wait...');
 
     const options: any = {
@@ -174,7 +179,11 @@ export class ScreenSharePlugin extends BasePlugin {
     let confResult
     try {
       confResult = await retryPromise(
-        () => this.sendMessage({request: 'configure', audio: false, video: true}, jsepOffer)
+        () => this.sendMessage({
+          request: 'configure',
+          audio: false,
+          video: true,
+        }, jsepOffer)
       )
     } catch (e) {
       this.session.emit('disconnected');
