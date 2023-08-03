@@ -127,7 +127,7 @@
     },
     async mounted() {
       this.PhoneKit = new PhoneKit({
-        url: 'wss://webconf.officering.net/janus'
+        url: 'wss://jnwss.voicenter.co/janus'
       })
       // @ts-ignore
       window.PhoneKit = this.PhoneKit

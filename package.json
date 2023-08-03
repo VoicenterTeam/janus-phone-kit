@@ -7,7 +7,7 @@
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "prepublish": "npm run build",
-    "start": "npm run docs"
+    "start": "npm run docs:dev"
   },
   "dependencies": {
     "loglevel": "^1.6.8",
