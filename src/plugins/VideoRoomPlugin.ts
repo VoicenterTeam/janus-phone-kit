@@ -16,6 +16,7 @@ export class VideoRoomPlugin extends BasePlugin {
   publishers = null
   displayName: string = ''
   rtcConnection: any = null;
+  clientID: string = ''
 
   stream: MediaStream;
   offerOptions: any = {}
@@ -28,6 +29,10 @@ export class VideoRoomPlugin extends BasePlugin {
 
   constructor(options: any = {}) {
     super()
+    // @ts-ignore
+    this.clientID =([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
     this.opaqueId = `videoroomtest-${randomString(12)}`;
     this.displayName = options.displayName
     this.room_id = options.roomId
@@ -183,7 +188,8 @@ export class VideoRoomPlugin extends BasePlugin {
     msg?.plugindata?.data?.publishers.forEach((publisher) => {
 
       delete unprocessedMembers[publisher.id];
-      if (!this.memberList[publisher.id] && !this.myFeedList.includes(publisher.id)) {
+      if (!this.memberList[publisher.id] && !this.myFeedList.includes(publisher.id) &&  publisher.clientID !==this.clientID ) {
+        // console.log("publisher",publisher)
         this.memberList[publisher.id] = new Member(publisher, this);
         this.memberList[publisher.id].attachMember();
       }
@@ -247,6 +253,7 @@ export class VideoRoomPlugin extends BasePlugin {
       room: this.room_id,
       ptype: 'publisher',
       display: this.displayName,
+      clientID: this.clientID,
       opaque_id: this.opaqueId,
     });
 
@@ -256,6 +263,7 @@ export class VideoRoomPlugin extends BasePlugin {
       sender: 'me',
       type: 'publisher',
       name: this.displayName,
+      clientID: this.clientID,
       state: {},
       id: uuidv4(),
     })
@@ -390,6 +398,7 @@ export class VideoRoomPlugin extends BasePlugin {
       request: 'state',
       data: {
         status: 'online',
+        clientID: this.clientID,
         name: this.displayName
       },
     })
