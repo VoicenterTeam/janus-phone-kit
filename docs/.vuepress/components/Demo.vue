@@ -66,9 +66,12 @@
       openJoinModal() {
         this.joinDialogVisible = true
       },
-      async joinRoom() {
+      async joinRoom(roomId,displayName) {
         try {
-          await this.$refs.form.validate()
+          console.log(" joining roomId,displayName",roomId,displayName)
+          if(roomId)this.joinForm.roomId=roomId;
+          if(displayName)this.joinForm.displayName=displayName;
+          if(!roomId&&!displayName)await this.$refs.form.validate()
           this.PhoneKit.joinRoom({
             roomId: this.joinForm.roomId,
             displayName: this.joinForm.displayName,
@@ -131,6 +134,16 @@
       })
       // @ts-ignore
       window.PhoneKit = this.PhoneKit
+
+      let roomId,displayName;
+      if(this.$route.query.roomId)roomId=this.$route.query.roomId;
+      if(this.$route.query.displayName)displayName=this.$route.query.displayName;
+      if(this.$route.query.room)roomId=this.$route.query.room;
+      if(this.$route.query.name)displayName=this.$route.query.name;
+      console.log("roomId,displayName",roomId,displayName);
+      if(roomId&&displayName){
+        await this.joinRoom(roomId, displayName);
+      }
     }
   })
 </script>
