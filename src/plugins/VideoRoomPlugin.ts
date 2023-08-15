@@ -189,7 +189,7 @@ export class VideoRoomPlugin extends BasePlugin {
 
       delete unprocessedMembers[publisher.id];
       if (!this.memberList[publisher.id] && !this.myFeedList.includes(publisher.id) &&  publisher.clientID !==this.clientID ) {
-        // console.log("publisher",publisher)
+         console.log("onReceivePublishers publisher",publisher)
         this.memberList[publisher.id] = new Member(publisher, this);
         this.memberList[publisher.id].attachMember();
       }
