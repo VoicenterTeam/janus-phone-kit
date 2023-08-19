@@ -10,6 +10,6 @@ module.exports = {
     'no-debugger': isProd ? 'error' : 'off',
   },
   parserOptions: {
-    parser: 'babel-eslint',
+    parser: 'esprima',
   },
 };
