@@ -8,6 +8,7 @@ declare const _default: import("vue/types/vue").ExtendedVue<Vue, {
     joinForm: {
         displayName: string;
         roomId: number;
+        validate: boolean;
     };
     rules: {
         roomId: {

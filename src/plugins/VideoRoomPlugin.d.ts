@@ -9,6 +9,7 @@ export declare class VideoRoomPlugin extends BasePlugin {
     publishers: any;
     displayName: string;
     rtcConnection: any;
+    clientID: string;
     stream: MediaStream;
     offerOptions: any;
     isVideoOn: boolean;
