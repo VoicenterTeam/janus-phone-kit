@@ -6,10 +6,15 @@ import 'element-ui/lib/theme-chalk/input.css'
 import 'element-ui/lib/theme-chalk/input-number.css'
 import 'element-ui/lib/theme-chalk/form.css'
 import 'element-ui/lib/theme-chalk/form-item.css'
+//import * as VueStreamMask from "vue-stream-mask"
+
 export default ({ Vue }) => {
   Vue.use(Dialog)
   Vue.use(Form)
   Vue.use(FormItem)
   Vue.use(Input)
   Vue.use(InputNumber)
+  //Vue.use(VueStreamMask)
 };
+
+window.global = window

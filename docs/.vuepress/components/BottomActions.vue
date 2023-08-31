@@ -3,6 +3,10 @@
     <div class="fixed bottom-0 h-20 bg-white shadow-lg w-full border-t border-gray-200 flex justify-between">
       <div class="w-56"></div>
       <div class="flex items-center">
+        <button @click="blurStream"
+                class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
+          BLUR
+        </button>
         <button v-if="isMicOn"
                 @click="toggleMicrophone(false)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
@@ -57,6 +61,7 @@
   import ElDialog from 'element-ui/packages/dialog'
   import 'element-ui/packages/theme-chalk/lib/dialog.css'
   import { DeviceManager } from "../../../src";
+  import { app } from '../../../src/live_video'
   export default {
     components: {
       ElDialog,
@@ -118,6 +123,10 @@
         const { videoInput, audioInput } = data
         const stream = await window.PhoneKit.changePublisherStream({ videoInput, audioInput })
         this.$emit('update-publisher-stream', stream)
+      },
+      blurStream() {
+        app()
+        //window.PhoneKit.blurStream()
       }
     }
   }

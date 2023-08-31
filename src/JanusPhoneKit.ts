@@ -1,3 +1,5 @@
+// @ts-ignore
+
 import 'webrtc-adapter'
 import Session from "./Session";
 import {logger} from './util/logger'
@@ -5,6 +7,7 @@ import {VideoRoomPlugin} from "./plugins/VideoRoomPlugin";
 import {ScreenSharePlugin} from "./plugins/ScreenSharePlugin";
 import EventEmitter from "./util/EventEmitter";
 import {StunServer} from "./types";
+import { app } from './live_video'
 
 type JanusPhoneKitOptions = {
   roomId?: number,
@@ -45,6 +48,8 @@ export default class JanusPhoneKit extends EventEmitter {
       ...defaultOptions,
       ...options
     }
+
+    //app()
   }
 
   on(event, fn) {
@@ -71,10 +76,12 @@ export default class JanusPhoneKit extends EventEmitter {
 
     this.websocket = new WebSocket(this.options.url, 'janus-protocol');
     this.session.on('output', (msg) => {
+      //console.log('JANUS output', msg)
       this.websocket.send(JSON.stringify(msg))
     });
 
     this.websocket.addEventListener('message', (event) => {
+      //console.log('JANUS message', event)
       this.session.receive(JSON.parse(event.data))
     });
 
@@ -122,6 +129,14 @@ export default class JanusPhoneKit extends EventEmitter {
 
   async changePublisherStream(newSource) {
     return this.videoRoomPlugin?.changePublisherStream(newSource);
+  }
+
+  async blurStream() {
+    return this.videoRoomPlugin?.blurStream();
+  }
+
+  async blurPublisherStream(stream) {
+    return this.videoRoomPlugin?.blurPublisherStream(stream);
   }
 
   public async startScreenShare() {
