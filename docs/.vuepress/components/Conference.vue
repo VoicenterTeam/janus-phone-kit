@@ -1,16 +1,5 @@
 <template>
   <div :class="{'conference-content fixed top-0 left-0 w-screen z-50 bg-black': mainSource}">
-    <div class="canvas-wrapper">
-      <canvas id="output"></canvas>
-      <video id="video" playsinline style="
-          -webkit-transform: scaleX(-1);
-          transform: scaleX(-1);
-          visibility: hidden;
-          width: auto;
-          height: auto;
-          ">
-      </video>
-    </div>
     <template v-if="mainSource">
       <video :srcObject.prop="mainSource.stream"
              class="main-video"

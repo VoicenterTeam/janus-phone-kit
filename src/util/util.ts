@@ -38,3 +38,18 @@ export function randomString(len) {
   }
   return randomStr;
 }
+
+/**
+ * Merges the default config and the passed one
+ * @param {object} defaultConfig
+ * @param {object} config
+ * @return {object} merged config
+ */
+export function mergeConfig(defaultConfig, config = {}) {
+  const finalConfig = {}
+  Object.keys(defaultConfig).forEach((key) => {
+    finalConfig[key] = config[key] !== undefined ? config[key] : defaultConfig[key]
+  })
+
+  return finalConfig
+}

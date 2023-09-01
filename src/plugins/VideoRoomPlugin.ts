@@ -6,6 +6,7 @@ import DeviceManager from "../util/DeviceManager";
 import {v4 as uuidv4} from 'uuid';
 import {VolumeMeter} from "../util/SoundMeter";
 import {StunServer} from "../types";
+import {StreamMaskPlugin} from "./StreamMaskPlugin";
 
 export class VideoRoomPlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
@@ -26,6 +27,9 @@ export class VideoRoomPlugin extends BasePlugin {
   isTalking: boolean = false
   mediaConstraints: any = {}
   private volumeMeter: VolumeMeter;
+
+  streamMask: any = null
+  isActiveMask: boolean = false
 
   constructor(options: any = {}) {
     super()
@@ -344,157 +348,84 @@ export class VideoRoomPlugin extends BasePlugin {
     this.volumeMeter.unmute();
   }
 
+  /**
+   * Replaces tracks of RTC connection senders
+   * @param {MediaStream} stream - stream whose tracks will be used in connection sender
+   * @return void
+   */
+  overrideSenderTracks(stream) {
+    stream.getTracks().forEach(track => {
+      const senders = this.rtcConnection.getSenders()
+      senders.forEach(sender => {
+        if (sender.track.kind !== track.kind) {
+          return
+        }
+
+        if (track.kind === 'audio' && !this.isAudioOn) {
+          track.enabled = false
+        }
+        if (track.kind === 'video' && !this.isVideoOn) {
+          track.enabled = false
+        }
+        sender.replaceTrack(track);
+      })
+    });
+  }
+
   async changePublisherStream({ audioInput, videoInput }) {
     if(videoInput) {
-      this.mediaConstraints.video.deviceId = { exact: videoInput };
+      this.mediaConstraints.video = {
+        deviceId: { exact: videoInput },
+        frameRate: {
+          ideal: 60,
+        }
+      }
     }
     if(audioInput) {
       this.mediaConstraints.audio = {deviceId: {exact: audioInput}};
     }
     const { stream } = await this.loadStream();
-    stream.getTracks().forEach(track => {
-      const senders = this.rtcConnection.getSenders()
-      senders.forEach(sender => {
-        if (sender.track.kind !== track.kind) {
-          return
-        }
-
-        if (track.kind === 'audio' && !this.isAudioOn) {
-          track.enabled = false
-        }
-        if (track.kind === 'video' && !this.isVideoOn) {
-          track.enabled = false
-        }
-        sender.replaceTrack(track);
-      })
-    });
+    this.overrideSenderTracks(stream)
     return stream;
   }
 
-  async blurPublisherStream(stream) {
-
-
-    /*const video = document.createElement("video");
-    const c1 = document.createElement("canvas");
-    const ctx1 = c1.getContext("2d");
-    console.log('videoElement', video)*/
-
-    //const { stream } = await this.loadStream();
-    stream.getTracks().forEach(track => {
-      const senders = this.rtcConnection.getSenders()
-      senders.forEach(sender => {
-        if (sender.track.kind !== track.kind) {
-          return
-        }
-
-        if (track.kind === 'audio' && !this.isAudioOn) {
-          track.enabled = false
-        }
-        if (track.kind === 'video' && !this.isVideoOn) {
-          track.enabled = false
-        }
-        sender.replaceTrack(track);
-      })
-    });
-    return stream;
-  }
-
-  async blurStream() {
-    /*const net_configs = {
-      architecture: "MobileNetV1",
-      outputStride: 16,
-      multiplier: 0.5,
-      quantBytes: 1
+  /**
+   * Enables or disables video stream mask.
+   * @param {boolean} enable - defines if mask should be applied
+   * @return {MediaStream} processed stream with mask effect in case enabled === true
+   * or clean stream without mask effect if enabled === false
+   */
+  async enableMask(enable: boolean) {
+    if (enable && this.isActiveMask || !enable && !this.isActiveMask) {
+      return
     }
 
-    const bokeh_configs = {
-      backgroundBlurAmount: 3,
-      edgeBlurAmount: 3
+    if (enable) {
+      if (!this.streamMask) {
+        this.streamMask = new StreamMaskPlugin()
+      }
+
+      const { stream } = await this.loadStream();
+
+      const canvasStream = await this.streamMask.start(stream)
+
+      this.overrideSenderTracks(canvasStream)
+      this.isActiveMask = true
+      this.stream = canvasStream
+
+      return canvasStream
+    } else {
+      if (!this.streamMask) {
+        throw new Error('Mask doesn\'t exist. Create a mask first')
+      }
+
+      this.streamMask.stop()
+
+      const { stream } = await this.loadStream();
+      this.overrideSenderTracks(stream)
+      this.isActiveMask = false
+      return stream
     }
-
-    const { stream } = await this.loadStream();
-    const videoEl = document.getElementById('video') //document.createElement("video");
-    const c1 = document.createElement("canvas");
-    c1. setAttribute("id", "canvas-stream-mask")
-    const ctx1 = c1.getContext("2d");
-    const c2 = document.createElement("canvas");
-    c2. setAttribute("id", "canvas-stream-mask-2")
-    const ctx2 = c2.getContext("2d");
-    console.log('videoElement', videoEl)
-
-    const net = await bodyPix.load(net_configs);
-
-    const videoElement = videoEl;
-
-    if (this.state.video && this.state.video.srcObject) {
-      this.state.video.srcObject.getTracks().forEach(track => {
-        track.stop();
-      });
-      this.state.video.srcObject = null;
-    }
-
-    const stream2 = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: true
-    });
-    videoElement.srcObject = stream2;
-
-    this.state.video = await new Promise(resolve => {
-      videoElement.onloadedmetadata = () => {
-        videoElement.width = videoElement.videoWidth;
-        videoElement.height = videoElement.videoHeight;
-        resolve(videoElement);
-      };
-    });
-    //this.state.video = await this.setupCamera(cameraLabel);
-
-    const canvas = c1;
-    const video = this.state.video;
-    // since images are being fed from a webcam
-    const flipHorizontal = false;
-
-    const backgroundBlurAmount = bokeh_configs.backgroundBlurAmount;
-
-    const edgeBlurAmount = bokeh_configs.edgeBlurAmount;
-
-    const bodySegmentationFrame = async () => {
-      let multiPersonSegmentation = await net.segmentPerson(this.state.video, {
-        maxDetections: 1,
-        internalResolution: "low",
-        segmentationThreshold: 0.7
-      });
-
-      bodyPix.drawBokehEffect(
-        canvas,
-        video,
-        multiPersonSegmentation,
-        backgroundBlurAmount,
-        edgeBlurAmount,
-        flipHorizontal
-      );
-      requestAnimationFrame(bodySegmentationFrame);
-    };
-
-    bodySegmentationFrame();
-
-
-    stream.getTracks().forEach(track => {
-      const senders = this.rtcConnection.getSenders()
-      senders.forEach(sender => {
-        if (sender.track.kind !== track.kind) {
-          return
-        }
-
-        if (track.kind === 'audio' && !this.isAudioOn) {
-          track.enabled = false
-        }
-        if (track.kind === 'video' && !this.isVideoOn) {
-          track.enabled = false
-        }
-        sender.replaceTrack(track);
-      })
-    });
-    return stream;*/
   }
 
   async sendConfigureMessage(options) {

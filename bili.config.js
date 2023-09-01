@@ -2,7 +2,7 @@ module.exports = {
   input: 'src/index.ts',
   presets: ['bili/babel'],
   output: {
-    format: ['esm', 'cjs', 'umd-min'],
+    format: ['esm', 'cjs'],
     moduleName: 'JanusPhoneKit',
     fileName({ format }) {
       return `janus-phone-kit.${format}.js`

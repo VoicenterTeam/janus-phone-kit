@@ -47,13 +47,13 @@ export class Camera {
    * Initiate a Camera instance and wait for the camera stream to be ready.
    * @param cameraParam From app `STATE.camera`.
    */
-  static async setupCamera(cameraParam, cameras) {
+  static async setupCamera(cameraParam, stream) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       throw new Error(
         'Browser API navigator.mediaDevices.getUserMedia not available');
     }
 
-    const {targetFPS, sizeOption, cameraSelector} = cameraParam;
+    /*const {targetFPS, sizeOption, cameraSelector} = cameraParam;
     const $size = params.VIDEO_SIZE[sizeOption];
     const deviceId = 'default' //await getDeviceIdForLabel(cameras, cameraSelector);
     const videoConfig = {
@@ -69,9 +69,9 @@ export class Camera {
           ideal: targetFPS,
         }
       }
-    };
+    };*/
 
-    const stream = await navigator.mediaDevices.getUserMedia(videoConfig);
+    //const stream = await navigator.mediaDevices.getUserMedia(videoConfig);
 
     const camera = new Camera();
     camera.video.srcObject = stream;

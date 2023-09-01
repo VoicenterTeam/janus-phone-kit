@@ -7,6 +7,10 @@
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
           BLUR
         </button>
+        <button @click="stopBlurStream"
+                class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
+          STOP BLUR
+        </button>
         <button v-if="isMicOn"
                 @click="toggleMicrophone(false)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
@@ -61,7 +65,8 @@
   import ElDialog from 'element-ui/packages/dialog'
   import 'element-ui/packages/theme-chalk/lib/dialog.css'
   import { DeviceManager } from "../../../src";
-  import { app } from '../../../src/live_video'
+  //import { app } from '../../../src/live_video'
+  import {StreamMaskPlugin} from "../../../src/plugins/StreamMaskPlugin";
   export default {
     components: {
       ElDialog,
@@ -124,9 +129,17 @@
         const stream = await window.PhoneKit.changePublisherStream({ videoInput, audioInput })
         this.$emit('update-publisher-stream', stream)
       },
-      blurStream() {
-        app()
+      async blurStream() {
+        //const streamMask = new StreamMaskPlugin()
+        //streamMask.createMask()
+        const stream =  await window.PhoneKit.enableMask(true)
+        this.$emit('update-publisher-stream', stream)
+        //app()
         //window.PhoneKit.blurStream()
+      },
+      async stopBlurStream() {
+        const stream =  await window.PhoneKit.enableMask(false)
+        this.$emit('update-publisher-stream', stream)
       }
     }
   }

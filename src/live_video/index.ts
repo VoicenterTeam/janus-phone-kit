@@ -87,9 +87,9 @@ async function createSegmenter() {
   }
 }*/
 
-function beginEstimateSegmentationStats(time) {
+/*function beginEstimateSegmentationStats(time) {
   time.startInferenceTime = (performance || Date).now();
-}
+}*/
 
 /*function endEstimateSegmentationStats(time) {
   const endInferenceTime = (performance || Date).now();

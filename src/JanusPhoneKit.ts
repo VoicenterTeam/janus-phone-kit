@@ -106,6 +106,17 @@ export default class JanusPhoneKit extends EventEmitter {
     this.videoRoomPlugin?.stopVideo()
   }
 
+  public enableMask(state: boolean) {
+    return this.videoRoomPlugin?.enableMask(state)
+  }
+  public startBlur() {
+    return this.videoRoomPlugin?.startBlur()
+  }
+
+  public stopBlur() {
+    return this.videoRoomPlugin?.stopBlur()
+  }
+
   public startAudio() {
     this.videoRoomPlugin?.startAudio()
   }
@@ -131,13 +142,13 @@ export default class JanusPhoneKit extends EventEmitter {
     return this.videoRoomPlugin?.changePublisherStream(newSource);
   }
 
-  async blurStream() {
+  /*async blurStream() {
     return this.videoRoomPlugin?.blurStream();
   }
 
   async blurPublisherStream(stream) {
     return this.videoRoomPlugin?.blurPublisherStream(stream);
-  }
+  }*/
 
   public async startScreenShare() {
     if (!this.session.connected || this.screenSharePlugin && this.screenSharePlugin.rtcConnection) {

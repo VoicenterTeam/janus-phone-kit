@@ -121,7 +121,7 @@ class Session extends EventEmitter {
    * slowlink, hangup`
    */
   receive(msg) {
-    console.log('SESSION receive')
+    console.log('SESSION receive', msg)
     logger.debug('Receiving message from Janus', msg);
     // If there is a transaction property, then this is a reply to a message which we have sent
     // previously.
@@ -169,6 +169,8 @@ class Session extends EventEmitter {
       }
       if (!plugin) throw new Error(`Could not find plugin with ID ${pluginId}`);
       plugin.instance.receive(msg);
+    } else {
+      console.log('SESSION ELSE', msg)
     }
 
     // If there is neither `sender` nor `transaction` property on the message, we cannot do anything

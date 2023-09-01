@@ -53,7 +53,7 @@ async function resetBackend(backendName) {
  *
  * @param flagConfig An object to store flag-value pairs.
  */
-export async function setBackendAndEnvFlags(flagConfig, backend) {
+export async function setBackendAndEnvFlags(flagConfig) {
   if (flagConfig == null) {
     return;
   } else if (typeof flagConfig !== 'object') {
@@ -77,9 +77,9 @@ export async function setBackendAndEnvFlags(flagConfig, backend) {
 
   tf.env().setFlags(flagConfig);
 
-  const [runtime, $backend] = backend.split('-');
+  /*const [runtime, $backend] = backend.split('-');
 
   if (runtime === 'tfjs') {
     await resetBackend($backend);
-  }
+  }*/
 }
