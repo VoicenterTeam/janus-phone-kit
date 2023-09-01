@@ -7,7 +7,6 @@ import {VideoRoomPlugin} from "./plugins/VideoRoomPlugin";
 import {ScreenSharePlugin} from "./plugins/ScreenSharePlugin";
 import EventEmitter from "./util/EventEmitter";
 import {StunServer} from "./types";
-import { app } from './live_video'
 
 type JanusPhoneKitOptions = {
   roomId?: number,

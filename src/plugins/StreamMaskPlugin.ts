@@ -1,16 +1,9 @@
 // @ts-nocheck
 import '@tensorflow/tfjs-backend-webgl';
-
 import * as mpSelfieSegmentation from '@mediapipe/selfie_segmentation'
 import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm'
-import { setBackendAndEnvFlags } from '../util/tfjsBackendAndEnvFlags'
-
-tfjsWasm.setWasmPaths(
-  `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${
-    tfjsWasm.version_wasm}/dist/`)
-
 import * as bodySegmentation from '@tensorflow-models/body-segmentation'
-
+import { setBackendAndEnvFlags } from '../util/tfjsBackendAndEnvFlags'
 import { Camera } from '../util/Camera'
 import { mergeConfig } from '../util/util'
 import {
@@ -20,8 +13,12 @@ import {
   VISUALIZATION_CONFIG
 } from "../enum/tfjs.config.enum"
 
+tfjsWasm.setWasmPaths(
+  `https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${
+    tfjsWasm.version_wasm}/dist/`)
+
 export class StreamMaskPlugin {
-  private visualizationConfig
+  private visualizationConfig = {}
   private rafId: number | null = null
   private segmenter: any = null
   private camera
@@ -70,6 +67,15 @@ export class StreamMaskPlugin {
 
     if (this.camera) {
       this.camera.cleanCamera()
+      this.camera = null
+    }
+
+    if (this.canvas) {
+      this.canvas = null
+    }
+
+    if (this.ctx) {
+      this.ctx = null
     }
   }
 

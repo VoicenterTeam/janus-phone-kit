@@ -3,14 +3,6 @@
     <div class="fixed bottom-0 h-20 bg-white shadow-lg w-full border-t border-gray-200 flex justify-between">
       <div class="w-56"></div>
       <div class="flex items-center">
-        <button @click="blurStream"
-                class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          BLUR
-        </button>
-        <button @click="stopBlurStream"
-                class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          STOP BLUR
-        </button>
         <button v-if="isMicOn"
                 @click="toggleMicrophone(false)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
@@ -35,6 +27,11 @@
                 @click="toggleCamera(true)"
                 class="p-4 rounded-full bg-red-600 cursor-pointer border border-red-600 hover:bg-red-700 hover:shadow focus:outline-none mr-2">
           <video-off-icon class="w-5 h-5 text-white"></video-off-icon>
+        </button>
+        <button @click="enableMaskEffect"
+                :disabled="!isVideoOn"
+                class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
+          {{ isWithMaskEffect ? 'Remove mask' : 'Use mask' }}
         </button>
       </div>
       <div class="flex items-center">
@@ -65,8 +62,7 @@
   import ElDialog from 'element-ui/packages/dialog'
   import 'element-ui/packages/theme-chalk/lib/dialog.css'
   import { DeviceManager } from "../../../src";
-  //import { app } from '../../../src/live_video'
-  import {StreamMaskPlugin} from "../../../src/plugins/StreamMaskPlugin";
+
   export default {
     components: {
       ElDialog,
@@ -83,6 +79,7 @@
         isMicOn: true,
         isVideoOn: true,
         settingsDialog: false,
+        isWithMaskEffect: false,
       }
     },
     methods: {
@@ -129,17 +126,18 @@
         const stream = await window.PhoneKit.changePublisherStream({ videoInput, audioInput })
         this.$emit('update-publisher-stream', stream)
       },
-      async blurStream() {
-        //const streamMask = new StreamMaskPlugin()
-        //streamMask.createMask()
-        const stream =  await window.PhoneKit.enableMask(true)
-        this.$emit('update-publisher-stream', stream)
-        //app()
-        //window.PhoneKit.blurStream()
-      },
-      async stopBlurStream() {
-        const stream =  await window.PhoneKit.enableMask(false)
-        this.$emit('update-publisher-stream', stream)
+      async enableMaskEffect() {
+        if (!this.isVideoOn) {
+          return
+        }
+        try {
+          const stream = await window.PhoneKit.enableMask(!this.isWithMaskEffect)
+          this.isWithMaskEffect = !this.isWithMaskEffect
+          this.$emit('update-publisher-stream', stream)
+        } catch(err) {
+          console.error('Error when enabling mask effect:', err)
+        }
+
       }
     }
   }
