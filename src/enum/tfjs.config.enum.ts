@@ -19,9 +19,7 @@ export const ENV_FLAGS = {
  * Config used for video stream configuration and capture.
  */
 export const CAMERA_CONFIG = {
-  targetFPS: 60,
-  sizeOption: '640 X 480',
-  cameraSelector: ''
+  targetFPS: 60
 }
 
 /**

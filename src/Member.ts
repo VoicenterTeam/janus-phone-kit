@@ -103,7 +103,6 @@ export class Member {
   }
 
   hangup() {
-    console.log('MEMBER hangup send detach')
     if (this.rtcpPeer) {
       this.rtcpPeer.close();
       this.rtcpPeer = null;

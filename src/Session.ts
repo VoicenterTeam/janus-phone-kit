@@ -53,7 +53,6 @@ class Session extends EventEmitter {
    * @returns {Promise} Response from Janus
    */
   async destroy() {
-    console.log('SESSION destroy plugin.instance.detach')
     this.connected = false;
     const pluginDetachPromises = Object.entries(this.#plugins).map(([, plugin]) => {
       logger.debug('Detaching plugin before destroying session', plugin.instance.name);
@@ -88,7 +87,6 @@ class Session extends EventEmitter {
     const response = await plugin.attach(this);
 
     plugin.once('detached', () => {
-      console.log('SESSION attachPlugin plugin.once detached')
       logger.debug(`Plugin ${plugin.name} detached.`);
       this.#plugins[plugin.id].timeout_cleanup = setTimeout(() => {
         // Depending on the timing, we may receive a message for this plugin after it has been
@@ -121,7 +119,6 @@ class Session extends EventEmitter {
    * slowlink, hangup`
    */
   receive(msg) {
-    console.log('SESSION receive', msg)
     logger.debug('Receiving message from Janus', msg);
     // If there is a transaction property, then this is a reply to a message which we have sent
     // previously.
@@ -158,7 +155,6 @@ class Session extends EventEmitter {
     // In the first case, the `janus` property is one of `event, webrtcup, hangup, detached, media,
     // slowlink`
     if (msg.sender) {
-      console.log('SESSION receive if sender', msg)
       // Get the plugin instance which sent this (msg.sender == plugin.id)
       // and give the message to the plugin which will handle it.
       const pluginId = msg.sender.toString();
@@ -169,8 +165,6 @@ class Session extends EventEmitter {
       }
       if (!plugin) throw new Error(`Could not find plugin with ID ${pluginId}`);
       plugin.instance.receive(msg);
-    } else {
-      console.log('SESSION ELSE', msg)
     }
 
     // If there is neither `sender` nor `transaction` property on the message, we cannot do anything

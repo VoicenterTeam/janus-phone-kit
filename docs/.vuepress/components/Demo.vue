@@ -105,7 +105,6 @@
       },
       initListeners() {
         this.PhoneKit.on('member:join', data => {
-          console.log('ON member:join')
           this.streamSources.push(data)
           this.playJoinSound()
         })
@@ -119,7 +118,6 @@
         })
 
         this.PhoneKit.on('member:update', data => {
-          console.log('ON member:update')
           const index = this.streamSources.findIndex(s => s.sender === data.sender)
           if (index !== -1) {
             const source = this.streamSources[index]

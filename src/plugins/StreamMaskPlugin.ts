@@ -58,25 +58,20 @@ export class StreamMaskPlugin {
   stop() {
     if (this.rafId) {
       window.cancelAnimationFrame(this.rafId)
-      this.rafId = null
     }
     if (this.segmenter) {
       this.segmenter.dispose()
-      this.segmenter = null
     }
 
     if (this.camera) {
       this.camera.cleanCamera()
-      this.camera = null
     }
 
-    if (this.canvas) {
-      this.canvas = null
-    }
-
-    if (this.ctx) {
-      this.ctx = null
-    }
+    this.rafId = null
+    this.segmenter = null
+    this.camera = null
+    this.canvas = null
+    this.ctx = null
   }
 
   /**
