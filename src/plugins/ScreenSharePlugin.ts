@@ -2,6 +2,7 @@ import { BasePlugin } from "./BasePlugin";
 import { logger } from '../util/logger'
 import { randomString } from '../util/util'
 import {StunServer} from "../types";
+// import { fabric } from 'fabric'
 
 export class ScreenSharePlugin extends BasePlugin {
   name = 'janus.plugin.videoroomjs'
@@ -127,6 +128,15 @@ export class ScreenSharePlugin extends BasePlugin {
 
     let localMedia;
 
+    /*const drCanvas = new fabric.Canvas('drawingCanvas');
+
+    // Set drawing mode
+    drCanvas.isDrawingMode = true;
+
+    // Customize drawing properties (optional)
+    drCanvas.freeDrawingBrush.width = 5;
+    drCanvas.freeDrawingBrush.color = 'red';*/
+
     try {
       // @ts-ignore
       localMedia = await navigator.mediaDevices.getDisplayMedia();
@@ -148,8 +158,60 @@ export class ScreenSharePlugin extends BasePlugin {
       opaque_id: this.opaqueId,
     });
 
+    /*const canvas = document.getElementById("drawingCanvas") as HTMLCanvasElement
+    //const ctx = canvas.getContext("2d");
+
+    const wrapperEl = document.getElementById('main-video-container')
+    // Set canvas dimensions
+    canvas.width = wrapperEl.clientWidth;  // window.innerWidth
+    canvas.height = wrapperEl.clientHeight; // window.innerHeight;
+
+    const compositeCanvas = document.getElementById("compositeCanvas") as HTMLCanvasElement
+    const compositeCtx = compositeCanvas.getContext("2d");
+
+    // Set dimensions similar to the drawing canvas or screen capture
+    compositeCanvas.width = wrapperEl.clientWidth; // window.innerWidth;
+    compositeCanvas.height = wrapperEl.clientHeight; // window.innerHeight;
+
+    async function drawComposite() {
+      //const screenStream = localMedia //await captureScreen();
+      //const screenVideo = new VideoElement();
+      //screenVideo.srcObject = screenStream;
+
+      const screenVideo = document.getElementById('main-video-id') as HTMLVideoElement
+
+      function draw() {
+        // Draw the video frame
+        compositeCtx.drawImage(screenVideo, 0, 0, compositeCanvas.width, compositeCanvas.height);
+
+        // Draw the drawing canvas
+        compositeCtx.drawImage(canvasUpper, 0, 0, compositeCanvas.width, compositeCanvas.height);
+
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    }
+
+    const drCanvas = new fabric.Canvas('drawingCanvas');
+
+    // Set drawing mode
+    drCanvas.isDrawingMode = true;
+
+    // Customize drawing properties (optional)
+    drCanvas.freeDrawingBrush.width = 5;
+    drCanvas.freeDrawingBrush.color = 'red';
+
+    const canvasUpper = document.getElementsByClassName("upper-canvas")[0] as HTMLCanvasElement
+
+    //drCanvas.renderAll();
+
+    const compositeStream = compositeCanvas.captureStream(30); // 30 FPS
+
+    drawComposite()*/
+
     logger.info('Adding local user media to RTCPeerConnection.');
-    this.rtcConnection.addStream(localMedia);
+    this.rtcConnection.addStream(localMedia); //(localMedia); //compositeStream
     logger.info('Creating SDP offer. Please wait...');
 
     const options: any = {

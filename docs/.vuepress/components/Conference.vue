@@ -1,6 +1,24 @@
 <template>
   <div :class="{'conference-content fixed top-0 left-0 w-screen z-50 bg-black': mainSource}">
     <template v-if="mainSource">
+<!--      <div class="w-3/4 flex">
+        <div class="w-1/2">
+          <video :srcObject.prop="mainSource.stream"
+                 id="main-video-id"
+                 class="main-video"
+                 :class="{'publisher-video': mainSource.type === 'publisher'}"
+                 :controls="false"
+                 :muted="mainSource.type === 'publisher'"
+                 :volume="mainSource.type === 'publisher' ? 0: 0.9"
+                 autoplay
+          >
+          </video>
+        </div>
+        <div id="main-video-container" class="w-1/2">
+          <canvas id="drawingCanvas"></canvas>
+          <canvas id="compositeCanvas"></canvas>
+        </div>
+      </div>-->
       <video :srcObject.prop="mainSource.stream"
              class="main-video"
              :class="{'publisher-video': mainSource.type === 'publisher'}"
@@ -133,4 +151,22 @@
     min-height: 150px;
     object-fit: cover;
   }
+  /*#main-video-container {
+    position: relative;
+  }
+  #drawingCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  #compositeCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .canvas-container {
+    z-index: 11;
+  }*/
 </style>

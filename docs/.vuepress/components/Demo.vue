@@ -72,7 +72,8 @@
         try {
           console.log(" joining roomId,displayName",this.joinForm.roomId,this.joinForm.displayName)
 
-          if(this.joinForm.validate)await this.$refs.form.validate()
+          if (this.joinForm.validate) await this.$refs.form.validate()
+
           this.PhoneKit.joinRoom({
             roomId: this.joinForm.roomId,
             displayName: this.joinForm.displayName,
@@ -105,6 +106,7 @@
       },
       initListeners() {
         this.PhoneKit.on('member:join', data => {
+          console.log('on member:join', data)
           this.streamSources.push(data)
           this.playJoinSound()
         })
@@ -142,10 +144,12 @@
       if(this.$route.query.room)this.joinForm.roomId=this.$route.query.room;
       if(this.$route.query.name)this.joinForm.displayName=this.$route.query.name;
       console.log("roomId,displayName",this.joinForm.roomId,this.joinForm.displayName);
-      if(this.$route.query.roomId||this.$route.query.displayName||this.$route.query.roomId||this.$route.query.name){
+
+      if (this.$route.query.roomId || this.$route.query.room && this.$route.query.displayName || this.$route.query.name){
         this.joinForm.validate =false;
         await this.joinRoom();
       }
+      this.joinForm.validate = true;
     }
 
   })

@@ -142,6 +142,11 @@ export default class JanusPhoneKit extends EventEmitter {
 
     try {
       await this.session.attachPlugin(this.screenSharePlugin);
+
+      /*const senders = this.screenSharePlugin.rtcConnection.getSenders()
+      const Receivers = this.screenSharePlugin.rtcConnection.getReceivers()()
+      console.log('senders', senders)
+      console.log('Receivers', Receivers)*/
       logger.info(`screenSharePlugin plugin attached with handle/ID ${this.screenSharePlugin.id}`);
     } catch (err) {
       logger.error('Error during attaching of screenShare plugin', err);
