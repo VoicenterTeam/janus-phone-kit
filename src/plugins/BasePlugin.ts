@@ -93,6 +93,7 @@ export class BasePlugin extends EventEmitter {
       msg.opaque_id = this.opaqueId;
     }
 
+    console.log('BASE PLUGIN janus: attach')
     const response = await this.session.send(msg);
 
     this.id = response.data.id;
@@ -109,7 +110,7 @@ export class BasePlugin extends EventEmitter {
    * @protected
    * @abstract
    */
-  onAttached() {
+  async onAttached() {
     logger.debug('onAttached() abstract method called');
   }
 

@@ -21,6 +21,7 @@ export class Member {
 
   async attachMember() {
     // eslint-disable-next-line no-await-in-loop
+    console.log('MEMBER janus: attach')
     const attachResult = await this.plugin.send({
       janus: 'attach',
       opaque_id: this.plugin.opaqueId,

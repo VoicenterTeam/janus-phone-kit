@@ -33,6 +33,15 @@
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
           {{ isWithMaskEffect ? 'Remove mask' : 'Use mask' }}
         </button>
+        <button v-if="isScreenSharing"
+                @click="enableWhiteboard"
+                class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
+          {{ isWhiteboardEnabled ? 'Remove whiteboard' : 'Use whiteboard' }}
+        </button>
+        <button @click="enablePresentationWhiteboard"
+                class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
+          {{ isPresentationWhiteboardEnabled ? 'Stop presentation' : 'Enable presentation' }}
+        </button>
       </div>
       <div class="flex items-center">
         <button @click="enableScreenShare()"
@@ -79,7 +88,10 @@
         isMicOn: true,
         isVideoOn: true,
         settingsDialog: false,
+        isScreenSharing: false,
         isWithMaskEffect: false,
+        isWhiteboardEnabled: false,
+        isPresentationWhiteboardEnabled: false,
       }
     },
     methods: {
@@ -102,8 +114,45 @@
       hangup() {
         window.PhoneKit.hangup()
       },
+      setListeners() {
+        window.PhoneKit.on('screenShare:stop', () => {
+          console.log('LOGGGGGGGv c', this.isWhiteboardEnabled)
+          this.isScreenSharing = false
+          if (this.isWhiteboardEnabled) {
+            this.enableWhiteboard()
+          }
+        })
+
+        window.PhoneKit.on('screenShare:start', () => {
+          this.isScreenSharing = true
+        })
+      },
       enableScreenShare() {
+        /*const getShareScreenTrack = (track) => {
+          //this.$emit.bind(this, 'add-screen-stream', track)
+          console.log('in getShareScreenTrack emit', track)
+          this.$emit('add-screen-stream', track)
+        }*/
+        /*const setScreenSharing = () => {
+          this.isScreenSharing = true
+        }*/
         window.PhoneKit.startScreenShare()
+      },
+      enableWhiteboard() {
+        this.isWhiteboardEnabled = !this.isWhiteboardEnabled
+        this.$emit('enable-whiteboard', this.isWhiteboardEnabled)
+        /*this.$nextTick(() => {
+          this.isWhiteboardEnabled = enable
+          window.PhoneKit.enableWhiteboard(enable, s)
+        })*/
+      },
+      enablePresentationWhiteboard() {
+        this.isPresentationWhiteboardEnabled = !this.isPresentationWhiteboardEnabled
+        this.$emit('enable-presentation-whiteboard', this.isPresentationWhiteboardEnabled)
+        /*this.$nextTick(() => {
+          this.isWhiteboardEnabled = enable
+          window.PhoneKit.enableWhiteboard(enable, s)
+        })*/
       },
       async saveSettings() {
         const data = this.$refs.deviceControls.model
@@ -139,6 +188,9 @@
         }
 
       }
+    },
+    mounted() {
+      this.setListeners()
     }
   }
 </script>

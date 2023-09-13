@@ -105,21 +105,30 @@
         audio.play();
       },
       initListeners() {
+        this.PhoneKit.on('screenShare:stop', () => {
+          console.log('DEMO screenShare:stop')
+          console.log('this.streamSources', this.streamSources)
+          this.streamSources = this.streamSources.filter((s) => !(s.name === 'Screen Share' && s.sender === 'me'))
+        })
         this.PhoneKit.on('member:join', data => {
           console.log('on member:join', data)
-          this.streamSources.push(data)
+          //this.streamSources.push(data)
+          this.streamSources = [ ...this.streamSources, data ]
           this.playJoinSound()
         })
 
         this.PhoneKit.on('member:hangup', info => {
+          console.log('member:hangup', info)
           const index = this.streamSources.findIndex(s => s.sender === info.sender)
           if (index !== -1) {
             DeviceManager.stopStreamTracks(this.streamSources[index].stream)
             this.streamSources.splice(index, 1)
+            this.streamSources = [ ...this.streamSources ]
           }
         })
 
         this.PhoneKit.on('member:update', data => {
+          console.log('on member:UPDATE', data)
           const index = this.streamSources.findIndex(s => s.sender === data.sender)
           if (index !== -1) {
             const source = this.streamSources[index]

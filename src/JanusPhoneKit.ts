@@ -4,6 +4,7 @@ import Session from "./Session";
 import {logger} from './util/logger'
 import {VideoRoomPlugin} from "./plugins/VideoRoomPlugin";
 import {ScreenSharePlugin} from "./plugins/ScreenSharePlugin";
+import {WhiteBoardPlugin} from "./plugins/WhiteBoardPlugin";
 import EventEmitter from "./util/EventEmitter";
 import {StunServer} from "./types";
 
@@ -37,6 +38,8 @@ export default class JanusPhoneKit extends EventEmitter {
    * @type {ScreenSharePlugin}
    */
   private screenSharePlugin = null
+
+  private whiteboardPlugin = null
 
   isConnected = false
 
@@ -129,6 +132,56 @@ export default class JanusPhoneKit extends EventEmitter {
     return this.videoRoomPlugin?.changePublisherStream(newSource);
   }
 
+  public async enableWhiteboard(enable: boolean, stream?: MediaStream) {
+    if (!this.whiteboardPlugin) {
+      this.whiteboardPlugin = new WhiteBoardPlugin({
+        roomId: this.options.roomId,
+        videoRoomPlugin: this.videoRoomPlugin,
+        stunServers: this.options.stunServers
+      })
+    }
+    if (enable) {
+      const whiteBoardStream = await this.whiteboardPlugin?.start(stream)
+      /*const senders = this.screenSharePlugin.rtcConnection.getSenders()
+      senders.forEach((sender) => {
+        sender.replaceTrack()
+      })*/
+      this.screenSharePlugin.overrideSenderTracks(whiteBoardStream)
+      //console.log('SSSSSS senders', senders)
+    } else {
+      console.log('disable whiteboard')
+      const initialStream = await this.whiteboardPlugin?.stop()
+      this.screenSharePlugin.overrideSenderTracks(initialStream)
+    }
+  }
+
+  public async enablePresentationWhiteboard(enable: boolean) {
+    if (!this.whiteboardPlugin) {
+      this.whiteboardPlugin = new WhiteBoardPlugin({
+        roomId: this.options.roomId,
+        videoRoomPlugin: this.videoRoomPlugin,
+        stunServers: this.options.stunServers
+      })
+    }
+    if (enable) {
+      //const whiteBoardStream = await this.whiteboardPlugin?.startPresentationWhiteboard()
+      /*const senders = this.screenSharePlugin.rtcConnection.getSenders()
+      senders.forEach((sender) => {
+        sender.replaceTrack()
+      })*/
+      await this.session.attachPlugin(this.whiteboardPlugin);
+
+      //this.screenSharePlugin.overrideSenderTracks(whiteBoardStream)
+      //console.log('SSSSSS senders', senders)
+    } else {
+      console.log('disable whiteboard')
+      //const stream = await this.whiteboardPlugin?.stop()
+      this.whiteboardPlugin?.stopPresentationWhiteboard()
+      //let stream
+      //this.screenSharePlugin.overrideSenderTracks(stream)
+    }
+  }
+
   public async startScreenShare() {
     if (!this.session.connected || this.screenSharePlugin && this.screenSharePlugin.rtcConnection) {
       return
@@ -143,10 +196,21 @@ export default class JanusPhoneKit extends EventEmitter {
     try {
       await this.session.attachPlugin(this.screenSharePlugin);
 
-      /*const senders = this.screenSharePlugin.rtcConnection.getSenders()
-      const Receivers = this.screenSharePlugin.rtcConnection.getReceivers()()
-      console.log('senders', senders)
-      console.log('Receivers', Receivers)*/
+      console.log('this.screenSharePlugin.rtcConnection', this.screenSharePlugin.rtcConnection)
+
+      this.screenSharePlugin.rtcConnection.addEventListener("track", (event) => {
+        const senders = this.screenSharePlugin.rtcConnection.getSenders()
+        console.log('senders', senders)
+        senders.forEach((sender) => {
+          const track = sender.track;
+          //const videoElement = document.getElementById('screen-share-video') as HTMLVideoElement
+          //videoElement.srcObject = new MediaStream([track]);
+          //this.session.emit('member:join')
+          //cb(track)
+          //console.log('Sender Track:', track);
+        });
+      });
+
       logger.info(`screenSharePlugin plugin attached with handle/ID ${this.screenSharePlugin.id}`);
     } catch (err) {
       logger.error('Error during attaching of screenShare plugin', err);

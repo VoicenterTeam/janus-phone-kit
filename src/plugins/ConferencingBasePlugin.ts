@@ -5,10 +5,7 @@ import {StunServer} from "../types";
 import {v4 as uuidv4} from 'uuid';
 import Konva from "konva"
 
-export class ScreenSharePlugin extends BasePlugin {
-  name = 'janus.plugin.videoroomjs'
-  memberList = {}
-  videoElement = null
+export class ConferencingBasePlugin extends BasePlugin {
   room_id = 1234
   stunServers: StunServer[]
   rtcConnection: any = null;
