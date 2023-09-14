@@ -4,7 +4,7 @@
 <!--      <div class="flex">
         <div class="w-1/2">-->
           <video :srcObject.prop="mainSource.stream"
-                 v-if="!isScreenShareWhiteboardEnable && !isPresentationWhiteboardEnable"
+                 v-if="!isScreenShareWhiteboardEnable && !isPresentationWhiteboardEnable && !isImageWhiteboardEnable"
                  id="main-video-id"
                  class="main-video"
                  :class="{'publisher-video': mainSource.type === 'publisher' /*&& mainSource.name !== 'Screen Share'*/}"
@@ -19,14 +19,16 @@
 <!--        <div class="w-1/2">-->
           <div v-else-if="isScreenShareWhiteboardEnable"
                id="screen-share-video-container"
-               class="main-video"
+               class="main-video flex justify-center"
           >
   <!--          <canvas id="drawingCanvas"></canvas>-->
-            <canvas id="compositeCanvas"></canvas>
-            <div id="container"></div>
+            <div id="composite-canvas-container" class="relative">
+              <canvas id="composite-canvas"></canvas>
+            </div>
+            <div id="container" class="flex items-center"></div>
           </div>
 
-          <div v-else-if="isPresentationWhiteboardEnable"
+          <div v-else-if="isPresentationWhiteboardEnable || isImageWhiteboardEnable"
                id="presentation-video-container"
                class="main-video"
           >
@@ -61,7 +63,7 @@
           </el-tooltip>
         </div>
         <div class="text-gray-100">
-          {{mainSource.name || mainSource.sender}} {{ isPresentationWhiteboardEnable }} {{ isScreenShareWhiteboardEnable }}
+          {{mainSource.name || mainSource.sender}}
         </div>
       </div>
       <client-only>
@@ -69,6 +71,7 @@
           @update-publisher-stream="onUpdatePublisherStream"
           @enable-whiteboard="enableWhiteboard"
           @enable-presentation-whiteboard="enablePresentationWhiteboard"
+          @enable-image-whiteboard="enableImageWhiteboard"
         />
       </client-only>
     </template>
@@ -110,6 +113,7 @@
   import { Tooltip } from 'element-ui'
   import 'element-ui/packages/theme-chalk/lib/tooltip.css'
   import {DeviceManager} from "../../../src";
+  import {CONFERENCING_MODE} from "../../../src/enum/conferencing.enum";
 
   export default Vue.extend({
     components: {
@@ -126,7 +130,8 @@
       return {
         mainSource: null,
         isScreenShareWhiteboardEnable: false,
-        isPresentationWhiteboardEnable: false
+        isPresentationWhiteboardEnable: false,
+        isImageWhiteboardEnable: false
       }
     },
     computed: {
@@ -149,8 +154,8 @@
         streamSource.stream = newStream
       },
       enableWhiteboard(enable) {
-        console.log('enableWhiteboard isScreenShareWhiteboardEnable', enable)
-        console.log('enableWhiteboard isPresentationWhiteboardEnable', this.isPresentationWhiteboardEnable)
+        //console.log('enableWhiteboard isScreenShareWhiteboardEnable', enable)
+        //console.log('enableWhiteboard isPresentationWhiteboardEnable', this.isPresentationWhiteboardEnable)
         this.isScreenShareWhiteboardEnable = enable
         this.$nextTick(() => {
           if (enable) {
@@ -163,7 +168,13 @@
       enablePresentationWhiteboard(enable) {
         this.isPresentationWhiteboardEnable = enable
         this.$nextTick(() => {
-          window.PhoneKit.enablePresentationWhiteboard(enable)
+          window.PhoneKit.enablePresentationWhiteboard(CONFERENCING_MODE.WHITEBOARD, enable)
+        })
+      },
+      enableImageWhiteboard (enable) {
+        this.isImageWhiteboardEnable = enable
+        this.$nextTick(() => {
+          window.PhoneKit.enablePresentationWhiteboard(CONFERENCING_MODE.IMAGE_WHITEBOARD, enable)
         })
       },
       selectMainSource(streamSource) {
@@ -249,7 +260,11 @@
     left: 0;
   }
 
-  #compositeCanvas {
+  #composite-canvas-container {
+    margin: auto 0;
+  }
+
+  #composite-canvas {
     position: absolute;
     top: 0;
     left: 0;

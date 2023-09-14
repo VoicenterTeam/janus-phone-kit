@@ -4,19 +4,20 @@ import { randomString } from '../util/util'
 import {StunServer} from "../types";
 import {v4 as uuidv4} from 'uuid';
 import Konva from "konva"
+import {ConferencingBasePlugin} from "./ConferencingBasePlugin";
 
-export class ScreenSharePlugin extends BasePlugin {
+export class ScreenSharePlugin extends ConferencingBasePlugin {
   name = 'janus.plugin.videoroomjs'
   memberList = {}
   videoElement = null
-  room_id = 1234
-  stunServers: StunServer[]
-  rtcConnection: any = null;
+  //room_id = 1234
+  //stunServers: StunServer[]
+  //rtcConnection: any = null;
 
   /**
    * @type {VideoRoomPlugin}
    */
-  VideoRoomPlugin = null
+  //VideoRoomPlugin = null
 
   constructor(options: any = {}) {
     super()
@@ -108,7 +109,7 @@ export class ScreenSharePlugin extends BasePlugin {
    * @public
    * @override
    */
-  async receive(msg) {
+  /*async receive(msg) {
     // const that = this;
     logger.info('on receive ScreenSharePlugin', msg);
     if (msg.plugindata && msg.plugindata.data.error_code) {
@@ -123,7 +124,7 @@ export class ScreenSharePlugin extends BasePlugin {
       }
     }
     logger.info('Received  message from Janus ScreenSharePlugin', msg);
-  }
+  }*/
   /**
    * Set up a bi-directional WebRTC connection:
    *
@@ -216,11 +217,11 @@ export class ScreenSharePlugin extends BasePlugin {
     }
   }
 
-  close() {
+  /*close() {
     if (this.rtcConnection) {
       this.rtcConnection.close();
       this.rtcConnection = null;
     }
-  }
+  }*/
 
 }

@@ -7,6 +7,7 @@ import {ScreenSharePlugin} from "./plugins/ScreenSharePlugin";
 import {WhiteBoardPlugin} from "./plugins/WhiteBoardPlugin";
 import EventEmitter from "./util/EventEmitter";
 import {StunServer} from "./types";
+import {CONFERENCING_MODE, ConferencingModeType} from "./enum/conferencing.enum";
 
 type JanusPhoneKitOptions = {
   roomId?: number,
@@ -133,15 +134,20 @@ export default class JanusPhoneKit extends EventEmitter {
   }
 
   public async enableWhiteboard(enable: boolean, stream?: MediaStream) {
-    if (!this.whiteboardPlugin) {
+    /*if (!this.whiteboardPlugin) {
       this.whiteboardPlugin = new WhiteBoardPlugin({
         roomId: this.options.roomId,
         videoRoomPlugin: this.videoRoomPlugin,
         stunServers: this.options.stunServers
       })
-    }
+    }*/
     if (enable) {
-      const whiteBoardStream = await this.whiteboardPlugin?.start(stream)
+
+      //const whiteBoardStream = await this.whiteboardPlugin?.startScreenShareWhiteboard(stream)
+
+      const whiteBoardStream = await WhiteBoardPlugin.startScreenShareWhiteboard(stream)
+
+
       /*const senders = this.screenSharePlugin.rtcConnection.getSenders()
       senders.forEach((sender) => {
         sender.replaceTrack()
@@ -150,14 +156,15 @@ export default class JanusPhoneKit extends EventEmitter {
       //console.log('SSSSSS senders', senders)
     } else {
       console.log('disable whiteboard')
-      const initialStream = await this.whiteboardPlugin?.stop()
+      const initialStream = await WhiteBoardPlugin.stopScreenShareWhiteboard()
       this.screenSharePlugin.overrideSenderTracks(initialStream)
     }
   }
 
-  public async enablePresentationWhiteboard(enable: boolean) {
+  public async enablePresentationWhiteboard(mode: ConferencingModeType, enable: boolean) {
     if (!this.whiteboardPlugin) {
       this.whiteboardPlugin = new WhiteBoardPlugin({
+        mode: mode,
         roomId: this.options.roomId,
         videoRoomPlugin: this.videoRoomPlugin,
         stunServers: this.options.stunServers
@@ -176,7 +183,8 @@ export default class JanusPhoneKit extends EventEmitter {
     } else {
       console.log('disable whiteboard')
       //const stream = await this.whiteboardPlugin?.stop()
-      this.whiteboardPlugin?.stopPresentationWhiteboard()
+      await this.whiteboardPlugin?.stopPresentationWhiteboard()
+      this.whiteboardPlugin = null
       //let stream
       //this.screenSharePlugin.overrideSenderTracks(stream)
     }

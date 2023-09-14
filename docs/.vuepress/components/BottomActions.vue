@@ -33,14 +33,20 @@
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
           {{ isWithMaskEffect ? 'Remove mask' : 'Use mask' }}
         </button>
-        <button v-if="isScreenSharing"
+        <button v-if="isScreenSharing && !isPresentationWhiteboardEnabled && !isImageWhiteboardEnabled"
                 @click="enableWhiteboard"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          {{ isWhiteboardEnabled ? 'Remove whiteboard' : 'Use whiteboard' }}
+          {{ isWhiteboardEnabled ? 'Remove drawing' : 'Draw over screen share' }}
         </button>
-        <button @click="enablePresentationWhiteboard"
+        <button v-if="!isScreenSharing && !isImageWhiteboardEnabled"
+                @click="enablePresentationWhiteboard"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          {{ isPresentationWhiteboardEnabled ? 'Stop presentation' : 'Enable presentation' }}
+          {{ isPresentationWhiteboardEnabled ? 'Stop drawing' : 'Enable drawing' }}
+        </button>
+        <button v-if="!isScreenSharing && !isPresentationWhiteboardEnabled"
+                @click="enableImageWhiteboard"
+                class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
+          {{ isImageWhiteboardEnabled ? 'Stop image drawing' : 'Enable image drawing' }}
         </button>
       </div>
       <div class="flex items-center">
@@ -92,6 +98,7 @@
         isWithMaskEffect: false,
         isWhiteboardEnabled: false,
         isPresentationWhiteboardEnabled: false,
+        isImageWhiteboardEnabled: false,
       }
     },
     methods: {
@@ -153,6 +160,10 @@
           this.isWhiteboardEnabled = enable
           window.PhoneKit.enableWhiteboard(enable, s)
         })*/
+      },
+      enableImageWhiteboard () {
+        this.isImageWhiteboardEnabled = !this.isImageWhiteboardEnabled
+        this.$emit('enable-image-whiteboard', this.isImageWhiteboardEnabled)
       },
       async saveSettings() {
         const data = this.$refs.deviceControls.model
