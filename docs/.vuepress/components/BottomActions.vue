@@ -6,27 +6,27 @@
         <button v-if="isMicOn"
                 @click="toggleMicrophone(false)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          <mic-icon class="w-5 h-5"></mic-icon>
+            <vue-feather type="mic" class="w-5 h-5" />
         </button>
         <button v-if="!isMicOn"
                 @click="toggleMicrophone(true)"
                 class="p-4 rounded-full bg-red-600 cursor-pointer border border-red-600 hover:shadow hover:bg-red-700 focus:outline-none mr-2">
-          <mic-off-icon class="w-5 h-5 text-white"></mic-off-icon>
+            <vue-feather type="mic-off" class="w-5 h-5 text-white" />
         </button>
 
         <button @click="hangup" class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          <phone-icon class="w-5 h-5 transform text-red-600 rotate-90"></phone-icon>
+            <vue-feather type="phone" class="w-5 h-5 transform text-red-600 rotate-90" />
         </button>
 
         <button v-if="isVideoOn"
                 @click="toggleCamera(false)"
                 class="p-4 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none mr-2">
-          <video-icon class="w-5 h-5"></video-icon>
+            <vue-feather type="video" class="w-5 h-5" />
         </button>
         <button v-if="!isVideoOn"
                 @click="toggleCamera(true)"
                 class="p-4 rounded-full bg-red-600 cursor-pointer border border-red-600 hover:bg-red-700 hover:shadow focus:outline-none mr-2">
-          <video-off-icon class="w-5 h-5 text-white"></video-off-icon>
+            <vue-feather type="video-off" class="w-5 h-5 text-white" />
         </button>
         <button @click="enableMaskEffect"
                 :disabled="!isVideoOn"
@@ -52,15 +52,15 @@
       <div class="flex items-center">
         <button @click="enableScreenShare()"
                 class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
-          <monitor-icon class="w-5 h-5"></monitor-icon>
+            <vue-feather type="monitor" class="w-5 h-5" />
         </button>
         <button @click="settingsDialog = true"
                 class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
-          <settings-icon class="w-5 h-5"></settings-icon>
+            <vue-feather type="settings" class="w-5 h-5" />
         </button>
       </div>
     </div>
-    <el-dialog :visible.sync="settingsDialog"
+    <el-dialog v-model="settingsDialog"
                append-to-body
     >
       <device-controls ref="deviceControls"/>
@@ -73,22 +73,12 @@
   </div>
 </template>
 <script>
-  import { MicIcon, MicOffIcon, VideoIcon, VideoOffIcon, PhoneIcon, MonitorIcon, SettingsIcon } from 'vue-feather-icons'
-  import ElDialog from 'element-ui/packages/dialog'
-  import 'element-ui/packages/theme-chalk/lib/dialog.css'
   import { DeviceManager } from "../../../src";
-
+  import VueFeather from 'vue-feather'
   export default {
-    components: {
-      ElDialog,
-      MicIcon,
-      MicOffIcon,
-      VideoOffIcon,
-      VideoIcon,
-      PhoneIcon,
-      MonitorIcon,
-      SettingsIcon
-    },
+      components: {
+          VueFeather
+      },
     data() {
       return {
         isMicOn: true,

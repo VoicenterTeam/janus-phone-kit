@@ -2,7 +2,7 @@ import { invokeFunction, toArray } from "./util";
 
 
 class EventEmitter {
-  #events = {}
+  private events = {}
 
   constructor() {}
 
@@ -12,8 +12,8 @@ class EventEmitter {
    * @param {object} payload
    */
   public emit(event, payload?) {
-    let callbacks = this.#events[event]
-    let allEventsCallbacks = this.#events['*']
+    let callbacks = this.events[event]
+    let allEventsCallbacks = this.events['*']
 
     if (!callbacks) {
       return
@@ -36,10 +36,10 @@ class EventEmitter {
     if (typeof event !== 'string') {
       return
     }
-    let handlers = this.#events[event]
+    let handlers = this.events[event]
     if (!handlers) {
-      this.#events[event] = []
-      handlers = this.#events[event]
+      this.events[event] = []
+      handlers = this.events[event]
     }
     handlers.push(fn)
   }
@@ -56,17 +56,17 @@ class EventEmitter {
   public off(event, fn) {
     // all
     if (!arguments.length) {
-      this.#events = Object.create(null)
+      this.events = Object.create(null)
       return
     }
 
     // specific event
-    const callbacks = this.#events[event]
+    const callbacks = this.events[event]
     if (!callbacks) {
       return
     }
     if (!fn) {
-      this.#events[event] = null
+      this.events[event] = null
       return
     }
     // specific handler

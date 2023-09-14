@@ -4,7 +4,7 @@
       {{conferenceStarted ? 'Stop': 'Join Conference'}}
     </base-button>
 
-    <el-dialog :visible.sync="joinDialogVisible">
+    <el-dialog v-model="joinDialogVisible">
       <el-form ref="form"
                label-position="top"
                :rules="rules"
@@ -32,11 +32,11 @@
   </div>
 </template>
 <script lang="ts">
-  import Vue from 'vue'
+  import { defineComponent } from 'vue'
 
   import PhoneKit, {DeviceManager} from '../../../src';
 
-  export default Vue.extend({
+  export default defineComponent({
     data() {
       return {
         conferenceStarted: false,

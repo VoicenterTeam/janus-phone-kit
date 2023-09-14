@@ -14,17 +14,17 @@ const defaultOptions: SessionOptions = {
 class Session extends EventEmitter {
 
   id = null
-  #next_transaction_id = 0
-  #keepalive_timeout = null
-  #options: SessionOptions = null
-  #plugins: { [key: string]: { timeout_cleanup?: any, instance: BasePlugin }; } = {}
-  #transactions = {}
+  private next_transaction_id = 0
+  private keepalive_timeout = null
+  private options: SessionOptions = null
+  private plugins: { [key: string]: { timeout_cleanup?: any, instance: BasePlugin }; } = {}
+  private transactions = {}
 
   connected = false
 
   constructor(options = {}) {
     super()
-    this.#options = {
+    this.options = {
       ...defaultOptions,
       ...options,
     }
@@ -54,21 +54,21 @@ class Session extends EventEmitter {
    */
   async destroy() {
     this.connected = false;
-    const pluginDetachPromises = Object.entries(this.#plugins).map(([, plugin]) => {
+    const pluginDetachPromises = Object.entries(this.plugins).map(([, plugin]) => {
       logger.debug('Detaching plugin before destroying session', plugin.instance.name);
       return plugin.instance.detach();
     });
     await Promise.all(pluginDetachPromises);
 
     const response = await this.send({janus: 'destroy'});
-    this.#stopKeepalive();
+    this.stopKeepalive();
 
-    Object.entries(this.#plugins).forEach(([id, plugin]) => {
+    Object.entries(this.plugins).forEach(([id, plugin]) => {
       logger.debug(`Removing reference to plugin ${plugin.instance.name} (${id})`);
       clearTimeout(plugin.timeout_cleanup);
       plugin.instance.close();
-      delete this.#plugins[id];
-      logger.debug(`Remaining plugins: ${Object.keys(this.#plugins)}`);
+      delete this.plugins[id];
+      logger.debug(`Remaining plugins: ${Object.keys(this.plugins)}`);
     });
     return response;
   }
@@ -88,16 +88,16 @@ class Session extends EventEmitter {
 
     plugin.once('detached', () => {
       logger.debug(`Plugin ${plugin.name} detached.`);
-      this.#plugins[plugin.id].timeout_cleanup = setTimeout(() => {
+      this.plugins[plugin.id].timeout_cleanup = setTimeout(() => {
         // Depending on the timing, we may receive a message for this plugin after it has been
         // detached. For this reason we need to keep a reference to this plugin for a bit.
         logger.debug(`Removing reference to plugin ${plugin.name} (${plugin.id})`);
-        delete this.#plugins[plugin.id];
-        logger.debug(`Remaining plugins: ${Object.keys(this.#plugins)}`);
+        delete this.plugins[plugin.id];
+        logger.debug(`Remaining plugins: ${Object.keys(this.plugins)}`);
       }, 30000);
     });
 
-    this.#plugins[response.data.id] = {instance: plugin, timeout_cleanup: null};
+    this.plugins[response.data.id] = {instance: plugin, timeout_cleanup: null};
     logger.info(`Plugin ${plugin.name} attached.`);
 
     /**
@@ -124,7 +124,7 @@ class Session extends EventEmitter {
     // previously.
     if (msg.transaction) {
       // Get the original outgoing message, of which this is a reply to.
-      const transaction = this.#transactions[msg.transaction];
+      const transaction = this.transactions[msg.transaction];
 
       if (transaction) {
         // Special case:
@@ -134,7 +134,7 @@ class Session extends EventEmitter {
 
         // Resolve or reject the Promise, then forget this transaction.
         clearTimeout(transaction.timeout);
-        delete this.#transactions[msg.transaction];
+        delete this.transactions[msg.transaction];
 
         if (msg.janus === 'error') {
           logger.debug(`Got error ${msg.error.code} from Janus. \
@@ -158,10 +158,10 @@ class Session extends EventEmitter {
       // Get the plugin instance which sent this (msg.sender == plugin.id)
       // and give the message to the plugin which will handle it.
       const pluginId = msg.sender.toString();
-      let plugin = this.#plugins[pluginId];
-      if (!plugin && Object.values(this.#plugins).length > 0) {
+      let plugin = this.plugins[pluginId];
+      if (!plugin && Object.values(this.plugins).length > 0) {
         // eslint-disable-next-line prefer-destructuring
-        plugin = (Object.values(this.#plugins))[0];
+        plugin = (Object.values(this.plugins))[0];
       }
       if (!plugin) throw new Error(`Could not find plugin with ID ${pluginId}`);
       plugin.instance.receive(msg);
@@ -186,8 +186,8 @@ class Session extends EventEmitter {
    * @returns {Promise} Response from Janus
    */
   async send(msg): Promise<any> {
-    this.#next_transaction_id += 1; // This could probably also be made into a UUID.
-    const transaction = this.#next_transaction_id.toString();
+    this.next_transaction_id += 1; // This could probably also be made into a UUID.
+    const transaction = this.next_transaction_id.toString();
     const payload: any = {...msg, transaction};
 
     // For the session create message we won't have an ID yet.
@@ -197,11 +197,11 @@ class Session extends EventEmitter {
 
     const responsePromise = new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        delete this.#transactions[payload.transaction];
+        delete this.transactions[payload.transaction];
         reject(new Error(`Signalling message timed out ${JSON.stringify(payload)}`));
-      }, this.#options.timeoutMs);
+      }, this.options.timeoutMs);
 
-      this.#transactions[transaction] = {
+      this.transactions[transaction] = {
         resolve, reject, timeout, payload,
       };
     }).catch(e => console.error(e));
@@ -215,7 +215,7 @@ class Session extends EventEmitter {
      * @type {Object} The response from Janus.
      */
     this.emit('output', payload);
-    this.#resetKeepalive();
+    this.resetKeepalive();
 
     return responsePromise;
   }
@@ -227,15 +227,15 @@ class Session extends EventEmitter {
    */
   stop() {
     logger.debug('stop()');
-    Object.entries(this.#plugins).forEach(([, plugin]) => plugin.instance.close());
-    this.#stopKeepalive();
+    Object.entries(this.plugins).forEach(([, plugin]) => plugin.instance.close());
+    this.stopKeepalive();
     this.connected = false;
   }
 
   /**
    * @private
    */
-  #sendKeepalive = async () => {
+  private sendKeepalive = async () => {
     try {
       await this.send({janus: 'keepalive'});
     } catch (err) {
@@ -247,22 +247,22 @@ class Session extends EventEmitter {
   /**
    * @private
    */
-  #stopKeepalive = () => {
+  private stopKeepalive = () => {
     logger.debug('stopKeepalive()');
-    if (this.#keepalive_timeout) {
-      clearTimeout(this.#keepalive_timeout);
+    if (this.keepalive_timeout) {
+      clearTimeout(this.keepalive_timeout);
     }
   };
 
   /**
    * @private
    */
-  #resetKeepalive = () => {
-    this.#stopKeepalive();
+  private resetKeepalive = () => {
+    this.stopKeepalive();
 
-    this.#keepalive_timeout = setTimeout(async () => {
-      await this.#sendKeepalive()
-    }, this.#options.keepaliveMs)
+    this.keepalive_timeout = setTimeout(async () => {
+      await this.sendKeepalive()
+    }, this.options.keepaliveMs)
   };
 
 }

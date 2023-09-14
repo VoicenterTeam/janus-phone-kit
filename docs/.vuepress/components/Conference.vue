@@ -59,7 +59,7 @@
       <div class="fixed top-0 left-0 flex justify-center items-center bg-opacity-25 bg-gray-700 rounded-br px-4 text-xl font-semibold">
         <div v-if="mainSource.state.audio === false" class="mr-2">
           <el-tooltip placement="top" content="Muted">
-            <mic-off-icon class="w-5 h-5 text-red-500"></mic-off-icon>
+              <vue-feather type="mic-off" class="w-5 h-5 text-red-500" />
           </el-tooltip>
         </div>
         <div class="text-gray-100">
@@ -96,7 +96,7 @@
         <div class="absolute top-0 left-0 flex justify-center items-center bg-opacity-25 bg-gray-700 rounded-br px-4 text-xl font-semibold z-10">
           <div v-if="streamSource.state.audio === false" class="mr-2">
             <el-tooltip placement="top" content="Muted">
-              <mic-off-icon class="w-5 h-5 text-red-500"></mic-off-icon>
+                <vue-feather type="mic-off" class="w-5 h-5 text-red-500" />
             </el-tooltip>
           </div>
           <div class="text-gray-100">
@@ -108,17 +108,14 @@
   </div>
 </template>
 <script lang="ts">
-  import Vue from 'vue'
-  import { MicOffIcon } from 'vue-feather-icons'
-  import { Tooltip } from 'element-ui'
-  import 'element-ui/packages/theme-chalk/lib/tooltip.css'
+  import { defineComponent } from 'vue'
   import {DeviceManager} from "../../../src";
   import {CONFERENCING_MODE} from "../../../src/enum/conferencing.enum";
+  import VueFeather from 'vue-feather'
 
-  export default Vue.extend({
+  export default defineComponent({
     components: {
-      MicOffIcon,
-      [Tooltip.name]: Tooltip,
+      VueFeather
     },
     props: {
       streamSources: {
