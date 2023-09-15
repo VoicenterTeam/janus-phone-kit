@@ -23,6 +23,9 @@ const defaultOptions: JanusPhoneKitOptions = {
 export default class JanusPhoneKit extends EventEmitter {
   private options: JanusPhoneKitOptions = {}
 
+  /*private mediaConstraints = null
+  private displayName = null*/
+
   private session: Session = null
   /**
    * Websocket connection
@@ -62,15 +65,43 @@ export default class JanusPhoneKit extends EventEmitter {
     this.session?.emit.apply(this, params)
   }
 
+  /*connectToServer() {
+    console.log('connectToServer this.session', this.session)
+    console.log('connectToServer this.options.url', this.options.url)
+    this.session = new Session()
+
+    this.websocket = new WebSocket(this.options.url, 'janus-protocol');
+    this.session.on('output', (msg) => {
+      this.websocket.send(JSON.stringify(msg))
+    });
+
+    this.websocket.addEventListener('message', (event) => {
+      this.session.receive(JSON.parse(event.data))
+    });
+
+    this.registerSocketOpenHandler() // displayName, mediaConstraints
+    this.registerSocketCloseHandler()
+  }*/
+
   public joinRoom({roomId, displayName = '', mediaConstraints}) {
     if (!this.options.url) {
       throw new Error('Could not create websocket connection because url parameter is missing')
     }
+    /*this.mediaConstraints = mediaConstraints
+    this.displayName = displayName*/
     this.options.roomId = roomId
 
     if (!this.options.roomId) {
       throw new Error('A roomId is required in order to join a room')
     }
+
+    //this.connectToServer()
+
+    /*this.websocket.addEventListener('close', (event) => {
+      setTimeout(() => {
+        this.connectToServer() // Reconnect after a delay
+      }, 3000);
+    });*/
 
     this.session = new Session()
 
@@ -94,6 +125,9 @@ export default class JanusPhoneKit extends EventEmitter {
     this.session.stop();
     this.isConnected = false
     this.websocket.close()
+
+    /*this.mediaConstraints = null
+    this.displayName = null*/
   }
 
   public startVideo() {
@@ -134,29 +168,12 @@ export default class JanusPhoneKit extends EventEmitter {
   }
 
   public async enableWhiteboard(enable: boolean, stream?: MediaStream) {
-    /*if (!this.whiteboardPlugin) {
-      this.whiteboardPlugin = new WhiteBoardPlugin({
-        roomId: this.options.roomId,
-        videoRoomPlugin: this.videoRoomPlugin,
-        stunServers: this.options.stunServers
-      })
-    }*/
     if (enable) {
-
-      //const whiteBoardStream = await this.whiteboardPlugin?.startScreenShareWhiteboard(stream)
-
       const whiteBoardStream = await WhiteBoardPlugin.startScreenShareWhiteboard(stream)
 
-
-      /*const senders = this.screenSharePlugin.rtcConnection.getSenders()
-      senders.forEach((sender) => {
-        sender.replaceTrack()
-      })*/
       this.screenSharePlugin.overrideSenderTracks(whiteBoardStream)
-      //console.log('SSSSSS senders', senders)
     } else {
-      console.log('disable whiteboard')
-      const initialStream = await WhiteBoardPlugin.stopScreenShareWhiteboard()
+      const initialStream = WhiteBoardPlugin.stopScreenShareWhiteboard()
       this.screenSharePlugin.overrideSenderTracks(initialStream)
     }
   }
@@ -204,25 +221,18 @@ export default class JanusPhoneKit extends EventEmitter {
     try {
       await this.session.attachPlugin(this.screenSharePlugin);
 
-      console.log('this.screenSharePlugin.rtcConnection', this.screenSharePlugin.rtcConnection)
-
-      this.screenSharePlugin.rtcConnection.addEventListener("track", (event) => {
-        const senders = this.screenSharePlugin.rtcConnection.getSenders()
-        console.log('senders', senders)
-        senders.forEach((sender) => {
-          const track = sender.track;
-          //const videoElement = document.getElementById('screen-share-video') as HTMLVideoElement
-          //videoElement.srcObject = new MediaStream([track]);
-          //this.session.emit('member:join')
-          //cb(track)
-          //console.log('Sender Track:', track);
-        });
-      });
-
       logger.info(`screenSharePlugin plugin attached with handle/ID ${this.screenSharePlugin.id}`);
     } catch (err) {
       logger.error('Error during attaching of screenShare plugin', err);
     }
+  }
+
+  stopScreenShare() {
+    if (!this.screenSharePlugin) {
+      return
+    }
+
+    this.screenSharePlugin.stop()
   }
 
   public async sendStateMessage(data = {}) {
@@ -234,6 +244,8 @@ export default class JanusPhoneKit extends EventEmitter {
   }
 
   private registerSocketOpenHandler(displayName, mediaConstraints) {
+    /*const displayName = this.displayName
+    const mediaConstraints = this.mediaConstraints*/
     this.websocket.addEventListener('open', async () => {
       try {
         await this.session.create();
@@ -242,6 +254,14 @@ export default class JanusPhoneKit extends EventEmitter {
         logger.error('Error during creation of session', err);
         return;
       }
+
+      /*console.log('WEBSOCKET EVENT OPEN')
+      console.log('create VideoRoomPlugin', {
+        displayName: displayName,
+        roomId: this.options.roomId,
+        stunServers: this.options.stunServers,
+        mediaConstraints,
+      })*/
 
       this.videoRoomPlugin = new VideoRoomPlugin({
         displayName: displayName,
@@ -263,11 +283,26 @@ export default class JanusPhoneKit extends EventEmitter {
 
   private registerSocketCloseHandler() {
     this.websocket.addEventListener('close', () => {
-      this.isConnected = false;
+      //console.log('WEBSOCKET EVENT CLOSE', msg)
+      this.isConnected = false; // TODO: comment
       logger.warn('No connection to Janus');
 
       this.session.stop();
-    })
-  };
 
+      /*if (this.isConnected) {
+        this.session = null
+        this.websocket = null
+
+        setTimeout(() => {
+          this.connectToServer() // Reconnect after a delay
+        }, 3000);
+      }*/
+    })
+
+    /*this.websocket.addEventListener('error', (msg) => {
+      console.log('WEBSOCKET EVENT ERROR', msg)
+      this.websocket.close()
+    })*/
+
+  };
 }

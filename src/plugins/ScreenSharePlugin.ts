@@ -147,14 +147,14 @@ export class ScreenSharePlugin extends ConferencingBasePlugin {
       // @ts-ignore
       localMedia = await navigator.mediaDevices.getDisplayMedia();
       localMedia.getVideoTracks()[0].onended = () => {
-        this.stopSharing();
+        this.onStopSharing();
       }
       logger.info('Got local user Screen .');
 
       logger.info('Got local user Screen  localMedia:', localMedia);
     } catch (e) {
       console.error('No screen share on this browser ...');
-      await this.stopSharing();
+      await this.onStopSharing();
       return;
     }
 
@@ -206,7 +206,7 @@ export class ScreenSharePlugin extends ConferencingBasePlugin {
     await this.rtcConnection.setRemoteDescription(confResult.jsep);
   }
 
-  async stopSharing() {
+  async onStopSharing() {
     console.log('STOP SHARING')
     this.session.emit('screenShare:stop')
 
@@ -215,6 +215,26 @@ export class ScreenSharePlugin extends ConferencingBasePlugin {
       this.rtcConnection.close();
       this.rtcConnection = null;
     }
+  }
+
+  async stop() {
+    const senders = this.rtcConnection.getSenders();
+
+    // Iterate through the senders and stop the tracks
+    senders.forEach(sender => {
+      console.log('STOP SHARING sender', sender)
+      const track = sender.track;
+      if (track) {
+        track.stop(); // Stop the track (this stops sharing)
+      }
+    });
+
+    // Optionally, remove the tracks from rtcConnection (if needed)
+    senders.forEach(sender => {
+      this.rtcConnection.removeTrack(sender);
+    });
+
+    await this.onStopSharing();
   }
 
   /*close() {

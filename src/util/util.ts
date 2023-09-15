@@ -53,3 +53,19 @@ export function mergeConfig(defaultConfig, config = {}) {
 
   return finalConfig
 }
+
+export function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+
+    image.onload = () => {
+      resolve(image);
+    };
+
+    image.onerror = (error) => {
+      reject(error);
+    };
+
+    image.src = src;
+  });
+}

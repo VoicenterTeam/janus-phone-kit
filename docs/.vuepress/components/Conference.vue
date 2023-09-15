@@ -72,6 +72,7 @@
           @enable-whiteboard="enableWhiteboard"
           @enable-presentation-whiteboard="enablePresentationWhiteboard"
           @enable-image-whiteboard="enableImageWhiteboard"
+          @enable-screen-sharing="enableScreenShare"
         />
       </client-only>
     </template>
@@ -147,23 +148,36 @@
     methods: {
       onUpdatePublisherStream(newStream) {
         const streamSource = this.streamSources.find(source => source.type === 'publisher' && source.name !== 'Screen Share')
-        console.log('onUpdatePublisherStream streamSource', streamSource)
         if (!streamSource) {
           return
         }
         streamSource.stream = newStream
       },
-      enableWhiteboard(enable) {
-        //console.log('enableWhiteboard isScreenShareWhiteboardEnable', enable)
-        //console.log('enableWhiteboard isPresentationWhiteboardEnable', this.isPresentationWhiteboardEnable)
+      async enableWhiteboard(enable) {
         this.isScreenShareWhiteboardEnable = enable
-        this.$nextTick(() => {
-          if (enable) {
-            window.PhoneKit.enableWhiteboard(enable, this.mainSource.stream)
+
+        await this.$nextTick()
+        if (enable) {
+          let sharingSource
+          if (this.mainSource.type === 'publisher' && this.mainSource.name === 'Screen Share') {
+            sharingSource = this.mainSource
           } else {
-            window.PhoneKit.enableWhiteboard(enable)
+            sharingSource = this.streamSources.find(source => source.type === 'publisher' && source.name === 'Screen Share')
           }
-        })
+          window.PhoneKit.enableWhiteboard(enable, sharingSource.stream)
+        } else {
+          window.PhoneKit.enableWhiteboard(enable)
+        }
+      },
+      async enableScreenShare(enable) {
+        if (enable) {
+          await window.PhoneKit.startScreenShare()
+        } else {
+          if (this.isScreenShareWhiteboardEnable) {
+            await this.enableWhiteboard(false)
+          }
+          window.PhoneKit.stopScreenShare()
+        }
       },
       enablePresentationWhiteboard(enable) {
         this.isPresentationWhiteboardEnable = enable

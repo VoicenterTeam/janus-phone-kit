@@ -36,23 +36,35 @@
         <button v-if="isScreenSharing && !isPresentationWhiteboardEnabled && !isImageWhiteboardEnabled"
                 @click="enableWhiteboard"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          {{ isWhiteboardEnabled ? 'Remove drawing' : 'Draw over screen share' }}
+          <trash2-icon v-if="isWhiteboardEnabled" class="w-5 h-5"></trash2-icon>
+          <edit2-icon v-else class="w-5 h-5"></edit2-icon>
+<!--          {{ isWhiteboardEnabled ? 'Remove drawing' : 'Draw over screen share' }}-->
         </button>
         <button v-if="!isScreenSharing && !isImageWhiteboardEnabled"
                 @click="enablePresentationWhiteboard"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          {{ isPresentationWhiteboardEnabled ? 'Stop drawing' : 'Enable drawing' }}
+          <trash2-icon v-if="isPresentationWhiteboardEnabled" class="w-5 h-5"></trash2-icon>
+          <edit2-icon v-else class="w-5 h-5"></edit2-icon>
+<!--          {{ isPresentationWhiteboardEnabled ? 'Stop drawing' : 'Enable drawing' }}-->
         </button>
         <button v-if="!isScreenSharing && !isPresentationWhiteboardEnabled"
                 @click="enableImageWhiteboard"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          {{ isImageWhiteboardEnabled ? 'Stop image drawing' : 'Enable image drawing' }}
+          <trash2-icon v-if="isImageWhiteboardEnabled" class="w-5 h-5"></trash2-icon>
+          <edit-icon v-else class="w-5 h-5"></edit-icon>
+<!--          {{ isImageWhiteboardEnabled ? 'Stop image drawing' : 'Enable image drawing' }}-->
         </button>
       </div>
       <div class="flex items-center">
-        <button @click="enableScreenShare()"
+        <button v-if="!isScreenSharing"
+                @click="enableScreenShare"
                 class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
           <monitor-icon class="w-5 h-5"></monitor-icon>
+        </button>
+        <button v-else
+                @click="stopScreenShare"
+                class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
+          <x-square-icon class="w-5 h-5"></x-square-icon>
         </button>
         <button @click="settingsDialog = true"
                 class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
@@ -73,7 +85,7 @@
   </div>
 </template>
 <script>
-  import { MicIcon, MicOffIcon, VideoIcon, VideoOffIcon, PhoneIcon, MonitorIcon, SettingsIcon } from 'vue-feather-icons'
+  import { MicIcon, MicOffIcon, VideoIcon, VideoOffIcon, PhoneIcon, MonitorIcon, SettingsIcon, XSquareIcon, Edit2Icon, Trash2Icon, EditIcon } from 'vue-feather-icons'
   import ElDialog from 'element-ui/packages/dialog'
   import 'element-ui/packages/theme-chalk/lib/dialog.css'
   import { DeviceManager } from "../../../src";
@@ -87,7 +99,11 @@
       VideoIcon,
       PhoneIcon,
       MonitorIcon,
-      SettingsIcon
+      SettingsIcon,
+      XSquareIcon,
+      Edit2Icon,
+      Trash2Icon,
+      EditIcon
     },
     data() {
       return {
@@ -123,7 +139,6 @@
       },
       setListeners() {
         window.PhoneKit.on('screenShare:stop', () => {
-          console.log('LOGGGGGGGv c', this.isWhiteboardEnabled)
           this.isScreenSharing = false
           if (this.isWhiteboardEnabled) {
             this.enableWhiteboard()
@@ -135,15 +150,13 @@
         })
       },
       enableScreenShare() {
-        /*const getShareScreenTrack = (track) => {
-          //this.$emit.bind(this, 'add-screen-stream', track)
-          console.log('in getShareScreenTrack emit', track)
-          this.$emit('add-screen-stream', track)
-        }*/
-        /*const setScreenSharing = () => {
-          this.isScreenSharing = true
-        }*/
-        window.PhoneKit.startScreenShare()
+        this.$emit('enable-screen-sharing', true)
+      },
+      async stopScreenShare() {
+        if (this.isWhiteboardEnabled) {
+          this.isWhiteboardEnabled = false
+        }
+        this.$emit('enable-screen-sharing', false)
       },
       enableWhiteboard() {
         this.isWhiteboardEnabled = !this.isWhiteboardEnabled
