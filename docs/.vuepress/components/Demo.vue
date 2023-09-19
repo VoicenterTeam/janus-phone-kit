@@ -36,12 +36,13 @@
 
   import PhoneKit, {DeviceManager} from '../../../src';
 
+  let phoneKit = null
+
   export default defineComponent({
     data() {
       return {
         conferenceStarted: false,
         joinDialogVisible: false,
-        PhoneKit: null,
         streamSources: [],
         talkingStream: null,
         joinForm: {
@@ -74,7 +75,7 @@
 
           if (this.joinForm.validate) await this.$refs.form.validate()
 
-          this.PhoneKit.joinRoom({
+          phoneKit.joinRoom({
             roomId: this.joinForm.roomId,
             displayName: this.joinForm.displayName,
             mediaConstraints: {
@@ -90,7 +91,7 @@
         }
       },
       hangup() {
-        this.PhoneKit.hangup()
+        phoneKit.hangup()
         this.afterHangup()
       },
       afterHangup() {
@@ -105,19 +106,19 @@
         audio.play();
       },
       initListeners() {
-        this.PhoneKit.on('screenShare:stop', () => {
+        phoneKit.on('screenShare:stop', () => {
           console.log('DEMO screenShare:stop')
           console.log('this.streamSources', this.streamSources)
           this.streamSources = this.streamSources.filter((s) => !(s.name === 'Screen Share' && s.sender === 'me'))
         })
-        this.PhoneKit.on('member:join', data => {
+        phoneKit.on('member:join', data => {
           console.log('on member:join', data)
           //this.streamSources.push(data)
           this.streamSources = [ ...this.streamSources, data ]
           this.playJoinSound()
         })
 
-        this.PhoneKit.on('member:hangup', info => {
+        phoneKit.on('member:hangup', info => {
           console.log('member:hangup', info)
           const index = this.streamSources.findIndex(s => s.sender === info.sender)
           if (index !== -1) {
@@ -127,7 +128,7 @@
           }
         })
 
-        this.PhoneKit.on('member:update', data => {
+        phoneKit.on('member:update', data => {
           console.log('on member:UPDATE', data)
           const index = this.streamSources.findIndex(s => s.sender === data.sender)
           if (index !== -1) {
@@ -137,15 +138,15 @@
           this.talkingStream = this.streamSources.find(source => source?.state?.isTalking)
         })
 
-        this.PhoneKit.on('hangup', this.afterHangup)
+        phoneKit.on('hangup', this.afterHangup)
       }
     },
     async mounted() {
-      this.PhoneKit = new PhoneKit({
+      phoneKit = new PhoneKit({
         url: 'wss://jnwss.voicenter.co/janus'
       })
       // @ts-ignore
-      window.PhoneKit = this.PhoneKit
+      window.PhoneKit = phoneKit
 
 
       if(this.$route.query.roomId)this.joinForm.roomId=this.$route.query.roomId;
