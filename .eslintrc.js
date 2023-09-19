@@ -1,7 +1,11 @@
 const isProd = process.env.NODE_ENV === 'production'
 
 module.exports = {
-    parser: '@typescript-eslint/parser',
+    parser: 'vue-eslint-parser',
+    parserOptions: {
+        parser: '@typescript-eslint/parser',
+        sourceType: 'module'
+    },
     root: true,
     env: {
         node: true,
@@ -30,8 +34,5 @@ module.exports = {
         'quote-props': [ 'error', 'as-needed' ],
         'object-property-newline': [ 'error' ],
         'key-spacing': [ 'error', { afterColon: true } ]
-    },
-    parserOptions: {
-        parser: 'esprima',
-    },
+    }
 }

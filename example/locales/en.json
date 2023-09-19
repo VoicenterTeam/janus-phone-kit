@@ -1,0 +1,26 @@
+{
+  "general": {
+    "close": "Close",
+    "submit": "Submit",
+    "validation": {
+      "required": "Field is required",
+      "numeric": "The field may only contain numeric characters",
+      "inRange": "Must be outside the range: { min } - { max }",
+      "biggerThan": "Must be bigger than { value }",
+      "smallerThan": "Must be smaller than { value }",
+      "minLen": "Should be at least { value } characters",
+      "maxLen": "Cannot be longer than { value } characters"
+    }
+  },
+  "home": {
+    "enterConference": "Enter Conference",
+    "roomDetails": "Room Details",
+    "joinRoomModal": {
+      "header": "Room Details",
+      "form": {
+        "roomId": "Room ID",
+        "displayName": "Display Name",
+      }
+    }
+  }
+}
