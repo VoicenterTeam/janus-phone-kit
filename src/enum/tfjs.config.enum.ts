@@ -1,37 +1,43 @@
+import { MediaPipeSelfieSegmentationModelType } from '@tensorflow-models/body-segmentation'
+
 /**
  * Config used for MediaPipeSelfieSegmentation bodySegmentation model.
  */
-export const SEGMENTER_CONFIG = {
-  runtime: 'mediapipe',
-  modelType: 'general'
+interface ISegmenterConfig {
+    runtime: 'mediapipe',
+    modelType: MediaPipeSelfieSegmentationModelType
+}
+export const SEGMENTER_CONFIG: ISegmenterConfig = {
+    runtime: 'mediapipe',
+    modelType: 'general'
 }
 
 /**
  * Flags used for tf.env().setFlags method for optimization purposes.
  */
 export const ENV_FLAGS = {
-  'WEBGL_PACK': true,           // Enable WebGL auto-tuning (default: true)
-  'WEBGL_VERSION': 2,           // Use WebGL 2 (default: 1)
-  'WEBGL_CPU_FORWARD': false,   // Force CPU forward (default: false)
+    WEBGL_PACK: true,           // Enable WebGL auto-tuning (default: true)
+    WEBGL_VERSION: 2,           // Use WebGL 2 (default: 1)
+    WEBGL_CPU_FORWARD: false,   // Force CPU forward (default: false)
 } as const
 
 /**
  * Config used for video stream configuration and capture.
  */
 export const CAMERA_CONFIG = {
-  targetFPS: 60
+    targetFPS: 60
 }
 
 /**
  * Config used for image segmentation and bokeh effect drawing.
  */
 export const VISUALIZATION_CONFIG = {
-  foregroundThreshold: 0.5,
-  maskOpacity: 0.7,
-  maskBlur: 0,
-  pixelCellWidth: 10,
-  backgroundBlur: 3,
-  edgeBlur: 3
+    foregroundThreshold: 0.5,
+    maskOpacity: 0.7,
+    maskBlur: 0,
+    pixelCellWidth: 10,
+    backgroundBlur: 3,
+    edgeBlur: 3
 }
 
 /**
@@ -48,13 +54,13 @@ export const VISUALIZATION_CONFIG = {
  * `WEBGL_FORCE_F16_TEXTURES` may confuse users.)
  */
 export const TUNABLE_FLAG_VALUE_RANGE_MAP = {
-  WEBGL_VERSION: [1, 2],
-  WASM_HAS_SIMD_SUPPORT: [true, false],
-  WASM_HAS_MULTITHREAD_SUPPORT: [true, false],
-  WEBGL_CPU_FORWARD: [true, false],
-  WEBGL_PACK: [true, false],
-  WEBGL_FORCE_F16_TEXTURES: [true, false],
-  WEBGL_RENDER_FLOAT32_CAPABLE: [true, false],
-  WEBGL_FLUSH_THRESHOLD: [-1, 0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
-  CHECK_COMPUTATION_FOR_ERRORS: [true, false],
-};
+    WEBGL_VERSION: [ 1, 2 ],
+    WASM_HAS_SIMD_SUPPORT: [ true, false ],
+    WASM_HAS_MULTITHREAD_SUPPORT: [ true, false ],
+    WEBGL_CPU_FORWARD: [ true, false ],
+    WEBGL_PACK: [ true, false ],
+    WEBGL_FORCE_F16_TEXTURES: [ true, false ],
+    WEBGL_RENDER_FLOAT32_CAPABLE: [ true, false ],
+    WEBGL_FLUSH_THRESHOLD: [ -1, 0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2 ],
+    CHECK_COMPUTATION_FOR_ERRORS: [ true, false ],
+}
