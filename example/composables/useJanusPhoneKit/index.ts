@@ -42,9 +42,9 @@ export default function useJanusPhoneKit () {
         })
     }
 
-    function enableWhiteboard (enable: boolean) {
-        //console.log('enableWhiteboard isScreenShareWhiteboardEnable', enable)
-        //console.log('enableWhiteboard isPresentationWhiteboardEnable', this.isPresentationWhiteboardEnable)
+    function enableScreenShareWhiteboard (enable: boolean) {
+        //console.log('enableScreenShareWhiteboard isScreenShareWhiteboardEnable', enable)
+        //console.log('enableScreenShareWhiteboard isPresentationWhiteboardEnable', this.isPresentationWhiteboardEnable)
 
         state.isScreenShareWhiteboardEnabled = enable
 
@@ -52,10 +52,10 @@ export default function useJanusPhoneKit () {
             nextTick()
                 .then(() => {
                     if (enable) {
-                        janusPhoneKit.enableWhiteboard(enable, state.mainSource.stream)
+                        janusPhoneKit.enableScreenShareWhiteboard(enable, state.mainSource.stream)
                             .then(resolve)
                     } else {
-                        janusPhoneKit.enableWhiteboard(enable)
+                        janusPhoneKit.enableScreenShareWhiteboard(enable)
                             .then(resolve)
                     }
                 })
@@ -68,7 +68,7 @@ export default function useJanusPhoneKit () {
         return new Promise((resolve) => {
             nextTick()
                 .then(() => {
-                    janusPhoneKit.enablePresentationWhiteboard(CONFERENCING_MODE.WHITEBOARD, enable)
+                    janusPhoneKit.enableWhiteboard(CONFERENCING_MODE.WHITEBOARD, enable)
                         .then(resolve)
                 })
         })
@@ -80,10 +80,22 @@ export default function useJanusPhoneKit () {
         return new Promise((resolve) => {
             nextTick()
                 .then(() => {
-                    janusPhoneKit.enablePresentationWhiteboard(CONFERENCING_MODE.IMAGE_WHITEBOARD, enable)
+                    janusPhoneKit.enableWhiteboard(CONFERENCING_MODE.IMAGE_WHITEBOARD, enable)
                         .then(resolve)
                 })
         })
+    }
+
+    async function enableScreenShare (enable: boolean) {
+        if (enable) {
+            await janusPhoneKit.startScreenShare()
+        } else {
+            if (state.isScreenShareWhiteboardEnabled) {
+                await enableScreenShareWhiteboard(false)
+            }
+            janusPhoneKit.stopScreenShare()
+        }
+        state.isScreenSharing = enable
     }
 
     async function toggleMaskEffect () {
@@ -196,9 +208,10 @@ export default function useJanusPhoneKit () {
 
     return {
         joinRoom,
-        enableWhiteboard,
+        enableScreenShareWhiteboard,
         enablePresentationWhiteboard,
         enableImageWhiteboard,
+        enableScreenShare,
         changePublisherStream,
         hangup,
         toggleMaskEffect,

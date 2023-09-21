@@ -34,23 +34,29 @@
           {{ isWithMaskEffect ? 'Remove mask' : 'Use mask' }}
         </button>
         <button v-if="isScreenSharing && !isPresentationWhiteboardEnabled && !isImageWhiteboardEnabled"
-                @click="enableWhiteboard"
+                @click="enableScreenShareWhiteboard(!isScreenShareWhiteboardEnabled)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          {{ isWhiteboardEnabled ? 'Remove drawing' : 'Draw over screen share' }}
+<!--          {{ isScreenShareWhiteboardEnabled ? 'Remove drawing' : 'Draw over screen share' }}-->
+          <vue-feather type="trash2" v-if="isScreenShareWhiteboardEnabled" class="w-5 h-5" />
+          <vue-feather type="edit2" v-else class="w-5 h-5" />
         </button>
         <button v-if="!isScreenSharing && !isImageWhiteboardEnabled"
-                @click="enablePresentationWhiteboard"
+                @click="enablePresentationWhiteboard(!isPresentationWhiteboardEnabled)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          {{ isPresentationWhiteboardEnabled ? 'Stop drawing' : 'Enable drawing' }}
+<!--          {{ isPresentationWhiteboardEnabled ? 'Stop drawing' : 'Enable drawing' }}-->
+          <vue-feather type="trash2" v-if="isPresentationWhiteboardEnabled" class="w-5 h-5" />
+          <vue-feather type="edit2" v-else class="w-5 h-5" />
         </button>
         <button v-if="!isScreenSharing && !isPresentationWhiteboardEnabled"
-                @click="enableImageWhiteboard"
+                @click="enableImageWhiteboard(!isImageWhiteboardEnabled)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
-          {{ isImageWhiteboardEnabled ? 'Stop image drawing' : 'Enable image drawing' }}
+<!--          {{ isImageWhiteboardEnabled ? 'Stop image drawing' : 'Enable image drawing' }}-->
+          <vue-feather type="trash2" v-if="isImageWhiteboardEnabled" class="w-5 h-5" />
+          <vue-feather type="edit" v-else class="w-5 h-5" />
         </button>
       </div>
       <div class="flex items-center">
-        <button @click="enableScreenShare()"
+        <button @click="enableScreenShare(!isScreenSharing)"
                 class="px-10 h-full border border-transparent cursor-pointer hover:bg-gray-200 focus:outline-none mr-2">
           <vue-feather type="monitor" class="w-5 h-5" />
         </button>
@@ -77,10 +83,15 @@ const {
     videoOnModel,
     isPresentationWhiteboardEnabled,
     isImageWhiteboardEnabled,
+    isScreenShareWhiteboardEnabled,
     isWithMaskEffect,
     isScreenSharing,
     hangup,
-    toggleMaskEffect
+    toggleMaskEffect,
+    enableScreenShareWhiteboard,
+    enablePresentationWhiteboard,
+    enableImageWhiteboard,
+    enableScreenShare
 } = useJanusPhoneKit()
 
 /* Data */

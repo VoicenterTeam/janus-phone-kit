@@ -161,9 +161,9 @@
           } else {
             sharingSource = this.streamSources.find(source => source.type === 'publisher' && source.name === 'Screen Share')
           }
-          window.PhoneKit.enableWhiteboard(enable, sharingSource.stream)
+          window.PhoneKit.enableScreenShareWhiteboard(enable, sharingSource.stream)
         } else {
-          window.PhoneKit.enableWhiteboard(enable)
+          window.PhoneKit.enableScreenShareWhiteboard(enable)
         }
       },
       async enableScreenShare(enable) {
@@ -179,13 +179,13 @@
       enablePresentationWhiteboard(enable) {
         this.isPresentationWhiteboardEnable = enable
         this.$nextTick(() => {
-          window.PhoneKit.enablePresentationWhiteboard(CONFERENCING_MODE.WHITEBOARD, enable)
+          window.PhoneKit.enableWhiteboard(CONFERENCING_MODE.WHITEBOARD, enable)
         })
       },
       enableImageWhiteboard (enable) {
         this.isImageWhiteboardEnable = enable
         this.$nextTick(() => {
-          window.PhoneKit.enablePresentationWhiteboard(CONFERENCING_MODE.IMAGE_WHITEBOARD, enable)
+          window.PhoneKit.enableWhiteboard(CONFERENCING_MODE.IMAGE_WHITEBOARD, enable)
         })
       },
       selectMainSource(streamSource) {

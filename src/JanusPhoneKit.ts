@@ -172,7 +172,7 @@ export default class JanusPhoneKit extends EventEmitter {
         return this.videoRoomPlugin?.changePublisherStream(newSource)
     }
 
-    public async enableWhiteboard (enable: boolean, stream?: MediaStream) {
+    public async enableScreenShareWhiteboard (enable: boolean, stream?: MediaStream) {
         if (enable) {
             const whiteBoardStream = await WhiteBoardPlugin.startScreenShareWhiteboard(stream)
 
@@ -183,7 +183,7 @@ export default class JanusPhoneKit extends EventEmitter {
         }
     }
 
-    public async enablePresentationWhiteboard (mode: ConferencingModeType, enable: boolean) {
+    public async enableWhiteboard (mode: ConferencingModeType, enable: boolean) {
         if (!this.whiteboardPlugin) {
             this.whiteboardPlugin = new WhiteBoardPlugin({
                 mode: mode,
