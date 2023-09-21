@@ -2,6 +2,10 @@
     <VcModal
         :visible="modalVisibleModel"
         :header="t('home.joinRoomModal.header')"
+        :breakpoints="{
+                        '960px': '80vw', '680px': '95vw'
+                    }"
+        width="50vw"
         @close="closeModal"
     >
         <VcForm

@@ -1,10 +1,8 @@
 <template>
     <div>
-        <VcLoading :active="loading" full-page />
+        <VcLoading :active="!roomJoined" full-page />
 
-        <template v-if="!loading">
-            Conference page
-        </template>
+        <Conferencing v-if="roomJoined" />
     </div>
 </template>
 
@@ -14,6 +12,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { HOME_PAGE_ROUTE } from '@/router'
 import { getConferenceQueryParameters } from '@/helper/router.helper'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+import Conferencing from '@/components/Conferencing.vue'
 
 /* Composables */
 const route = useRoute()
@@ -21,15 +20,13 @@ const router = useRouter()
 const { joinRoom } = useJanusPhoneKit()
 
 /* Data */
-const loading = ref(false)
+const roomJoined = ref(false)
 
 /* Methods */
 function redirectToHomePage () {
     router.push({ name: HOME_PAGE_ROUTE.name })
 }
 function tryInitializeByQueryParameters () {
-    loading.value = true
-
     const queryParameters = getConferenceQueryParameters(route)
 
     if (!queryParameters) {
@@ -48,7 +45,7 @@ function tryInitializeByQueryParameters () {
         }
     })
         .then(() => {
-            loading.value = false
+            roomJoined.value = true
         })
         .catch(redirectToHomePage)
 }
