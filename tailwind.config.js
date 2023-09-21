@@ -3,10 +3,10 @@ const tailwindScheme = require('@voicenter-team/voicenter-ui-plus/src/theme/tail
 const schemeColors = {
     ...tailwindScheme
 }
-// eslint-disable-next-line no-undef
+
 module.exports = {
     content: [
-        './src/**/*.{vue,scss}',
+        './example/**/*.{vue,scss}',
     ],
     theme: {
         colors: {

@@ -1,12 +1,14 @@
-export interface StramSourceState {
-    isTalking?: boolean
-}
-
-export type StreamSource = Record<string, unknown> & {
-    source: MediaStream
-    state?: StramSourceState
-}
+import { Member } from 'janus/types/events'
 
 export interface MainState {
-    streamSources: Array<StreamSource>
+    streamSources: Array<Member>
+    talkingStream: Member | undefined
+    mainSource: Member | undefined
+    isMicOn: boolean
+    isVideoOn: boolean
+    isWithMaskEffect: boolean
+    isScreenSharing: boolean
+    isScreenShareWhiteboardEnabled: boolean
+    isPresentationWhiteboardEnabled: boolean
+    isImageWhiteboardEnabled: boolean
 }

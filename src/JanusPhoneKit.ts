@@ -8,6 +8,7 @@ import { WhiteBoardPlugin } from './plugins/WhiteBoardPlugin'
 import EventEmitter from './util/EventEmitter'
 import { StunServer } from './types'
 import { CONFERENCING_MODE, ConferencingModeType } from './enum/conferencing.enum'
+import { EventCallbackByEventName, EventName, EventPayloadByEventName } from 'janus/types/events'
 
 export type JanusPhoneKitOptions = {
   roomId?: number,
@@ -57,7 +58,7 @@ export default class JanusPhoneKit extends EventEmitter {
         }
     }
 
-    on (event, fn) {
+    on <Event extends EventName, Fn extends EventCallbackByEventName<Event>> (event: Event, fn: Fn) {
         this.session.on(event, (...params) => {
             fn.apply(this, params)
         })

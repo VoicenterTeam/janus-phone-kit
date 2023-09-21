@@ -10,6 +10,9 @@
       "smallerThan": "Must be smaller than { value }",
       "minLen": "Should be at least { value } characters",
       "maxLen": "Cannot be longer than { value } characters"
+    },
+    "state": {
+      "muted": "Muted",
     }
   },
   "home": {

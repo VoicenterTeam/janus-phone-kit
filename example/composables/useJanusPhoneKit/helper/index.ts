@@ -61,7 +61,7 @@ export function initListeners (janusPhoneKit: JanusPhoneKit, state: MainState) {
                 source.state = data.state
             }
 
-            this.talkingStream = state.streamSources.find(source => source?.state?.isTalking)
+            state.talkingStream = state.streamSources.find(source => source?.state?.isTalking)
         }
     )
 

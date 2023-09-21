@@ -25,6 +25,7 @@
         </div>
       </el-form>
     </el-dialog>
+
     <conference v-if="conferenceStarted"
                 :talking-stream="talkingStream"
                 :stream-sources="streamSources"/>
