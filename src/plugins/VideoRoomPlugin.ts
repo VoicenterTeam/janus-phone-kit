@@ -74,6 +74,7 @@ export class VideoRoomPlugin extends BasePlugin {
     };
   }
 
+  // TODO: Probably not needed so can be deleted (not sure, need to test)
   onDetached() {
     this.close()
   }
