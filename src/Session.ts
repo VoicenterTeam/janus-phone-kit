@@ -8,7 +8,7 @@ type SessionOptions = {
 }
 const defaultOptions: SessionOptions = {
   timeoutMs: 5000,
-  keepaliveMs: 50000,
+  keepaliveMs: 5000,
 }
 
 class Session extends EventEmitter {
@@ -204,7 +204,11 @@ class Session extends EventEmitter {
       this.transactions[transaction] = {
         resolve, reject, timeout, payload,
       };
-    }).catch(e => console.error(e));
+    }).catch(e => {
+      console.log('SEND MESSAGE ERROR', e)
+      console.log('this.plugin', this.plugins)
+      console.error(e)
+    });
 
     logger.debug('Outgoing Janus message', payload);
     /**

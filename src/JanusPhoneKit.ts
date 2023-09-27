@@ -29,8 +29,8 @@ const defaultOptions: JanusPhoneKitOptions = {
 export default class JanusPhoneKit extends EventEmitter {
     private options: JanusPhoneKitOptions = {}
 
-    /*private mediaConstraints = null
-    private displayName = null*/
+    private mediaConstraints = null
+    private displayName = null
 
     private session: Session = null
     /**
@@ -51,6 +51,8 @@ export default class JanusPhoneKit extends EventEmitter {
 
     private whiteboardPlugin = null
 
+    private eventListeners: { [key: EventName]: Array<EventCallbackByEventName> } = {}
+
     isConnected = false
 
     constructor (options = {}) {
@@ -61,33 +63,53 @@ export default class JanusPhoneKit extends EventEmitter {
         }
     }
 
-    on <Event extends EventName, Fn extends EventCallbackByEventName<Event>> (event: Event, fn: Fn) {
-        this.session.on(event, (...params) => {
+    on <Event extends EventName, Fn extends EventCallbackByEventName<Event>> (event: EventName, fn: Fn) {
+        const functions: Array<EventCallbackByEventName> = this.eventListeners[event] || []
+        this.eventListeners[event] = [ ...functions, fn ]
+
+        /*this.session.on(event, (...params) => {
             fn.apply(this, params)
-        })
+        })*/
     }
 
     emit (...params) {
         this.session?.emit.apply(this, params)
     }
 
-    /*connectToServer() {
-    console.log('connectToServer this.session', this.session)
-    console.log('connectToServer this.options.url', this.options.url)
-    this.session = new Session()
+    connectToServer() {
+        this.session = new Session()
 
-    this.websocket = new WebSocket(this.options.url, 'janus-protocol');
-    this.session.on('output', (msg) => {
-      this.websocket.send(JSON.stringify(msg))
-    });
+        this.websocket = new WebSocket(this.options.url, 'janus-protocol')
 
-    this.websocket.addEventListener('message', (event) => {
-      this.session.receive(JSON.parse(event.data))
-    });
+        this.session.on('output', (msg) => {
+            this.websocket.send(JSON.stringify(msg))
+        })
 
-    this.registerSocketOpenHandler() // displayName, mediaConstraints
-    this.registerSocketCloseHandler()
-  }*/
+        this.websocket.addEventListener('message', (event) => {
+            this.session.receive(JSON.parse(event.data))
+        })
+
+        this.registerSocketOpenHandler() // displayName, mediaConstraints
+        this.registerSocketCloseHandler()
+
+        this.applySessionListeners()
+    }
+
+    private applySessionListeners () {
+        if (!this.session) {
+            return
+        }
+
+        Object.keys(this.eventListeners).forEach((event) => {
+            const fns = this.eventListeners[event] || []
+            fns.forEach(fn => {
+                this.session.on(event, (...params) => {
+                    fn.apply(this, params)
+                })
+            })
+
+        })
+    }
 
     public joinRoom ({ roomId, displayName = '', mediaConstraints }: JoinRoomOptions) {
         if (!this.options.url) {
@@ -99,8 +121,10 @@ export default class JanusPhoneKit extends EventEmitter {
             throw new Error('A roomId is required in order to join a room')
         }
 
+        this.displayName = displayName
+        this.mediaConstraints = mediaConstraints
 
-        //this.connectToServer()
+        this.connectToServer()
 
         /*this.websocket.addEventListener('close', (event) => {
           setTimeout(() => {
@@ -108,7 +132,11 @@ export default class JanusPhoneKit extends EventEmitter {
           }, 3000);
         });*/
 
-        this.session = new Session()
+        /*this.websocket.addEventListener('close', (event) => {
+            console.log('ON SOCKET CLOSE', event)
+        })*/
+
+        /*this.session = new Session()
 
         this.websocket = new WebSocket(this.options.url, 'janus-protocol')
         this.session.on('output', (msg) => {
@@ -116,11 +144,29 @@ export default class JanusPhoneKit extends EventEmitter {
         })
 
         this.websocket.addEventListener('message', (event) => {
+            console.log('SOCKET MESSAGE ', event)
             this.session.receive(JSON.parse(event.data))
         })
 
+        this.websocket.addEventListener('close', (event) => {
+            console.log('WEBSOCKET EVENT CLOSE', event)
+        })
+
+        this.websocket.addEventListener('error', (msg) => {
+            console.log('WEBSOCKET EVENT ERROR', msg)
+            //this.websocket.close()
+        })
+
+        window.addEventListener('offline', (e) => {
+            console.log('YOU ARE OFFLINE', e)
+        });
+
+        window.addEventListener('online', (e) => {
+            console.log('YOU ARE ONLINE', e)
+        });
+
         this.registerSocketOpenHandler(displayName, mediaConstraints)
-        this.registerSocketCloseHandler()
+        this.registerSocketCloseHandler()*/
 
         return this.session
     }
@@ -131,8 +177,8 @@ export default class JanusPhoneKit extends EventEmitter {
         this.isConnected = false
         this.websocket.close()
 
-        /*this.mediaConstraints = null
-        this.displayName = null*/
+        this.mediaConstraints = null
+        this.displayName = null
     }
 
     public startVideo () {
@@ -193,21 +239,14 @@ export default class JanusPhoneKit extends EventEmitter {
             })
         }
         if (enable) {
-            //const whiteBoardStream = await this.whiteboardPlugin?.startPresentationWhiteboard()
-            /*const senders = this.screenSharePlugin.rtcConnection.getSenders()
-      senders.forEach((sender) => {
-        sender.replaceTrack()
-      })*/
             await this.session.attachPlugin(this.whiteboardPlugin)
 
             //this.screenSharePlugin.overrideSenderTracks(whiteBoardStream)
-            //console.log('SSSSSS senders', senders)
         } else {
             console.log('disable whiteboard')
             //const stream = await this.whiteboardPlugin?.stop()
             await this.whiteboardPlugin?.stopPresentationWhiteboard()
             this.whiteboardPlugin = null
-            //let stream
             //this.screenSharePlugin.overrideSenderTracks(stream)
         }
     }
@@ -248,9 +287,9 @@ export default class JanusPhoneKit extends EventEmitter {
         await this.videoRoomPlugin?.syncParticipants()
     }
 
-    private registerSocketOpenHandler (displayName, mediaConstraints) {
-        /*const displayName = this.displayName
-        const mediaConstraints = this.mediaConstraints*/
+    private registerSocketOpenHandler () {
+        const displayName = this.displayName
+        const mediaConstraints = this.mediaConstraints
         this.websocket.addEventListener('open', async () => {
             try {
                 await this.session.create()
@@ -260,19 +299,18 @@ export default class JanusPhoneKit extends EventEmitter {
                 return
             }
 
-            /*console.log('WEBSOCKET EVENT OPEN')
-            console.log('create VideoRoomPlugin', {
-              displayName: displayName,
-              roomId: this.options.roomId,
-              stunServers: this.options.stunServers,
-              mediaConstraints,
-            })*/
-
             this.videoRoomPlugin = new VideoRoomPlugin({
                 displayName: displayName,
                 roomId: this.options.roomId,
                 stunServers: this.options.stunServers,
                 mediaConstraints,
+            })
+
+            this.videoRoomPlugin.rtcConnection?.addEventListener('connectionstatechange', () => {
+                if (this.videoRoomPlugin.rtcConnection.connectionState === 'failed') {
+                    this.websocket.close()
+                    this.reconnect()
+                }
             })
 
             try {
@@ -287,27 +325,26 @@ export default class JanusPhoneKit extends EventEmitter {
     }
 
     private registerSocketCloseHandler () {
-        this.websocket.addEventListener('close', () => {
-            //console.log('WEBSOCKET EVENT CLOSE', msg)
-            this.isConnected = false
-            logger.warn('No connection to Janus')
-
-            this.session.stop()
-
-            /*if (this.isConnected) {
-                this.session = null
-                this.websocket = null
-
-                setTimeout(() => {
-                  this.connectToServer() // Reconnect after a delay
-                }, 3000);
-             }*/
+        this.websocket.addEventListener('close', async () => {
+            await this.reconnect()
         })
+    }
 
-        /*this.websocket.addEventListener('error', (msg) => {
-          console.log('WEBSOCKET EVENT ERROR', msg)
-          this.websocket.close()
-        })*/
+    private async reconnect () {
+        //this.isConnected = false
+        logger.warn('No connection to Janus')
 
+        this.session.stop()
+
+        if (this.isConnected) {
+            await this.session.destroy()
+            this.session = null
+            this.websocket = null
+            // TODO: maybe set isConnected = false here
+
+            setTimeout(() => {
+                this.connectToServer()
+            }, 5000)
+        }
     }
 }

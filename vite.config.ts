@@ -3,7 +3,7 @@ import { defineConfig, loadEnv, BuildOptions } from 'vite'
 import dts from 'vite-plugin-dts'
 import vue from '@vitejs/plugin-vue'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
-import mkcert from 'vite-plugin-mkcert'
+//import mkcert from 'vite-plugin-mkcert'
 
 const OUTPUT_DIR = 'library'
 
@@ -33,14 +33,14 @@ export default ({ mode }) => {
 
     return defineConfig({
         build,
-        server: { https: true },
+        /*server: { https: true },*/
         plugins: [
             dts({ rollupTypes: true }),
             vue(),
             vueI18n({
                 include: resolve(__dirname, './example/locales/**')
             }),
-            mkcert()
+            /*mkcert()*/
         ],
         resolve: {
             alias: {

@@ -14,7 +14,7 @@
           <vue-feather type="mic-off" class="w-5 h-5 text-white" />
         </button>
 
-        <button @click="hangup" class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
+        <button @click="hangupMeeting" class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
           <vue-feather type="phone" class="w-5 h-5 transform text-red-600 rotate-90" />
         </button>
 
@@ -37,21 +37,21 @@
                 @click="enableScreenShareWhiteboard(!isScreenShareWhiteboardEnabled)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
 <!--          {{ isScreenShareWhiteboardEnabled ? 'Remove drawing' : 'Draw over screen share' }}-->
-          <vue-feather type="trash2" v-if="isScreenShareWhiteboardEnabled" class="w-5 h-5" />
-          <vue-feather type="edit2" v-else class="w-5 h-5" />
+          <vue-feather type="trash" v-if="isScreenShareWhiteboardEnabled" class="w-5 h-5" />
+          <vue-feather type="edit" v-else class="w-5 h-5" />
         </button>
         <button v-if="!isScreenSharing && !isImageWhiteboardEnabled"
                 @click="enablePresentationWhiteboard(!isPresentationWhiteboardEnabled)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
 <!--          {{ isPresentationWhiteboardEnabled ? 'Stop drawing' : 'Enable drawing' }}-->
-          <vue-feather type="trash2" v-if="isPresentationWhiteboardEnabled" class="w-5 h-5" />
-          <vue-feather type="edit2" v-else class="w-5 h-5" />
+          <vue-feather type="trash" v-if="isPresentationWhiteboardEnabled" class="w-5 h-5" />
+          <vue-feather type="edit" v-else class="w-5 h-5" />
         </button>
         <button v-if="!isScreenSharing && !isPresentationWhiteboardEnabled"
                 @click="enableImageWhiteboard(!isImageWhiteboardEnabled)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-gray-300 hover:shadow focus:outline-none">
 <!--          {{ isImageWhiteboardEnabled ? 'Stop image drawing' : 'Enable image drawing' }}-->
-          <vue-feather type="trash2" v-if="isImageWhiteboardEnabled" class="w-5 h-5" />
+          <vue-feather type="trash" v-if="isImageWhiteboardEnabled" class="w-5 h-5" />
           <vue-feather type="edit" v-else class="w-5 h-5" />
         </button>
       </div>
@@ -94,8 +94,21 @@ const {
     enableScreenShare
 } = useJanusPhoneKit()
 
+/* Emit */
+export interface Emit {
+  (e: 'hangup'): void
+}
+
+const emit = defineEmits<Emit>()
+
 /* Data */
 const settingsModalOpen = ref(false)
+
+/* Methods */
+const hangupMeeting = () => {
+    emit('hangup')
+    hangup()
+}
 </script>
 
 <style scoped>

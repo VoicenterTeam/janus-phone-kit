@@ -46,6 +46,18 @@ export class VideoRoomPlugin extends BasePlugin {
       iceServers: this.stunServers,
     })
     logger.debug('Init plugin', this);
+
+    this.rtcConnection.addEventListener('iceconnectionstatechange', () => {
+      console.log('WEBSOCKET EVENT VIDEO_ROOM iceconnectionstatechange', this.rtcConnection.iceConnectionState)
+      //console.log('ICE Connection State:', this.rtcConnection.iceConnectionState)
+    })
+
+    // Listen for connection state changes
+    this.rtcConnection.addEventListener('connectionstatechange', () => {
+      console.log('WEBSOCKET EVENT VIDEO_ROOM connectionstatechange', this.rtcConnection.connectionState)
+      //console.log('Connection State:', this.rtcConnection.connectionState);
+    })
+
     // Send ICE events to Janus.
     this.rtcConnection.onicecandidate = (event) => {
 
@@ -60,6 +72,10 @@ export class VideoRoomPlugin extends BasePlugin {
           logger.warn(err)
         });
     };
+  }
+
+  onDetached() {
+    this.close()
   }
 
   /**
@@ -406,7 +422,6 @@ export class VideoRoomPlugin extends BasePlugin {
       }
 
       const { stream } = await this.loadStream();
-
       const canvasStream = await this.streamMask.start(stream)
 
       this.overrideSenderTracks(canvasStream)

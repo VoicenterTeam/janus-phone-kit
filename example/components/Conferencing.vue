@@ -1,6 +1,8 @@
 <template>
     <div :class="{'conference-content fixed top-0 left-0 w-screen z-50 bg-black': isMainSource}">
       <MainSource v-if="isMainSource" />
+      <OtherParticipants />
+      <BottomActions v-if="isMainSource" @hangup="onHangup" />
     </div>
 </template>
 
@@ -8,6 +10,8 @@
 import { computed } from 'vue'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import MainSource from '@/components/Conferencing/MainSource.vue'
+import BottomActions from '@/components/Conferencing/BottomActions.vue'
+import OtherParticipants from '@/components/Conferencing/OtherParticipants.vue'
 
 /* Composables */
 const { mainSource } = useJanusPhoneKit()
@@ -16,6 +20,18 @@ const { mainSource } = useJanusPhoneKit()
 const isMainSource = computed(() =>{
     return mainSource.value !== undefined
 })
+
+/* Emit */
+export interface Emit {
+  (e: 'hangup'): void
+}
+
+const emit = defineEmits<Emit>()
+
+/* Methods */
+const onHangup = () => {
+    emit('hangup')
+}
 </script>
 
 <style scoped lang="scss">

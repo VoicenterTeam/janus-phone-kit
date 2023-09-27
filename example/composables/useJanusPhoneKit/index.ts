@@ -29,8 +29,6 @@ export default function useJanusPhoneKit () {
     }
     function joinRoom (options: JoinRoomOptions) {
         return new Promise((resolve) => {
-            const session = janusPhoneKit.joinRoom(options)
-
             janusPhoneKit.on(
                 'member:join',
                 () => {
@@ -39,6 +37,10 @@ export default function useJanusPhoneKit () {
             )
 
             initListeners(janusPhoneKit, state)
+
+            const session = janusPhoneKit.joinRoom(options)
+
+
         })
     }
 
@@ -105,9 +107,9 @@ export default function useJanusPhoneKit () {
 
         try {
             const newVal = !state.isWithMaskEffect
-            const stream = await janusPhoneKit.enableMask(!newVal)
+            const stream = await janusPhoneKit.enableMask(newVal)
 
-            state.isWithMaskEffect = !newVal
+            state.isWithMaskEffect = newVal
 
             updatePublisherStream(stream)
         } catch (e) {

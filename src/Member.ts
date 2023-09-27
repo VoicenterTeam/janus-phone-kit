@@ -40,8 +40,10 @@ export class Member {
   }
 
   async answerAttachedStream(attachedStreamInfo) {
+    console.log('answerAttachedStream', attachedStreamInfo)
     const RTCPeerOnAddStream = async (event) => {
       if (!this.rtcpPeer) {
+        console.log('answerAttachedStream return')
         return
       }
       logger.debug('on add stream Member', event);
@@ -59,6 +61,7 @@ export class Member {
 
       this.stream = event.stream;
 
+      console.log('answerAttachedStream member:join', this.memberInfo)
       this.plugin?.session.emit('member:join', this.memberInfo)
     }
 
@@ -69,6 +72,7 @@ export class Member {
     }
 
     this.rtcpPeer = new RTCPeerConnection();
+    console.log('answerAttachedStream this.rtcpPeer', this.rtcpPeer)
     this.rtcpPeer.onaddstream = RTCPeerOnAddStream;
     this.rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
     this.rtcpPeer.sender = attachedStreamInfo.sender;

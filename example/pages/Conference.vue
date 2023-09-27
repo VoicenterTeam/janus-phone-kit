@@ -2,7 +2,7 @@
     <div>
         <VcLoading :active="!roomJoined" full-page />
 
-        <Conferencing v-if="roomJoined" />
+        <Conferencing v-if="roomJoined" @hangup="redirectToHomePage" />
     </div>
 </template>
 

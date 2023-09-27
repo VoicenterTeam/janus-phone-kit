@@ -20,9 +20,6 @@ export class StreamMaskPlugin {
 
     constructor (options: any = {}) {
         this.visualizationConfig = mergeConfig(VISUALIZATION_CONFIG, options.visualizationConfig)
-
-        this.canvas = document.createElement('canvas')
-        this.ctx = this.canvas.getContext('2d')
     }
 
     /**
@@ -31,9 +28,11 @@ export class StreamMaskPlugin {
    * @return {MediaStream} processed stream with mask effect
    */
     async start (stream) {
-        console.log('stream', stream)
+        this.canvas = document.createElement('canvas')
+        this.ctx = this.canvas.getContext('2d')
+
         this.camera = await Camera.setupCamera(stream)
-        console.log('this.camera', this.camera)
+
         this.canvas.width = this.camera.canvas.width
         this.canvas.height = this.camera.canvas.height
 
@@ -82,7 +81,6 @@ export class StreamMaskPlugin {
    * @return {segmenter} segmenter instance
    */
     async createSegmenter () {
-        console.log('segmenter', `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@${mpSelfieSegmentation.VERSION}`)
         return bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation, {
             runtime: SEGMENTER_CONFIG.runtime,
             modelType: SEGMENTER_CONFIG.modelType,
