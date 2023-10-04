@@ -98,6 +98,9 @@ class DeviceManager {
             return
         }
 
+        console.log('changeAudioOutput element', element)
+        console.log('changeAudioOutput deviceId', deviceId)
+
         if (typeof element.sinkId !== 'undefined') {
             try {
                 await element.setSinkId(deviceId)

@@ -98,7 +98,7 @@ const props = withDefaults(
 
 /* Emit */
 export interface Emit {
-    (e: 'update:modalVisibleModel', payload: boolean): void
+    (e: 'update:modalVisible', payload: boolean): void
 }
 
 const emit = defineEmits<Emit>()

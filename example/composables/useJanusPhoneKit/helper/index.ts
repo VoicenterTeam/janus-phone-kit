@@ -21,6 +21,7 @@ export function initListeners (janusPhoneKit: JanusPhoneKit, state: MainState) {
         () => {
             console.log('DEMO screenShare:stop')
             console.log('streamSources', state.streamSources)
+            state.isScreenSharing = false
             state.streamSources = state.streamSources.filter((s) => !(s.name === 'Screen Share' && s.sender === 'me'))
         }
     )
