@@ -11,8 +11,10 @@
         <VcForm
             ref="formRef"
             :model="roomDetailsModel"
+            @submit.prevent="submitModal"
         >
             <VcFormItem
+                v-if="showField('roomId')"
                 :label="t('home.joinRoomModal.form.roomId')"
                 prop="roomId"
                 :rules="[required]"
@@ -23,6 +25,7 @@
                 />
             </VcFormItem>
             <VcFormItem
+                v-if="showField('displayName')"
                 :label="t('home.joinRoomModal.form.displayName')"
                 prop="displayName"
                 :rules="[required]"
@@ -55,6 +58,9 @@ import useValidationRules from '@/composables/useValidationRules'
 import useVcFormValidation from '@/composables/useVcFormValidation'
 import { JoinRoomData } from '@/types/forms'
 
+/* Types */
+type JoinRoomDataKey = keyof JoinRoomData
+
 /* Composables */
 const { t } = useI18n()
 const { required } = useValidationRules()
@@ -63,12 +69,14 @@ const { required } = useValidationRules()
 export interface Props {
     modalVisible?: boolean
     modelValue: JoinRoomData
+    fieldsToShow?: Array<JoinRoomDataKey>
 }
 
 const props = withDefaults(
     defineProps<Props>(),
     {
-        modalVisible: false
+        modalVisible: false,
+        fieldsToShow: () => [ 'roomId', 'displayName' ]
     }
 )
 
@@ -88,6 +96,9 @@ const roomDetailsModel = useVModel(props, 'modelValue', emit)
 
 /* Methods */
 const validateForm = useVcFormValidation(formRef)
+function showField (field: JoinRoomDataKey) {
+    return props.fieldsToShow.includes(field)
+}
 async function submitModal () {
     const isValid = await validateForm()
 
