@@ -1,5 +1,6 @@
 import { RouteLocationNormalizedLoaded } from 'vue-router'
 import { CONFERENCE_PAGE_QUERY_PARAMETERS } from '@/enum/router.enum'
+import { JoinRoomData } from '@/types/forms'
 
 export function isQueryParameterValid (queryParameter: string | string[]): queryParameter is string {
     return queryParameter && typeof queryParameter === 'string' && queryParameter.length > 0
@@ -12,18 +13,24 @@ export function generateConferenceQueryParameters (roomId: number, displayName: 
     }
 }
 
-export function getConferenceQueryParameters (route: RouteLocationNormalizedLoaded): { roomId: number, displayName: string } | undefined {
+export function getConferenceQueryParameters (route: RouteLocationNormalizedLoaded): Partial<JoinRoomData> {
     const routeQueryParameters = route.query
+
+    const paramsData: { roomId: number, displayName: string } = {
+        roomId: undefined,
+        displayName: undefined
+    }
 
     const roomId = routeQueryParameters[CONFERENCE_PAGE_QUERY_PARAMETERS.ROOM_ID]
     const displayName = routeQueryParameters[CONFERENCE_PAGE_QUERY_PARAMETERS.DISPLAY_NAME]
 
-    if (!isQueryParameterValid(roomId) || !isQueryParameterValid(displayName)) {
-        return undefined
+    if (isQueryParameterValid(roomId)) {
+        paramsData.roomId = Number(roomId)
     }
 
-    return {
-        roomId: Number(roomId),
-        displayName
+    if (isQueryParameterValid(displayName)) {
+        paramsData.displayName = displayName
     }
+
+    return paramsData
 }
