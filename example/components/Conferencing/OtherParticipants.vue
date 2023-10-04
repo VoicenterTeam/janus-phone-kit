@@ -4,7 +4,7 @@
         v-for="source in sourcesExceptMain"
         :key="source.id"
         class="mr-2 mb-2 relative border-2 border-default-text rounded cursor-pointer"
-        @click="selectMainSource(source)"
+        @click="selectParticipant(source)"
     >
       <video
           :srcObject.prop="source.stream"
@@ -25,11 +25,24 @@ import { watch } from 'vue'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 
 /* Composables */
-const { sourcesExceptMain, selectMainSource } = useJanusPhoneKit()
+const {
+    sourcesExceptMain,
+    selectMainSource,
+    isScreenShareWhiteboardEnabled,
+    isPresentationWhiteboardEnabled,
+    isImageWhiteboardEnabled
+} = useJanusPhoneKit()
 
 watch(sourcesExceptMain,(val) => {
     console.log('watch sourcesExceptMain', val)
 })
+/* Methods */
+const selectParticipant = (source) => {
+    if (isScreenShareWhiteboardEnabled.value || isPresentationWhiteboardEnabled.value || isImageWhiteboardEnabled.value) {
+        return
+    }
+    selectMainSource(source)
+}
 </script>
 
 <style scoped lang="scss">
