@@ -6,6 +6,7 @@ import { MainState } from '@/composables/useJanusPhoneKit/types'
 import { initListeners } from './helper'
 import { CONFERENCING_MODE } from 'janus/enum/conferencing.enum'
 import { DeviceManager } from 'janus/index'
+import { Member } from 'janus/types/events'
 
 const janusPhoneKit = new JanusPhoneKit({
     url: 'wss://jnwss.voicenter.co/janus'
@@ -33,6 +34,14 @@ export default function useJanusPhoneKit () {
                 'member:join',
                 () => {
                     resolve(session)
+                }
+            )
+
+            janusPhoneKit.on(
+                'reconnect',
+                () => {
+                    console.log('RESET streamSources', JSON.parse(JSON.stringify(state.streamSources)))
+                    state.streamSources = []
                 }
             )
 
@@ -126,6 +135,15 @@ export default function useJanusPhoneKit () {
         updatePublisherStream(newStream)
     }
 
+    function selectMainSource (source: Member) {
+        if (!source || !source.id) {
+            return
+        }
+
+        const sourceId = source.id
+        state.mainSource = state.streamSources.find(source => source.id === sourceId)
+    }
+
     function updatePublisherStream (newStream: MediaStream) {
         const streamSource = state.streamSources.find(source => source.type === 'publisher' && source.name !== 'Screen Share')
 
@@ -215,6 +233,7 @@ export default function useJanusPhoneKit () {
         enableImageWhiteboard,
         enableScreenShare,
         changePublisherStream,
+        selectMainSource,
         hangup,
         toggleMaskEffect,
         microphoneOnModel,

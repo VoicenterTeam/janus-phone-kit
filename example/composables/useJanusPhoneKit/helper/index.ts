@@ -65,6 +65,14 @@ export function initListeners (janusPhoneKit: JanusPhoneKit, state: MainState) {
         }
     )
 
+    /*janusPhoneKit.on(
+        'reconnect',
+        () => {
+            console.log('RESET streamSources', JSON.parse(JSON.stringify(state.streamSources)))
+            state.streamSources = []
+        }
+    )*/
+
     janusPhoneKit.on(
         'hangup',
         () => afterHangup(state)

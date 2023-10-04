@@ -333,12 +333,16 @@ export default class JanusPhoneKit extends EventEmitter {
     private async reconnect () {
         //this.isConnected = false
         logger.warn('No connection to Janus')
+        //this.emit('reconnect')
+        this.session.emit('reconnect')
 
         this.session.stop()
 
         if (this.isConnected) {
             await this.session.destroy()
             this.session = null
+
+            this.websocket.close()
             this.websocket = null
             // TODO: maybe set isConnected = false here
 

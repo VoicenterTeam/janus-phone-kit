@@ -4,6 +4,7 @@
         v-for="source in sourcesExceptMain"
         :key="source.id"
         class="mr-2 mb-2 relative border-2 border-blue-700 rounded cursor-pointer"
+        @click="selectMainSource(source)"
     >
       <video
           :srcObject.prop="source.stream"
@@ -24,7 +25,7 @@ import { watch } from 'vue'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 
 /* Composables */
-const { sourcesExceptMain } = useJanusPhoneKit()
+const { sourcesExceptMain, selectMainSource } = useJanusPhoneKit()
 
 watch(sourcesExceptMain,(val) => {
     console.log('watch sourcesExceptMain', val)
