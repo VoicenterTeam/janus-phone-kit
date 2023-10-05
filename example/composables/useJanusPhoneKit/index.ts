@@ -85,13 +85,13 @@ export default function useJanusPhoneKit () {
         })
     }
 
-    function enableImageWhiteboard (enable: boolean) {
+    function enableImageWhiteboard (enable: boolean, imageSrc: string) {
         state.isImageWhiteboardEnabled = enable
 
         return new Promise((resolve) => {
             nextTick()
                 .then(() => {
-                    janusPhoneKit.enableWhiteboard(CONFERENCING_MODE.IMAGE_WHITEBOARD, enable)
+                    janusPhoneKit.enableWhiteboard(CONFERENCING_MODE.IMAGE_WHITEBOARD, enable, imageSrc)
                         .then(resolve)
                 })
         })

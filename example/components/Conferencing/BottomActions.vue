@@ -36,25 +36,29 @@
         <button v-if="isScreenSharing && !isPresentationWhiteboardEnabled && !isImageWhiteboardEnabled"
                 @click="enableScreenShareWhiteboard(!isScreenShareWhiteboardEnabled)"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-field-borders hover:shadow focus:outline-none">
-<!--          {{ isScreenShareWhiteboardEnabled ? 'Remove drawing' : 'Draw over screen share' }}-->
           <vue-feather type="trash" v-if="isScreenShareWhiteboardEnabled" class="w-5 h-5 text-active-elements text-destructive-actions" />
           <vue-feather type="edit" v-else class="w-5 h-5 text-active-elements" />
         </button>
-        <button v-if="!isScreenSharing && !isImageWhiteboardEnabled"
-                @click="enablePresentationWhiteboard(!isPresentationWhiteboardEnabled)"
+
+        <button v-if="!isScreenSharing && !isImageWhiteboardEnabled && !isPresentationWhiteboardEnabled"
+                @click="whiteboardModalOpen = true"
                 class="p-4 mr-2 rounded-full cursor-pointer border border-field-borders hover:shadow focus:outline-none">
-<!--          {{ isPresentationWhiteboardEnabled ? 'Stop drawing' : 'Enable drawing' }}-->
           <vue-feather type="trash" v-if="isPresentationWhiteboardEnabled" class="w-5 h-5 text-destructive-actions" />
           <vue-feather type="edit" v-else class="w-5 h-5 text-active-elements" />
         </button>
-        <button v-if="!isScreenSharing && !isPresentationWhiteboardEnabled"
-                @click="enableImageWhiteboard(!isImageWhiteboardEnabled)"
-                class="p-4 mr-2 rounded-full cursor-pointer border border-field-borders hover:shadow focus:outline-none">
-<!--          {{ isImageWhiteboardEnabled ? 'Stop image drawing' : 'Enable image drawing' }}-->
-          <vue-feather type="trash" v-if="isImageWhiteboardEnabled" class="w-5 h-5 text-destructive-actions" />
-          <vue-feather type="edit" v-else class="w-5 h-5 text-active-elements" />
+        <button v-if="!isScreenSharing && isImageWhiteboardEnabled"
+                class="p-4 mr-2 rounded-full cursor-pointer border border-field-borders hover:shadow focus:outline-none"
+                @click="enableImageWhiteboard(false)">
+          <vue-feather type="trash" class="w-5 h-5 text-destructive-actions" />
         </button>
+        <button v-if="!isScreenSharing && isPresentationWhiteboardEnabled"
+                class="p-4 mr-2 rounded-full cursor-pointer border border-field-borders hover:shadow focus:outline-none"
+                @click="enablePresentationWhiteboard(false)">
+          <vue-feather type="trash" class="w-5 h-5 text-destructive-actions" />
+        </button>
+
       </div>
+
       <div class="flex items-center">
         <button @click="enableScreenShare(!isScreenSharing)"
                 class="px-10 h-full border border-transparent cursor-pointer hover:bg-main-bg focus:outline-none mr-2">
@@ -68,6 +72,7 @@
     </div>
 
     <SettingsModal v-model:modalVisible="settingsModalOpen" />
+    <WhiteboardOptionsModal v-model:modalVisible="whiteboardModalOpen" />
   </div>
 </template>
 
@@ -76,6 +81,7 @@ import { ref } from 'vue'
 import VueFeather from 'vue-feather'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import SettingsModal from '@/components/Conferencing/SettingsModal.vue'
+import WhiteboardOptionsModal from '@/components/Conferencing/WhiteboardOptionsModal.vue'
 
 /* Composable */
 const {
@@ -103,6 +109,7 @@ const emit = defineEmits<Emit>()
 
 /* Data */
 const settingsModalOpen = ref(false)
+const whiteboardModalOpen = ref(false)
 
 /* Methods */
 const hangupMeeting = () => {

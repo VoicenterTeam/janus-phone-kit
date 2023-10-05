@@ -24,6 +24,14 @@
         "roomId": "Room ID",
         "displayName": "Display Name",
       }
+    },
+    "whiteboardModal": {
+      "header": "Whiteboard options",
+      "form": {
+        "emptyWhiteboard": "Empty whiteboard",
+        "imageWhiteboard": "Image whiteboard",
+        "noImage": "No image"
+      }
     }
   }
 }

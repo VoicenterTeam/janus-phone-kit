@@ -229,14 +229,20 @@ export default class JanusPhoneKit extends EventEmitter {
         }
     }
 
-    public async enableWhiteboard (mode: ConferencingModeType, enable: boolean) {
+    public async enableWhiteboard (mode: ConferencingModeType, enable: boolean, base64Image?: string) {
         if (!this.whiteboardPlugin) {
-            this.whiteboardPlugin = new WhiteBoardPlugin({
+            const params = {
                 mode: mode,
                 roomId: this.options.roomId,
                 videoRoomPlugin: this.videoRoomPlugin,
                 stunServers: this.options.stunServers
-            })
+            }
+
+            if (mode === CONFERENCING_MODE.IMAGE_WHITEBOARD && base64Image) {
+                params['imageSrc'] = base64Image
+            }
+
+            this.whiteboardPlugin = new WhiteBoardPlugin(params)
         }
         if (enable) {
             await this.session.attachPlugin(this.whiteboardPlugin)
