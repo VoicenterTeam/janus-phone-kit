@@ -23,6 +23,8 @@ export interface JoinRoomOptions {
 const defaultOptions: JanusPhoneKitOptions = {
     roomId: null,
     url: null,
+    isAudioOn: true,
+    isVideoOn: true,
     stunServers: [ { urls: 'stun:stun.l.google.com:19302' } ]
 }
 
@@ -182,10 +184,12 @@ export default class JanusPhoneKit extends EventEmitter {
     }
 
     public startVideo () {
+        this.options.isVideoOn = true
         this.videoRoomPlugin?.startVideo()
     }
 
     public stopVideo () {
+        this.options.isVideoOn = false
         this.videoRoomPlugin?.stopVideo()
     }
 
@@ -194,10 +198,12 @@ export default class JanusPhoneKit extends EventEmitter {
     }
 
     public startAudio () {
+        this.options.isAudioOn = true
         this.videoRoomPlugin?.startAudio()
     }
 
     public stopAudio () {
+        this.options.isAudioOn = false
         this.videoRoomPlugin?.stopAudio()
     }
 
@@ -309,6 +315,8 @@ export default class JanusPhoneKit extends EventEmitter {
                 displayName: displayName,
                 roomId: this.options.roomId,
                 stunServers: this.options.stunServers,
+                isAudioOn: this.options.isAudioOn,
+                isVideoOn: this.options.isVideoOn,
                 mediaConstraints,
             })
 

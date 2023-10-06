@@ -42,6 +42,8 @@ export class VideoRoomPlugin extends BasePlugin {
     this.room_id = options.roomId
     this.stunServers = options.stunServers
     this.mediaConstraints = options.mediaConstraints;
+    this.isAudioOn = options.isAudioOn
+    this.isVideoOn = options.isVideoOn
     this.rtcConnection = new RTCPeerConnection({
       iceServers: this.stunServers,
     })
@@ -299,6 +301,14 @@ export class VideoRoomPlugin extends BasePlugin {
       video: true,
     })
     await this.sendInitialState()
+
+    if (!this.isAudioOn) {
+        await this.stopAudio()
+    }
+
+    if (!this.isVideoOn) {
+        await this.stopVideo()
+    }
   }
 
   trackMicrophoneVolume() {
