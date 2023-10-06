@@ -1,11 +1,17 @@
 // @ts-nocheck
 
-import Konva from "konva";
+import Konva from 'konva'
+import { DEFAULT_DRAWER_CONFIG } from '../enum/konva.drawer.config.enum'
+import {KonvaDrawerConfig, KonvaDrawerOptions} from '../types/konvaDrawer'
 
 export class KonvaDrawer {
   private stage: any | null = null
+  private strokeWidth: number = DEFAULT_DRAWER_CONFIG.STROKE_WIDTH
+  private strokeColor: string = DEFAULT_DRAWER_CONFIG.STROKE_COLOR
+  private emptyDrawerRectColor: string = DEFAULT_DRAWER_CONFIG.EMPTY_DRAWER_RECT_COLOR
+  private emptyDrawerRect: Konva.Rect | null = null
 
-  constructor (config) {
+  constructor (config: KonvaDrawerConfig) {
     const { container, width, height } = config
     const stage = new Konva.Stage({
       container: container,
@@ -14,6 +20,25 @@ export class KonvaDrawer {
     });
 
     this.stage = stage
+    this.setupDrawerOptions(config)
+  }
+
+  setupDrawerOptions (config: KonvaDrawerOptions) {
+    if (config.strokeWidth) {
+      this.strokeWidth = config.strokeWidth
+    }
+
+    if (config.strokeColor) {
+      this.strokeColor = config.strokeColor
+    }
+
+    if (config.emptyDrawerRectColor) {
+      this.emptyDrawerRectColor = config.emptyDrawerRectColor
+
+      if (this.emptyDrawerRect) {
+        this.emptyDrawerRect.fill('red')
+      }
+    }
   }
 
   /**
@@ -35,8 +60,8 @@ export class KonvaDrawer {
       isPaint = true;
       let pos = this.stage.getPointerPosition();
       lastLine = new Konva.Line({
-        stroke: '#df4b26',
-        strokeWidth: 5,
+        stroke: this.strokeColor,
+        strokeWidth: this.strokeWidth,
         globalCompositeOperation:
           mode === 'brush' ? 'source-over' : 'destination-out',
         // round cap for smoother lines
@@ -67,13 +92,15 @@ export class KonvaDrawer {
     });
   }
 
-  addRect (layer, width, height, color = 'white') {
+  addRect (layer, width, height) {
     let backgroundRect = new Konva.Rect({
       width: width,
       height: height,
-      fill: color, // Set the fill color to white
-    });
-    layer.add(backgroundRect);
+      fill: this.emptyDrawerRectColor, // Set the fill color to white
+    })
+    layer.add(backgroundRect)
+
+    this.emptyDrawerRect = backgroundRect
     return backgroundRect
   }
 
@@ -100,6 +127,10 @@ export class KonvaDrawer {
       points: [0, 0, 0, 0],
     });
     layer.add(lastLine);
+  }
+
+  setupBrush (config) {
+
   }
 
 }

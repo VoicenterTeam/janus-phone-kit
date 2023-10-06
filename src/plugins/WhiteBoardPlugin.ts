@@ -218,9 +218,17 @@ export class WhiteBoardPlugin extends ConferencingBasePlugin {
     })
 
     const layer = konvaDrawer.addLayer()
-    konvaDrawer.addRect(layer, width, height, 'white')
+    konvaDrawer.addRect(layer, width, height)
 
     konvaDrawer.initFreeDrawing(layer)
+
+    /*setTimeout(() => {
+      konvaDrawer.setupDrawerOptions({
+        emptyDrawerRectColor: '#71EB4C',
+        strokeColor: '#F78621',
+        strokeWidth: 10
+      })
+    }, 10000)*/
   }
 
   async drawImageWhiteboard() {
