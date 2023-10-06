@@ -51,6 +51,7 @@ export interface EventPayloads {
     'screenShare:stop': null
     'screenShare:start': null
     'webrtcup': null
+    'reconnect': null
 }
 
 export type EventName = keyof EventPayloads

@@ -1,4 +1,3 @@
-// @ts-ignore
 import 'webrtc-adapter'
 import Session from './Session'
 import { logger } from './util/logger'
@@ -8,11 +7,13 @@ import { WhiteBoardPlugin } from './plugins/WhiteBoardPlugin'
 import EventEmitter from './util/EventEmitter'
 import { StunServer } from './types'
 import { CONFERENCING_MODE, ConferencingModeType } from './enum/conferencing.enum'
-import { EventCallbackByEventName, EventName, EventPayloadByEventName } from 'janus/types/events'
+import { EventCallbackByEventName, EventName, EventPayloads } from 'janus/types/events'
 
 export type JanusPhoneKitOptions = {
   roomId?: number,
   url?: string,
+    isAudioOn?: boolean,
+    isVideoOn?: boolean,
   stunServers?: StunServer[]
 }
 export interface JoinRoomOptions {
@@ -53,7 +54,21 @@ export default class JanusPhoneKit extends EventEmitter {
 
     private whiteboardPlugin = null
 
-    private eventListeners: { [key: EventName]: Array<EventCallbackByEventName> } = {}
+    private eventListeners: { [K in EventName]: Array<EventCallbackByEventName<K>> } = {
+        'member:join': [],
+        'member:update': [],
+        'member:hangup': [],
+        hangup: [],
+        plugin_attached: [],
+        output: [],
+        attached: [],
+        detached: [],
+        keepalive_timout: [],
+        'screenShare:stop': [],
+        'screenShare:start': [],
+        webrtcup: [],
+        reconnect: [],
+    }
 
     isConnected = false
 
@@ -65,9 +80,10 @@ export default class JanusPhoneKit extends EventEmitter {
         }
     }
 
-    on <Event extends EventName, Fn extends EventCallbackByEventName<Event>> (event: EventName, fn: Fn) {
-        const functions: Array<EventCallbackByEventName> = this.eventListeners[event] || []
-        this.eventListeners[event] = [ ...functions, fn ]
+    on<Event extends EventName> (event: Event, fn: EventCallbackByEventName<Event>) {
+        const functions = this.eventListeners[event]
+
+        functions.push(fn)
 
         /*this.session.on(event, (...params) => {
             fn.apply(this, params)
@@ -78,7 +94,7 @@ export default class JanusPhoneKit extends EventEmitter {
         this.session?.emit.apply(this, params)
     }
 
-    connectToServer() {
+    connectToServer () {
         this.session = new Session()
 
         this.websocket = new WebSocket(this.options.url, 'janus-protocol')
@@ -105,7 +121,7 @@ export default class JanusPhoneKit extends EventEmitter {
         Object.keys(this.eventListeners).forEach((event) => {
             const fns = this.eventListeners[event] || []
             fns.forEach(fn => {
-                this.session.on(event, (...params) => {
+                this.session.on(event as keyof EventPayloads, (...params) => {
                     fn.apply(this, params)
                 })
             })
