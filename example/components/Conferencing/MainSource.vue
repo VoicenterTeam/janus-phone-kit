@@ -56,7 +56,6 @@
 </template>
 
 <script setup lang="ts">
-import VueFeather from 'vue-feather'
 import { useI18n } from 'vue-i18n'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 

@@ -753,10 +753,10 @@
   resolved "https://registry.npmjs.org/@vitejs/plugin-vue/-/plugin-vue-4.3.4.tgz#a289dff38e01949fe7be581d5542cabaeb961dec"
   integrity sha512-ciXNIHKPriERBisHFBvnTbfKa6r9SAesOYXeGDzgegcvy9Q4xdScSHAmKbNT0M3O0S9LKhIf5/G+UYG4NnnzYw==
 
-"@voicenter-team/voicenter-ui-plus@^0.2.15":
-  version "0.2.22"
-  resolved "https://registry.npmjs.org/@voicenter-team/voicenter-ui-plus/-/voicenter-ui-plus-0.2.22.tgz#d1a72261937ac5a32e02dd13654b117d10989ca8"
-  integrity sha512-4icqXTnekbLnJP7oUDkuPQcKhhnxAM3Mjjg4VXjyw+s4THBQ+B+DZvfnhcy0AlFYZDCnOkxRfvf30NNhPcdOVg==
+"@voicenter-team/voicenter-ui-plus@^0.2.27":
+  version "0.2.27"
+  resolved "https://registry.yarnpkg.com/@voicenter-team/voicenter-ui-plus/-/voicenter-ui-plus-0.2.27.tgz#b51a4ebf58d76812a1535c8c947fbe474fddbb85"
+  integrity sha512-JsOyfkDWkAOdxS/bqA4No3zNSrs4G4WiEUeucQTnkZaj0l/3sp83kuXiRGB1qADyb43KXinMdMiw2R59Wvs7SQ==
   dependencies:
     "@vuepic/vue-datepicker" "3.0.0"
     date-fns "^2.29.2"
