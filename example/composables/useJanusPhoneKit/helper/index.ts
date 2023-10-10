@@ -1,11 +1,6 @@
 import { MainState } from '@/composables/useJanusPhoneKit/types'
 import JanusPhoneKit, { DeviceManager } from 'janus/index'
-
-export function playJoinSound () {
-    const audio = new Audio('/sound/join.mp3')
-
-    audio.play()
-}
+import { configState } from '@/plugins/config'
 
 export function afterHangup (state: MainState) {
     state.streamSources.forEach(source => {
@@ -16,6 +11,13 @@ export function afterHangup (state: MainState) {
 }
 
 export function initListeners (janusPhoneKit: JanusPhoneKit, state: MainState) {
+    function playJoinSound () {
+        console.log('stateData', configState)
+        const audio = new Audio(configState.value.appConfig.SOUND_NOTIFICATIONS.join)
+
+        audio.play()
+    }
+
     janusPhoneKit.on(
         'screenShare:stop',
         () => {

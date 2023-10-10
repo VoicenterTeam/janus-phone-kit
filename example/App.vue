@@ -7,7 +7,7 @@ import { ref } from 'vue'
 const key = ref(Date.now())
 
 const restart = () => {
-  key.value = Date.now()
+    key.value = Date.now()
 }
 
 window.restart = restart

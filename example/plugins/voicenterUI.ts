@@ -5,8 +5,7 @@ export default {
     install (app: App) {
         app.use(VoicenterUI, {
             themeConfig: {
-                type: 'local',
-                themeName: 'blue'
+                type: 'none'
             }
         })
     }

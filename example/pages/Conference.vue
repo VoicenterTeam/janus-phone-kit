@@ -4,9 +4,9 @@
 
         <JoinRoomModal
             v-model="roomDetailsModel"
-            v-if="CONFERENCE_PAGE_QUERY_PARAMETERS.PARAMETERS_MISSING_BEHAVIOR.type === ParametersMissingBehaviorType.REQUEST_IF_MISSING"
+            v-if="stateData.appConfig.PARAMETERS_MISSING_BEHAVIOR.type === ParametersMissingBehaviorType.REQUEST_IF_MISSING"
             v-model:modal-visible="roomDetailsModalOpened"
-            :fields-to-show="CONFERENCE_PAGE_QUERY_PARAMETERS.PARAMETERS_MISSING_BEHAVIOR.data.fields"
+            :fields-to-show="stateData.appConfig.PARAMETERS_MISSING_BEHAVIOR.data.fields"
             @submit="setRoomDetailsData"
         />
 
@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { CONFERENCE_PAGE_ROUTE, HOME_PAGE_ROUTE } from '@/router'
 import { generateConferenceQueryParameters, getConferenceQueryParameters } from '@/helper/router.helper'
@@ -23,7 +23,11 @@ import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import Conferencing from '@/components/Conferencing.vue'
 import JoinRoomModal from '@/components/JoinRoomModal.vue'
 import { JoinRoomData } from '@/types/forms'
-import { CONFERENCE_PAGE_QUERY_PARAMETERS, ParametersMissingBehaviorType } from '@/config/behaviour.config'
+import { ParametersMissingBehaviorType } from '@/config/app.config'
+import { ConfigInjectionKey } from '@/plugins/config'
+
+/* Inject */
+const stateData = inject(ConfigInjectionKey)
 
 /* Composables */
 const route = useRoute()
@@ -61,11 +65,19 @@ async function joinConference (roomId: number, displayName: string) {
     }
 }
 function checkIfOtherFieldsFilled (data: Partial<JoinRoomData>, fields: Array<keyof JoinRoomData>): boolean {
-    return Object.keys(data).some((key) => {
+    const uniqueFields = [ ...new Set(fields) ]
+
+    return Object.keys(data).every((key) => {
         const dataKey = key as keyof JoinRoomData
-        return !fields.includes(dataKey) && data[dataKey] !== undefined
+
+        if (uniqueFields.includes(dataKey)) {
+            return true // Skip fields that are in the 'fields' array
+        }
+
+        return data[dataKey] !== undefined // Check that all other fields are not undefined
     })
 }
+
 
 function tryInitializeByQueryParameters () {
     initializingData.value = true
@@ -78,12 +90,14 @@ function tryInitializeByQueryParameters () {
         return
     }
 
-    switch (CONFERENCE_PAGE_QUERY_PARAMETERS.PARAMETERS_MISSING_BEHAVIOR.type) {
+    switch (stateData.value.appConfig.PARAMETERS_MISSING_BEHAVIOR.type) {
         case ParametersMissingBehaviorType.REDIRECT_TO_URL:
-            window.location.href = CONFERENCE_PAGE_QUERY_PARAMETERS.PARAMETERS_MISSING_BEHAVIOR.data.url
+            console.log('redirect')
+            window.location.href = stateData.value.appConfig.PARAMETERS_MISSING_BEHAVIOR.data.url
             break
         case ParametersMissingBehaviorType.REQUEST_IF_MISSING:
-            if (!checkIfOtherFieldsFilled(data, CONFERENCE_PAGE_QUERY_PARAMETERS.PARAMETERS_MISSING_BEHAVIOR.data.fields)) {
+            console.log('request', stateData.value.appConfig.PARAMETERS_MISSING_BEHAVIOR.data.fields, data, checkIfOtherFieldsFilled(data, stateData.value.appConfig.PARAMETERS_MISSING_BEHAVIOR.data.fields))
+            if (!checkIfOtherFieldsFilled(data, stateData.value.appConfig.PARAMETERS_MISSING_BEHAVIOR.data.fields)) {
                 redirectToHomePage()
 
                 return
