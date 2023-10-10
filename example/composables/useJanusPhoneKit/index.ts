@@ -7,6 +7,7 @@ import { initListeners } from './helper'
 import { CONFERENCING_MODE } from 'janus/enum/conferencing.enum'
 import { DeviceManager } from 'janus/index'
 import { Member } from 'janus/types/events'
+import {KonvaDrawerOptions, KonvaScreenShareDrawerOptions} from "../../../src/types/konvaDrawer";
 
 const janusPhoneKit = new JanusPhoneKit({
     url: 'wss://jnwss.voicenter.co/janus'
@@ -97,6 +98,14 @@ export default function useJanusPhoneKit () {
         })
     }
 
+    function setupDrawerOptions (options: KonvaDrawerOptions) {
+        janusPhoneKit.setupDrawerOptions(options)
+    }
+
+    function setupScreenShareDrawerOptions (options: KonvaScreenShareDrawerOptions) {
+        janusPhoneKit.setupScreenShareDrawerOptions(options)
+    }
+
     async function enableScreenShare (enable: boolean) {
         if (enable) {
             await janusPhoneKit.startScreenShare()
@@ -136,6 +145,7 @@ export default function useJanusPhoneKit () {
     }
 
     function selectMainSource (source: Member) {
+        console.log('selectMainSource', source)
         if (!source || !source.id) {
             return
         }
@@ -231,6 +241,8 @@ export default function useJanusPhoneKit () {
         enableScreenShareWhiteboard,
         enablePresentationWhiteboard,
         enableImageWhiteboard,
+        setupDrawerOptions,
+        setupScreenShareDrawerOptions,
         enableScreenShare,
         changePublisherStream,
         selectMainSource,

@@ -9,6 +9,7 @@ import EventEmitter from './util/EventEmitter'
 import { StunServer } from './types'
 import { CONFERENCING_MODE, ConferencingModeType } from './enum/conferencing.enum'
 import { EventCallbackByEventName, EventName, EventPayloadByEventName } from 'janus/types/events'
+import {KonvaDrawerOptions, KonvaScreenShareDrawerOptions} from "./types/konvaDrawer";
 
 export type JanusPhoneKitOptions = {
   roomId?: number,
@@ -261,6 +262,16 @@ export default class JanusPhoneKit extends EventEmitter {
             this.whiteboardPlugin = null
             //this.screenSharePlugin.overrideSenderTracks(stream)
         }
+    }
+
+    public setupDrawerOptions (options: KonvaDrawerOptions) {
+        if (this.whiteboardPlugin) {
+            this.whiteboardPlugin.setupDrawerOptions(options)
+        }
+    }
+
+    public setupScreenShareDrawerOptions (options: KonvaScreenShareDrawerOptions) {
+        WhiteBoardPlugin.setupScreenShareDrawerOptions(options)
     }
 
     public async startScreenShare () {

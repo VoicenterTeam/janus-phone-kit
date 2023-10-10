@@ -30,7 +30,7 @@ const router = useRouter()
 /* Data */
 const modalOpen = ref(false)
 const roomDetailsModel = ref<JoinRoomData>({
-    roomId: 1236,
+    roomId: 4545,
     displayName: 'User'
 })
 

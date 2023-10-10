@@ -9,14 +9,17 @@ import {StunServer} from "../types";
 import {ConferencingBasePlugin} from "./ConferencingBasePlugin";
 import { CONFERENCING_MODE, ConferencingModeType } from '../enum/conferencing.enum'
 import {KonvaDrawer} from "../util/KonvaDrawer";
+import {KonvaDrawerOptions} from "../types/konvaDrawer";
 
 export class WhiteBoardPlugin extends ConferencingBasePlugin {
   private visualizationConfig = {}
   private rafId: number | null = null
-  private video: HTMLVideoElement | null = null
-  private wrapperEl: HTMLDivElement | null = null
-  private initialStream: MediaStream | null = null
+  private static video: HTMLVideoElement | null = null
+  private static wrapperEl: HTMLDivElement | null = null
+  private static screenShareKonvaDrawer: KonvaDrawer | null = null
+  private static initialStream: MediaStream | null = null
   private imageSrc: string | null = null
+  private konvaDrawer: KonvaDrawer | null = null
   public mode: ConferencingModeType = undefined
   //rtcConnection: any = null
   name = 'janus.plugin.videoroomjs'
@@ -128,17 +131,17 @@ export class WhiteBoardPlugin extends ConferencingBasePlugin {
     const wrapperEl = document.getElementById('screen-share-video-container')
     const compositeCanvasContainerEl = document.getElementById('composite-canvas-container')
 
-    const {width, height} = this.getAspectRatioDimensions(stream, wrapperEl)
+    const { width, height } = this.getAspectRatioDimensions(stream, wrapperEl)
     let shareWidth = width, shareHeight = height
 
-    const konvaDrawer = new KonvaDrawer({
+    this.screenShareKonvaDrawer = new KonvaDrawer({
       container: 'container',
       width: shareWidth,
       height: shareHeight
     })
 
-    const layer = konvaDrawer.addLayer()
-    konvaDrawer.initFreeDrawing(layer)
+    const layer = this.screenShareKonvaDrawer.addLayer()
+    this.screenShareKonvaDrawer.initFreeDrawing(layer)
 
     const container = document.getElementById('container')
     const canvas = container.querySelector('canvas')
@@ -149,7 +152,7 @@ export class WhiteBoardPlugin extends ConferencingBasePlugin {
     const compositeCtx = compositeCanvas.getContext("2d");
 
     const resizeCanvasElements = () => {
-      const {width, height} = this.getAspectRatioDimensions(stream, wrapperEl)
+      const { width, height } = this.getAspectRatioDimensions(stream, wrapperEl)
       shareWidth = width
       shareHeight = height
 
@@ -172,13 +175,11 @@ export class WhiteBoardPlugin extends ConferencingBasePlugin {
     // TODO Remove once detached
     window.addEventListener('resize', () => {
       resizeCanvasElements()
-      konvaDrawer.addWakeupLine(layer)
+      this.screenShareKonvaDrawer.addWakeupLine(layer)
     })
 
     const screenVideo = this.video
 
-    console.log('shareWidth', shareWidth)
-    console.log('shareHeight', shareHeight)
     const draw = ()=>  {
       // Draw the video frame
       compositeCtx.drawImage(screenVideo, 0, 0, shareWidth, shareHeight);
@@ -202,7 +203,20 @@ export class WhiteBoardPlugin extends ConferencingBasePlugin {
     this.initialStream = null
     this.video = null
     this.wrapperEl = null
+    this.screenShareKonvaDrawer = null
     return stream
+  }
+
+  setupDrawerOptions (options: KonvaDrawerOptions) {
+    if (this.konvaDrawer) {
+      this.konvaDrawer.setupDrawerOptions(options)
+    }
+  }
+
+  static setupScreenShareDrawerOptions (options: KonvaDrawerOptions) {
+    if (this.screenShareKonvaDrawer) {
+      this.screenShareKonvaDrawer.setupDrawerOptions(options)
+    }
   }
 
   drawEmptyWhiteboard() {
@@ -211,16 +225,16 @@ export class WhiteBoardPlugin extends ConferencingBasePlugin {
     let width = wrapperEl.clientWidth
     let height = wrapperEl.clientHeight
 
-    const konvaDrawer = new KonvaDrawer({
+    this.konvaDrawer = new KonvaDrawer({
       container: 'presentationCanvasWrapper',
       width: width,
       height: height
     })
 
-    const layer = konvaDrawer.addLayer()
-    konvaDrawer.addRect(layer, width, height)
+    const layer = this.konvaDrawer.addLayer()
+    this.konvaDrawer.addRect(layer, width, height)
 
-    konvaDrawer.initFreeDrawing(layer)
+    this.konvaDrawer.initFreeDrawing(layer)
 
     /*setTimeout(() => {
       konvaDrawer.setupDrawerOptions({
@@ -241,17 +255,17 @@ export class WhiteBoardPlugin extends ConferencingBasePlugin {
 
     const imageObj = await loadImage(this.imageSrc)
 
-    const konvaDrawer = new KonvaDrawer({
+    this.konvaDrawer = new KonvaDrawer({
       container: 'presentationCanvasWrapper',
       width: width,
       height: height
     })
 
-    const layer = konvaDrawer.addLayer()
-    konvaDrawer.addImage(layer, imageObj)
-    layer.batchDraw();
+    const layer = this.konvaDrawer.addLayer()
+    this.konvaDrawer.addImage(layer, imageObj)
+    layer.batchDraw()
 
-    konvaDrawer.initFreeDrawing(layer)
+    this.konvaDrawer.initFreeDrawing(layer)
   }
 
   async onAttached() {
@@ -327,6 +341,7 @@ export class WhiteBoardPlugin extends ConferencingBasePlugin {
   }
 
   async stopPresentationWhiteboard() {
+    this.konvaDrawer = null
     this.session.emit('screenShare:stop')
 
     await this.detach();

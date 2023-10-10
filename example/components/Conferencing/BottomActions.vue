@@ -43,33 +43,47 @@
           />
         </div>
 
-        <RoundButton
-            v-if="!isScreenSharing && !isImageWhiteboardEnabled && !isPresentationWhiteboardEnabled"
-            icon="vc-icon-edit-pencil"
-            color="active-elements"
-            class="mr-2"
-            @click="whiteboardModalOpen = true"
-        />
-        <RoundButton
-            v-if="!isScreenSharing && isImageWhiteboardEnabled"
-            icon="vc-icon-recycle-bin"
-            color="destructive-actions"
-            class="mr-2"
-            @click="enableImageWhiteboard(false)"
-        />
-        <RoundButton
-            v-if="!isScreenSharing && isPresentationWhiteboardEnabled"
-            icon="vc-icon-recycle-bin"
-            color="destructive-actions"
-            class="mr-2"
-            @click="enablePresentationWhiteboard(false)"
-        />
+        <div>
+          <RoundButton
+              v-if="!isScreenSharing && !isImageWhiteboardEnabled && !isPresentationWhiteboardEnabled"
+              icon="vc-icon-edit-pencil"
+              color="active-elements"
+              class="mr-2"
+              @click="whiteboardModalOpen = true"
+          />
+          <RoundButton
+              v-if="!isScreenSharing && isImageWhiteboardEnabled"
+              icon="vc-icon-recycle-bin"
+              color="destructive-actions"
+              class="mr-2"
+              @click="enableImageWhiteboard(false)"
+          />
+          <RoundButton
+              v-if="!isScreenSharing && isPresentationWhiteboardEnabled"
+              icon="vc-icon-recycle-bin"
+              color="destructive-actions"
+              class="mr-2"
+              @click="enablePresentationWhiteboard(false)"
+          />
+        </div>
+
+
+        <div>
+          <DrawerOptions
+              v-if="isScreenShareWhiteboardEnabled || isImageWhiteboardEnabled || isPresentationWhiteboardEnabled"
+              :is-extended-options="isPresentationWhiteboardEnabled"
+              :isScreenShareWhiteboardEnabled="isScreenShareWhiteboardEnabled"
+              :setupDrawerOptions="setupDrawerOptions"
+              :setupScreenShareDrawerOptions="setupScreenShareDrawerOptions"
+          />
+        </div>
+
       </div>
 
       <div class="flex items-center">
         <RoundButton
-            icon="vc-icon-eye"
-            activeIcon="vc-icon-blind"
+            icon="vc-icon-background-blur-2"
+            activeIcon="vc-icon-background-blur-1"
             color="active-elements"
             class="mr-2"
             :active="isWithMaskEffect"
@@ -84,12 +98,12 @@
             class="mr-2"
             @click="enableScreenShare(!isScreenSharing)"
         />
-        <RoundButton
+<!--        <RoundButton
             icon="vc-icon-settings"
             color="active-elements"
             class="mr-2"
             @click="settingsModalOpen = true"
-        />
+        />-->
       </div>
     </div>
 
@@ -104,6 +118,7 @@ import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import SettingsModal from '@/components/Conferencing/SettingsModal.vue'
 import WhiteboardOptionsModal from '@/components/Conferencing/WhiteboardOptionsModal.vue'
 import RoundButton from '@/components/Conferencing/RoundButton.vue'
+import DrawerOptions from '@/components/Conferencing/DrawerOptions.vue'
 
 /* Composable */
 const {
@@ -119,7 +134,9 @@ const {
     enableScreenShareWhiteboard,
     enablePresentationWhiteboard,
     enableImageWhiteboard,
-    enableScreenShare
+    enableScreenShare,
+    setupDrawerOptions,
+    setupScreenShareDrawerOptions
 } = useJanusPhoneKit()
 
 /* Emit */

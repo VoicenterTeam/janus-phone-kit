@@ -2,7 +2,7 @@
 
 import Konva from 'konva'
 import { DEFAULT_DRAWER_CONFIG } from '../enum/konva.drawer.config.enum'
-import {KonvaDrawerConfig, KonvaDrawerOptions} from '../types/konvaDrawer'
+import {KonvaDrawerConfig, KonvaEmptyDrawerOptions, KonvaDrawerOptions, KonvaScreenShareConfig} from '../types/konvaDrawer'
 
 export class KonvaDrawer {
   private stage: any | null = null
@@ -11,7 +11,7 @@ export class KonvaDrawer {
   private emptyDrawerRectColor: string = DEFAULT_DRAWER_CONFIG.EMPTY_DRAWER_RECT_COLOR
   private emptyDrawerRect: Konva.Rect | null = null
 
-  constructor (config: KonvaDrawerConfig) {
+  constructor (config: KonvaDrawerConfig | KonvaScreenShareConfig) {
     const { container, width, height } = config
     const stage = new Konva.Stage({
       container: container,
@@ -23,7 +23,7 @@ export class KonvaDrawer {
     this.setupDrawerOptions(config)
   }
 
-  setupDrawerOptions (config: KonvaDrawerOptions) {
+  setupDrawerOptions (config: KonvaEmptyDrawerOptions | KonvaDrawerOptions) {
     if (config.strokeWidth) {
       this.strokeWidth = config.strokeWidth
     }
@@ -36,7 +36,7 @@ export class KonvaDrawer {
       this.emptyDrawerRectColor = config.emptyDrawerRectColor
 
       if (this.emptyDrawerRect) {
-        this.emptyDrawerRect.fill('red')
+        this.emptyDrawerRect.fill(config.emptyDrawerRectColor)
       }
     }
   }
@@ -128,9 +128,4 @@ export class KonvaDrawer {
     });
     layer.add(lastLine);
   }
-
-  setupBrush (config) {
-
-  }
-
 }
