@@ -1,7 +1,7 @@
 import {
     createI18n,
 } from 'vue-i18n'
-import messages from '@intlify/vite-plugin-vue-i18n/messages'
+import messages from '@intlify/unplugin-vue-i18n/messages'
 
 export type MessageSchema = typeof messages
 export const FALLBACK_LOCALE = import.meta.env.VITE_APP_FALLBACK_LOCALE ?? 'en'
