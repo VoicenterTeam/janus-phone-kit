@@ -90,7 +90,9 @@
             :disabled="!videoOnModel"
             @click="toggleMaskEffect"
         />
+        is Mobile {{ isMobile }}
         <RoundButton
+            v-if="!isMobile"
             icon="vc-icon-open"
             activeIcon="vc-icon-close"
             color="active-elements"
@@ -115,6 +117,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+import useDeviceType from '@/composables/useDeviceType'
 import SettingsModal from '@/components/Conferencing/SettingsModal.vue'
 import WhiteboardOptionsModal from '@/components/Conferencing/WhiteboardOptionsModal.vue'
 import RoundButton from '@/components/Conferencing/RoundButton.vue'
@@ -138,6 +141,8 @@ const {
     setupDrawerOptions,
     setupScreenShareDrawerOptions
 } = useJanusPhoneKit()
+
+const { isMobile } = useDeviceType()
 
 /* Emit */
 export interface Emit {
