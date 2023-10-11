@@ -59,7 +59,7 @@
   "engines": {
     "node": ">=16.19.0",
     "npm": "please use yarn instead of npm",
-    "yarn": ">=1.22.10"
+    "yarn": ">=1.22.4"
   },
   "jsdelivr": "library/janus-phone-kit.umd.js",
   "main": "library/janus-phone-kit.cjs.js",
