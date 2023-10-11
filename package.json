@@ -8,7 +8,7 @@
     "lint": "eslint --ext .ts,.js,.vue src"
   },
   "dependencies": {
-    "@intlify/vite-plugin-vue-i18n": "^7.0.0",
+    "@intlify/unplugin-vue-i18n": "^1.4.0",
     "@mediapipe/selfie_segmentation": "^0.1.1675465747",
     "@tensorflow-models/body-segmentation": "^1.0.2",
     "@tensorflow/tfjs-backend-wasm": "^4.10.0",
@@ -44,9 +44,8 @@
     "typescript": "^5.2.2",
     "unplugin-auto-import": "^0.16.6",
     "unplugin-vue-components": "^0.25.2",
-    "vite": "^4.4.9",
+    "vite": "^4.4.11",
     "vite-plugin-dts": "^3.5.3",
-    "vite-plugin-mkcert": "^1.16.0",
     "vue": "^3.3.4",
     "vue-eslint-parser": "^9.3.1",
     "vue-feather": "2"
@@ -59,8 +58,8 @@
   ],
   "engines": {
     "node": ">=16.19.0",
-    "npm": "please use yarn instead of npm",
-    "yarn": ">=1.22.10"
+    "npm": ">=9.6.7",
+    "yarn": "please-use-npm"
   },
   "jsdelivr": "library/janus-phone-kit.umd.js",
   "main": "library/janus-phone-kit.cjs.js",

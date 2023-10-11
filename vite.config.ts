@@ -2,8 +2,7 @@ import { resolve } from 'path'
 import { defineConfig, loadEnv, BuildOptions } from 'vite'
 import dts from 'vite-plugin-dts'
 import vue from '@vitejs/plugin-vue'
-import vueI18n from '@intlify/vite-plugin-vue-i18n'
-//import mkcert from 'vite-plugin-mkcert'
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 
 const OUTPUT_DIR = 'library'
 
@@ -37,7 +36,7 @@ export default ({ mode }) => {
         plugins: [
             dts({ rollupTypes: true }),
             vue(),
-            vueI18n({
+            VueI18nPlugin({
                 include: resolve(__dirname, './example/locales/**')
             }),
             /*mkcert()*/
