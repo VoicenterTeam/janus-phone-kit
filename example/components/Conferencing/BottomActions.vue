@@ -1,7 +1,12 @@
 <template>
   <div>
     <div class="fixed bottom-0 h-20 bg-light-bg shadow-lg w-full border-t border-field-borders flex justify-between">
-      <div class="w-56"></div>
+      <div class="flex w-56 p-2 items-center">
+        <img
+          style="width: 150px; height: auto;"
+          :src="stateData.appConfig.APP_LOGO"
+        />
+      </div>
       <div class="flex items-center">
         <RoundButton
             icon="vc-icon-mic"
@@ -90,7 +95,6 @@
             :disabled="!videoOnModel"
             @click="toggleMaskEffect"
         />
-        is Mobile {{ isMobile }}
         <RoundButton
             v-if="!isMobile"
             icon="vc-icon-open"
@@ -115,13 +119,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import useDeviceType from '@/composables/useDeviceType'
 import SettingsModal from '@/components/Conferencing/SettingsModal.vue'
 import WhiteboardOptionsModal from '@/components/Conferencing/WhiteboardOptionsModal.vue'
 import RoundButton from '@/components/Conferencing/RoundButton.vue'
 import DrawerOptions from '@/components/Conferencing/DrawerOptions.vue'
+import { ConfigInjectionKey } from '@/plugins/config'
+
+/* Inject */
+const stateData = inject(ConfigInjectionKey)
 
 /* Composable */
 const {
