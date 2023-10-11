@@ -55,6 +55,8 @@ export default class JanusPhoneKit extends EventEmitter {
 
     private whiteboardPlugin = null
 
+    private reconnectAttempt = 0
+
     private eventListeners: { [K in EventName]: Array<EventCallbackByEventName<K>> } = {
         'member:join': [],
         'member:update': [],
@@ -96,6 +98,7 @@ export default class JanusPhoneKit extends EventEmitter {
     }
 
     connectToServer () {
+        this.reconnectAttempt++
         this.session = new Session()
 
         this.websocket = new WebSocket(this.options.url, 'janus-protocol')
@@ -272,7 +275,6 @@ export default class JanusPhoneKit extends EventEmitter {
 
             //this.screenSharePlugin.overrideSenderTracks(whiteBoardStream)
         } else {
-            console.log('disable whiteboard')
             //const stream = await this.whiteboardPlugin?.stop()
             await this.whiteboardPlugin?.stopPresentationWhiteboard()
             this.whiteboardPlugin = null
@@ -331,6 +333,7 @@ export default class JanusPhoneKit extends EventEmitter {
         const mediaConstraints = this.mediaConstraints
         this.websocket.addEventListener('open', async () => {
             try {
+                this.reconnectAttempt = 0
                 await this.session.create()
                 logger.info(`Session with ID ${this.session.id} created.`)
             } catch (err) {
@@ -387,9 +390,10 @@ export default class JanusPhoneKit extends EventEmitter {
             this.websocket = null
             // TODO: maybe set isConnected = false here
 
+            const reconnectDelay = this.reconnectAttempt > 12 ? 5000 : 0
             setTimeout(() => {
                 this.connectToServer()
-            }, 5000)
+            }, reconnectDelay)
         }
     }
 }
