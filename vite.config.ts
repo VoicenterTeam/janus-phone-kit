@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { defineConfig, loadEnv, BuildOptions } from 'vite'
+import { defineConfig, loadEnv, BuildOptions, PluginOption } from 'vite'
 import dts from 'vite-plugin-dts'
 import vue from '@vitejs/plugin-vue'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
@@ -24,6 +24,13 @@ const build: BuildOptions = process.env.TARGET === 'doc'
         }
     }
 
+
+const plugins: PluginOption[] = process.env.TARGET === 'doc'
+    ? []
+    : [
+        dts({ rollupTypes: true }),
+    ]
+
 export default ({ mode }) => {
     process.env = {
         ...process.env,
@@ -32,14 +39,12 @@ export default ({ mode }) => {
 
     return defineConfig({
         build,
-        /*server: { https: true },*/
         plugins: [
-            dts({ rollupTypes: true }),
+            ...plugins,
             vue(),
             VueI18nPlugin({
                 include: resolve(__dirname, './example/locales/**')
             }),
-            /*mkcert()*/
         ],
         resolve: {
             alias: {
