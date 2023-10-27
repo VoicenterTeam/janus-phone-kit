@@ -44,9 +44,13 @@ export class VideoRoomPlugin extends BasePlugin {
     this.mediaConstraints = options.mediaConstraints;
     this.isAudioOn = options.isAudioOn
     this.isVideoOn = options.isVideoOn
-    this.rtcConnection = new RTCPeerConnection({
+
+    const config = {
       iceServers: this.stunServers,
-    })
+      sdpSemantics: 'unified-plan',
+    }
+
+    this.rtcConnection = new RTCPeerConnection(config)
     logger.debug('Init plugin', this);
 
     this.rtcConnection.addEventListener('iceconnectionstatechange', () => {
@@ -279,6 +283,33 @@ export class VideoRoomPlugin extends BasePlugin {
       clientID: this.clientID,
       opaque_id: this.opaqueId,
     });
+
+    /*// Add an audio transceiver.
+    const audioTransceiver = this.rtcConnection.addTransceiver('audio', {
+      direction: 'sendrecv', // You can specify 'sendrecv', 'sendonly', or 'recvonly'
+    })
+    const audioTracks = this.stream.getAudioTracks()
+    if (audioTracks.length < 1) {
+      console.log('ERR no audiotracks')
+    }
+    const audioTrack = audioTracks[0]
+    audioTransceiver.sender.replaceTrack(audioTrack)
+
+    // Add a video transceiver.
+    const videoTracks = this.stream.getVideoTracks()
+    if (videoTracks.length < 1) {
+      console.log('ERR no videotracks')
+    }
+    const videoTrack = videoTracks[0]
+
+    const transceiver = this.rtcConnection.addTransceiver(videoTrack, {
+      direction: 'sendrecv',
+      streams: [this.stream],
+      codecs: [
+        { name: 'H264' },
+        { name: 'VP8' }, // Add other preferred codecs
+      ],
+    })*/
 
     this.session.emit('member:join', {
       stream: this.stream,

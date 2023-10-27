@@ -59,7 +59,13 @@ export class Member {
         room: this.plugin.room_id
       }, answerSdp, {handle_id: this.handleId});
 
-      this.stream = event.stream;
+      const aTracks = event.streams[0].getAudioTracks()
+      const vTracks = event.streams[0].getVideoTracks()
+
+      const mediaStream = new MediaStream([ aTracks[0], vTracks[0] ])
+      this.stream = mediaStream
+
+      //this.stream = event.stream
 
       console.log('answerAttachedStream member:join', this.memberInfo)
       this.plugin?.session.emit('member:join', this.memberInfo)
@@ -73,7 +79,8 @@ export class Member {
 
     this.rtcpPeer = new RTCPeerConnection();
     console.log('answerAttachedStream this.rtcpPeer', this.rtcpPeer)
-    this.rtcpPeer.onaddstream = RTCPeerOnAddStream;
+    //this.rtcpPeer.onaddstream = RTCPeerOnAddStream;
+    this.rtcpPeer.ontrack  = RTCPeerOnAddStream;
     this.rtcpPeer.onicecandidate = RTCPeerOnIceCandidate;
     this.rtcpPeer.sender = attachedStreamInfo.sender;
     await this.rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep);
