@@ -97,7 +97,7 @@ export default class JanusPhoneKit extends EventEmitter {
         this.session?.emit.apply(this, params)
     }
 
-    connectToServer () {
+    private connectToServer () {
         this.reconnectAttempt++
         this.session = new Session()
 
@@ -270,7 +270,7 @@ export default class JanusPhoneKit extends EventEmitter {
         }
     }
 
-    stopScreenShare () {
+    public stopScreenShare () {
         if (!this.screenSharePlugin) {
             return
         }
