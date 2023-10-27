@@ -7,8 +7,8 @@ import { WhiteBoardPlugin } from './plugins/WhiteBoardPlugin'
 import EventEmitter from './util/EventEmitter'
 import { StunServer } from './types'
 import { CONFERENCING_MODE, ConferencingModeType } from './enum/conferencing.enum'
-import { EventCallbackByEventName, EventName, EventPayloads, EventPayloadByEventName } from 'janus/types/events'
-import {KonvaDrawerOptions, KonvaScreenShareDrawerOptions} from "./types/konvaDrawer";
+import { EventCallbackByEventName, EventName, EventPayloads } from 'janus/types/events'
+import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from './types/konvaDrawer'
 
 export type JanusPhoneKitOptions = {
   roomId?: number,
@@ -147,48 +147,6 @@ export default class JanusPhoneKit extends EventEmitter {
         this.mediaConstraints = mediaConstraints
 
         this.connectToServer()
-
-        /*this.websocket.addEventListener('close', (event) => {
-          setTimeout(() => {
-            this.connectToServer() // Reconnect after a delay
-          }, 3000);
-        });*/
-
-        /*this.websocket.addEventListener('close', (event) => {
-            console.log('ON SOCKET CLOSE', event)
-        })*/
-
-        /*this.session = new Session()
-
-        this.websocket = new WebSocket(this.options.url, 'janus-protocol')
-        this.session.on('output', (msg) => {
-            this.websocket.send(JSON.stringify(msg))
-        })
-
-        this.websocket.addEventListener('message', (event) => {
-            console.log('SOCKET MESSAGE ', event)
-            this.session.receive(JSON.parse(event.data))
-        })
-
-        this.websocket.addEventListener('close', (event) => {
-            console.log('WEBSOCKET EVENT CLOSE', event)
-        })
-
-        this.websocket.addEventListener('error', (msg) => {
-            console.log('WEBSOCKET EVENT ERROR', msg)
-            //this.websocket.close()
-        })
-
-        window.addEventListener('offline', (e) => {
-            console.log('YOU ARE OFFLINE', e)
-        });
-
-        window.addEventListener('online', (e) => {
-            console.log('YOU ARE ONLINE', e)
-        });
-
-        this.registerSocketOpenHandler(displayName, mediaConstraints)
-        this.registerSocketCloseHandler()*/
 
         return this.session
     }

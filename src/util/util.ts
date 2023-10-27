@@ -5,7 +5,7 @@
  * @return {*} function result
  */
 export function invokeFunction (handler, payload) {
-  return payload ? handler.apply(null, [payload]) : handler.call(null, payload)
+    return payload ? handler.apply(null, [ payload ]) : handler.call(null, payload)
 }
 
 /**
@@ -14,13 +14,13 @@ export function invokeFunction (handler, payload) {
  * @param start index
  * @return {any[]} real array
  */
-export function toArray(list, start = 0) {
-  let i = list.length - start
-  const ret = new Array(i)
-  while (i--) {
-    ret[i] = list[i + start]
-  }
-  return ret
+export function toArray (list, start = 0) {
+    let i = list.length - start
+    const ret = new Array(i)
+    while (i--) {
+        ret[i] = list[i + start]
+    }
+    return ret
 }
 
 /**
@@ -28,15 +28,15 @@ export function toArray(list, start = 0) {
  * @param {number} len
  * @return {string}
  */
-export function randomString(len) {
-  const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let randomStr = '';
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < len; i++) {
-    const randomPoz = Math.floor(Math.random() * charSet.length);
-    randomStr += charSet.substring(randomPoz, randomPoz + 1);
-  }
-  return randomStr;
+export function randomString (len) {
+    const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let randomStr = ''
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < len; i++) {
+        const randomPoz = Math.floor(Math.random() * charSet.length)
+        randomStr += charSet.substring(randomPoz, randomPoz + 1)
+    }
+    return randomStr
 }
 
 /**
@@ -45,27 +45,27 @@ export function randomString(len) {
  * @param {object} config
  * @return {object} merged config
  */
-export function mergeConfig(defaultConfig, config = {}) {
-  const finalConfig = {}
-  Object.keys(defaultConfig).forEach((key) => {
-    finalConfig[key] = config[key] !== undefined ? config[key] : defaultConfig[key]
-  })
+export function mergeConfig (defaultConfig, config = {}) {
+    const finalConfig = {}
+    Object.keys(defaultConfig).forEach((key) => {
+        finalConfig[key] = config[key] !== undefined ? config[key] : defaultConfig[key]
+    })
 
-  return finalConfig
+    return finalConfig
 }
 
-export function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
+export function loadImage (src) {
+    return new Promise((resolve, reject) => {
+        const image = new Image()
 
-    image.onload = () => {
-      resolve(image);
-    };
+        image.onload = () => {
+            resolve(image)
+        }
 
-    image.onerror = (error) => {
-      reject(error);
-    };
+        image.onerror = (error) => {
+            reject(error)
+        }
 
-    image.src = src;
-  });
+        image.src = src
+    })
 }

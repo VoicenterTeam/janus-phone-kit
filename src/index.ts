@@ -5,5 +5,5 @@ const version = '__VERSION__'
 export default JanusPhoneKit
 
 export {
-  DeviceManager
+    DeviceManager
 }

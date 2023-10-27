@@ -9,26 +9,26 @@ import { TUNABLE_FLAG_VALUE_RANGE_MAP } from '../enum/tfjs.config.enum'
  *
  * @param flagConfig An object to store flag-value pairs.
  */
-export async function setBackendAndEnvFlags(flagConfig) {
-  if (flagConfig == null) {
-    return;
-  } else if (typeof flagConfig !== 'object') {
-    throw new Error(
-      `An object is expected, while a(n) ${typeof flagConfig} is found.`);
-  }
-
-  // Check the validation of flags and values.
-  for (const flag in flagConfig) {
-    if (!(flag in TUNABLE_FLAG_VALUE_RANGE_MAP)) {
-      throw new Error(`${flag} is not a tunable or valid environment flag.`);
+export async function setBackendAndEnvFlags (flagConfig) {
+    if (flagConfig == null) {
+        return
+    } else if (typeof flagConfig !== 'object') {
+        throw new Error(
+            `An object is expected, while a(n) ${typeof flagConfig} is found.`)
     }
-    if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1) {
-      throw new Error(
-        `${flag} value is expected to be in the range [${
-          TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
-        ' is found.');
-    }
-  }
 
-  tf.env().setFlags(flagConfig);
+    // Check the validation of flags and values.
+    for (const flag in flagConfig) {
+        if (!(flag in TUNABLE_FLAG_VALUE_RANGE_MAP)) {
+            throw new Error(`${flag} is not a tunable or valid environment flag.`)
+        }
+        if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1) {
+            throw new Error(
+                `${flag} value is expected to be in the range [${
+                    TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
+        ' is found.')
+        }
+    }
+
+    tf.env().setFlags(flagConfig)
 }
