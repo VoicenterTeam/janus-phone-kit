@@ -10,6 +10,25 @@ import config from '@/plugins/config'
 
 import router from '@/router/index'
 
+if (import.meta.env.VITE_APP_CONFIG) {
+    try {
+        const appConfig = JSON.parse(import.meta.env.VITE_APP_CONFIG)
+
+        window.addEventListener('message', (event) => {
+            if (event.data?.type === 'appReady') {
+                window.postMessage({
+                    type: 'updateConfig',
+                    payload: {
+                        appConfig
+                    }
+                })
+            }
+        })
+    } catch (e) {
+        console.error(e)
+    }
+}
+
 createApp(App)
     .use(router)
     .use(config)

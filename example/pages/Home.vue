@@ -8,8 +8,7 @@
 
         <div class="w-screen h-screen flex flex-col gap-6 items-center justify-center">
             <img
-                v-if="stateData.appConfig.HOME_PAGE_LOGO"
-                :src="stateData.appConfig.HOME_PAGE_LOGO"
+                :src="stateData.appConfig.APP_LOGO"
                 alt="Logo"
             >
 
