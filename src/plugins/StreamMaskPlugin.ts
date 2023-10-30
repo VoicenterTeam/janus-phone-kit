@@ -1,4 +1,6 @@
-import '@tensorflow/tfjs-backend-webgl'
+//import '@tensorflow/tfjs-backend-webgl'
+import '@tensorflow/tfjs-backend-webgpu'
+import * as tf from '@tensorflow/tfjs-core'
 import * as mpSelfieSegmentation from '@mediapipe/selfie_segmentation'
 import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm'
 import type { BodySegmenter } from '@tensorflow-models/body-segmentation'
@@ -35,6 +37,8 @@ export class StreamMaskPlugin {
 
         this.canvas.width = this.camera.canvas.width
         this.canvas.height = this.camera.canvas.height
+
+        await tf.setBackend('webgpu')
 
         await setBackendAndEnvFlags(ENV_FLAGS)
 

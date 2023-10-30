@@ -13,7 +13,7 @@
     "@tensorflow-models/body-segmentation": "^1.0.2",
     "@tensorflow/tfjs-backend-wasm": "^4.10.0",
     "@tensorflow/tfjs-backend-webgl": "^4.10.0",
-    "@tensorflow/tfjs-backend-webgpu": "^4.10.0",
+    "@tensorflow/tfjs-backend-webgpu": "^4.12.0",
     "@tensorflow/tfjs-converter": "^4.10.0",
     "@tensorflow/tfjs-core": "^4.10.0",
     "@vueuse/core": "^10.4.1",

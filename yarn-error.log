@@ -1,5 +1,5 @@
 Arguments: 
-  C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\yarn\bin\yarn.js add @voicenter-team/voicenter-ui-plus
+  C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\yarn\bin\yarn.js add @tensorflow/tfjs-backend-webgpu
 
 PATH: 
   C:\Users\Serhii\Projects\newReacNativeApp\node_modules\.bin;C:\Python310\Scripts\;C:\Python310\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\Users\Serhii\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Users\Serhii\AppData\Local\Android\Sdk;C:\Users\Serhii\AppData\Local\Android\Sdk\platform-tools;C:\Program Files\OpenLogic\jre-17.0.8.7-hotspot;C:\Program Files\OpenLogic\jre-17.0.8.7-hotspot\bin;C:\Users\Serhii\AppData\Local\Microsoft\WindowsApps;C:\Program Files\JetBrains\WebStorm 2021.2.2\bin;C:\Program Files (x86)\GitHub CLI\;C:\Users\Serhii\AppData\Roaming\nvm;C:\Program Files\nodejs;C:\Program Files\JetBrains\DataGrip 2022.3\bin;C:\Users\Serhii\AppData\Local\JetBrains\Toolbox\scripts;C:\Users\Serhii\AppData\Local\Android\Sdk;C:\Users\Serhii\AppData\Local\Android\Sdk\platform-tools;C:\Users\Serhii\AppData\Local\Android\Sdk\emulator;C:\Users\Serhii\AppData\Local\Android\Sdk\tools;C:\Users\Serhii\AppData\Local\Android\Sdk\tools\bin;
@@ -14,17 +14,17 @@ Platform:
   win32 x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/@voicenter-team%2fvoicenter-ui-plus: Not found
-      at Request.params.callback [as _callback] (C:\Users\Serhii\AppData\Roaming\nvm\v16.19.0\node_modules\yarn\lib\cli.js:66145:18)
-      at Request.self.callback (C:\Users\Serhii\AppData\Roaming\nvm\v16.19.0\node_modules\yarn\lib\cli.js:140890:22)
+  Error: https://registry.npmjs.org/@voicenter-team/voicenter-ui-plus/-/voicenter-ui-plus-0.2.31.tgz: Request failed "404 Not Found"
+      at ResponseError.ExtendableBuiltin (C:\Users\Serhii\AppData\Roaming\nvm\v16.19.0\node_modules\yarn\lib\cli.js:696:66)
+      at new ResponseError (C:\Users\Serhii\AppData\Roaming\nvm\v16.19.0\node_modules\yarn\lib\cli.js:802:124)
+      at Request.<anonymous> (C:\Users\Serhii\AppData\Roaming\nvm\v16.19.0\node_modules\yarn\lib\cli.js:66215:16)
       at Request.emit (node:events:513:28)
-      at Request.<anonymous> (C:\Users\Serhii\AppData\Roaming\nvm\v16.19.0\node_modules\yarn\lib\cli.js:141862:10)
-      at Request.emit (node:events:513:28)
-      at IncomingMessage.<anonymous> (C:\Users\Serhii\AppData\Roaming\nvm\v16.19.0\node_modules\yarn\lib\cli.js:141784:12)
-      at Object.onceWrapper (node:events:627:28)
-      at IncomingMessage.emit (node:events:525:35)
-      at endReadableNT (node:internal/streams/readable:1358:12)
-      at processTicksAndRejections (node:internal/process/task_queues:83:21)
+      at Request.module.exports.Request.onRequestResponse (C:\Users\Serhii\AppData\Roaming\nvm\v16.19.0\node_modules\yarn\lib\cli.js:141767:10)
+      at ClientRequest.emit (node:events:513:28)
+      at HTTPParser.parserOnIncomingClient (node:_http_client:693:27)
+      at HTTPParser.parserOnHeadersComplete (node:_http_common:128:17)
+      at TLSSocket.socketOnData (node:_http_client:534:22)
+      at TLSSocket.emit (node:events:513:28)
 
 npm manifest: 
   {
