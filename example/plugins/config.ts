@@ -60,6 +60,8 @@ export default {
                 window.parent.postMessage({ type: 'appReady' }, '*')
             }
 
+            window.postMessage({ type: 'appReady' }, '*')
+
             window.addEventListener('message', (event: MessageEvent<AppConfigEvent>) => {
                 if (event.data.type === 'updateConfig') {
                     configState.value = deepMerge(configState.value, event.data.payload)

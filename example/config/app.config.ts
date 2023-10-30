@@ -30,6 +30,7 @@ export interface ConferencePageQueryParameters {
     PARAMETERS_MISSING_BEHAVIOR: ParametersMissingBehavior
     SOUND_NOTIFICATIONS: SoundNotificationsConfig
     APP_LOGO: string
+    HOME_PAGE_LOGO?: string
 }
 
 export const CONFERENCE_PAGE_QUERY_PARAMETERS: ConferencePageQueryParameters = {

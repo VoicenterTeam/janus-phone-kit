@@ -7,7 +7,7 @@ import { initListeners } from './helper'
 import { CONFERENCING_MODE } from 'janus/enum/conferencing.enum'
 import { DeviceManager } from 'janus/index'
 import { Member } from 'janus/types/events'
-import {KonvaDrawerOptions, KonvaScreenShareDrawerOptions} from "../../../src/types/konvaDrawer";
+import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from 'janus/types/konvaDrawer'
 
 const janusPhoneKit = new JanusPhoneKit({
     url: 'wss://jnwss.voicenter.co/janus'
