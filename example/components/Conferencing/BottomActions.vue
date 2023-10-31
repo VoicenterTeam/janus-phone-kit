@@ -89,7 +89,7 @@
         <RoundButton
             icon="vc-icon-background-blur-2"
             activeIcon="vc-icon-background-blur-1"
-            color="destructive-actions"
+            color="active-elements"
             class="mr-2"
             :active="isWithMaskEffect"
             :disabled="!videoOnModel"

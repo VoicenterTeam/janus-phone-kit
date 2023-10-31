@@ -1,7 +1,7 @@
 import '@tensorflow/tfjs-backend-webgl'
 //import '@tensorflow/tfjs-backend-webgpu'
 //import * as tf from '@tensorflow/tfjs-core'
-//import * as mpSelfieSegmentation from '@mediapipe/selfie_segmentation'
+import * as mpSelfieSegmentation from '@mediapipe/selfie_segmentation'
 import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm'
 import type { BodySegmenter } from '@tensorflow-models/body-segmentation'
 import * as bodySegmentation from '@tensorflow-models/body-segmentation'
@@ -88,7 +88,7 @@ export class StreamMaskPlugin {
         return bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation, {
             runtime: SEGMENTER_CONFIG.runtime,
             modelType: SEGMENTER_CONFIG.modelType,
-            solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747` } /*${mpSelfieSegmentation.VERSION}*/
+            solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@${mpSelfieSegmentation.VERSION}` }
         )
     }
 
