@@ -7,7 +7,7 @@ import { initListeners } from './helper'
 import { CONFERENCING_MODE } from 'janus/enum/conferencing.enum'
 import { DeviceManager } from 'janus/index'
 import { Member } from 'janus/types/events'
-import {KonvaDrawerOptions, KonvaScreenShareDrawerOptions} from "../../../src/types/konvaDrawer";
+import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from 'janus/types/konvaDrawer'
 
 const janusPhoneKit = new JanusPhoneKit({
     url: 'wss://jnwss.voicenter.co/janus'
@@ -22,7 +22,8 @@ const state = reactive<MainState>({
     isScreenSharing: false,
     isScreenShareWhiteboardEnabled: false,
     isPresentationWhiteboardEnabled: false,
-    isImageWhiteboardEnabled: false
+    isImageWhiteboardEnabled: false,
+    metricsReport: undefined
 })
 
 export default function useJanusPhoneKit () {
@@ -264,6 +265,7 @@ export default function useJanusPhoneKit () {
             }
 
             return state.streamSources.filter(s => s.id !== state.mainSource.id)
-        })
+        }),
+        metricsReport: computed(() => state.metricsReport),
     }
 }

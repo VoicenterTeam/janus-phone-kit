@@ -375,13 +375,6 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@peermetrics/webrtc-stats@^5.7.0":
-  version "5.7.0"
-  resolved "https://registry.yarnpkg.com/@peermetrics/webrtc-stats/-/webrtc-stats-5.7.0.tgz#489a537937e223ff61d411b01903d5b3f94d7f0c"
-  integrity sha512-9skyHZvnC3gtriZ894jKTHfQZNN9LCepyvk6dYmVOFcJtmRMf0kZaoxAAOcUBQd7OxW0CK7dJp6EYAUty/3W7A==
-  dependencies:
-    uuid "8.3.2"
-
 "@popperjs/core@npm:@sxzz/popperjs-es@^2.11.7":
   version "2.11.7"
   resolved "https://registry.npmjs.org/@sxzz/popperjs-es/-/popperjs-es-2.11.7.tgz"
@@ -1783,7 +1776,7 @@ lodash@^4.17.21, lodash@~4.17.15:
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
-loglevel@^1.8.1:
+loglevel@1.8.1, loglevel@^1.8.1:
   version "1.8.1"
   resolved "https://registry.npmjs.org/loglevel/-/loglevel-1.8.1.tgz"
   integrity sha512-tCRIJM51SHjAayKwC+QAg8hT8vg6z7GSgLJKGvzuPb1Wc+hLzqtuVLxp6/HzSPOozuK+8ErAhy7U/sVzw8Dgfg==
@@ -2204,6 +2197,11 @@ shebang-regex@^3.0.0:
   resolved "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz"
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
 
+short-unique-id@5.0.3:
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/short-unique-id/-/short-unique-id-5.0.3.tgz#bc6975dc5e8b296960ff5ac91ddabbc7ddb693d9"
+  integrity sha512-yhniEILouC0s4lpH0h7rJsfylZdca10W9mDJRAFh3EpcSUanCHGb0R7kcFOIUCZYSAPo0PUD5ZxWQdW0T4xaug==
+
 slash@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/slash/-/slash-3.0.0.tgz"
@@ -2461,11 +2459,6 @@ util-deprecate@^1.0.2:
   resolved "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz"
   integrity sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==
 
-uuid@8.3.2:
-  version "8.3.2"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
-  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
-
 uuid@^9.0.1:
   version "9.0.1"
   resolved "https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz"
@@ -2601,6 +2594,14 @@ webrtc-adapter@^8.2.3:
   integrity sha512-gnmRz++suzmvxtp3ehQts6s2JtAGPuDPjA1F3a9ckNpG1kYdYuHWYpazoAnL9FS5/B21tKlhkorbdCXat0+4xQ==
   dependencies:
     sdp "^3.2.0"
+
+webrtcmetrics@^5.5.0:
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/webrtcmetrics/-/webrtcmetrics-5.5.0.tgz#b2d73c1b26cd09cc7d8aff9e43dedc1d4d97b972"
+  integrity sha512-Iu0UeYAQKM9P0cQVGwyLXMk9vk96HnM6Y44dsP6cqmdMbc9W/W7nDzwIBkJUvxlN2DtxEy9DhbuOexHckiE4wQ==
+  dependencies:
+    loglevel "1.8.1"
+    short-unique-id "5.0.3"
 
 whatwg-url@^5.0.0:
   version "5.0.0"

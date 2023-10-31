@@ -10,7 +10,6 @@
   "dependencies": {
     "@intlify/unplugin-vue-i18n": "^1.4.0",
     "@mediapipe/selfie_segmentation": "^0.1.1675465747",
-    "@peermetrics/webrtc-stats": "^5.7.0",
     "@tensorflow-models/body-segmentation": "^1.0.2",
     "@tensorflow/tfjs-backend-wasm": "^4.10.0",
     "@tensorflow/tfjs-backend-webgl": "^4.10.0",
@@ -24,7 +23,8 @@
     "uuid": "^9.0.1",
     "vue-i18n": "^9.4.1",
     "vue-router": "^4.2.4",
-    "webrtc-adapter": "^8.2.3"
+    "webrtc-adapter": "^8.2.3",
+    "webrtcmetrics": "^5.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.6.2",
