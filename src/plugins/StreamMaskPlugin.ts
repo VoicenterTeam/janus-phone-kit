@@ -88,7 +88,7 @@ export class StreamMaskPlugin {
         return bodySegmentation.createSegmenter(bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation, {
             runtime: SEGMENTER_CONFIG.runtime,
             modelType: SEGMENTER_CONFIG.modelType,
-            solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@${mpSelfieSegmentation.VERSION}` }
+            solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747' }
         )
     }
 
