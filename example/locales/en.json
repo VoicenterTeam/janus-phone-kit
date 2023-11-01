@@ -32,6 +32,9 @@
         "imageWhiteboard": "Image whiteboard",
         "noImage": "No image"
       }
+    },
+    "metricsModal": {
+      "header": "WebRTC Metrics"
     }
   }
 }

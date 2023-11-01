@@ -1,3 +1,5 @@
+import { ProbeMetricInType, ProbeMetricOutType } from './metrics'
+
 export type MemberType = 'publisher' | 'subscriber'
 
 export type MemberJoinResult = Record<string, unknown>
@@ -38,6 +40,11 @@ export type PluginAttachedPayload = Record<string, unknown>
 
 export type OutputPayload = Record<string, unknown>
 
+export type MetricReportPayload = {
+    id: string | number
+    data: ProbeMetricInType | ProbeMetricOutType
+}
+
 export interface EventPayloads {
     'member:join': MemberJoinPayload
     'member:update': MemberUpdatePayload
@@ -52,6 +59,8 @@ export interface EventPayloads {
     'screenShare:start': null
     'webrtcup': null
     'reconnect': null
+    'metrics:report': MetricReportPayload
+    'metrics:stop': number | string
 }
 
 export type EventName = keyof EventPayloads

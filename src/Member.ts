@@ -1,5 +1,6 @@
 import { logger } from './util/logger'
 import { BasePlugin } from './plugins/BasePlugin'
+import { Metrics } from "./util/Metrics";
 
 export class Member {
 
@@ -10,6 +11,7 @@ export class Member {
     private joinResult = null
     private state = {}
     private stream = null
+    private metrics: any = null
 
     constructor (memberInfo, plugin: BasePlugin) {
         this.info = memberInfo
@@ -40,10 +42,8 @@ export class Member {
     }
 
     async answerAttachedStream (attachedStreamInfo) {
-        console.log('answerAttachedStream', attachedStreamInfo)
         const RTCPeerOnAddStream = async (event) => {
             if (!this.rtcpPeer) {
-                console.log('answerAttachedStream return')
                 return
             }
             logger.debug('on add stream Member', event)
@@ -84,6 +84,7 @@ export class Member {
         this.rtcpPeer.onicecandidate = RTCPeerOnIceCandidate
         this.rtcpPeer.sender = attachedStreamInfo.sender
         await this.rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep)
+        this.setupMetrics()
     }
 
     private get memberInfo () {
@@ -114,7 +115,21 @@ export class Member {
         this.updateMemberState(publisherInfo?.state)
     }
 
+    setupMetrics () {
+        this.metrics = new Metrics()
+        this.metrics.start(this.rtcpPeer)
+        this.metrics.onReport('inbound', (report) => {
+            this.plugin?.session.emit('metrics:report', {
+                id: this.handleId,
+                data: report
+            })
+        })
+    }
+
     hangup () {
+        this.metrics.stop()
+        this.plugin?.session.emit('metrics:stop', this.handleId)
+
         if (this.rtcpPeer) {
             this.rtcpPeer.close()
             this.rtcpPeer = null

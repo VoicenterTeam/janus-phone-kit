@@ -22,7 +22,8 @@ const state = reactive<MainState>({
     isScreenSharing: false,
     isScreenShareWhiteboardEnabled: false,
     isPresentationWhiteboardEnabled: false,
-    isImageWhiteboardEnabled: false
+    isImageWhiteboardEnabled: false,
+    metricsReport: undefined
 })
 
 export default function useJanusPhoneKit () {
@@ -264,6 +265,7 @@ export default function useJanusPhoneKit () {
             }
 
             return state.streamSources.filter(s => s.id !== state.mainSource.id)
-        })
+        }),
+        metricsReport: computed(() => state.metricsReport),
     }
 }

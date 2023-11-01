@@ -1,4 +1,5 @@
 import { Member } from 'janus/types/events'
+import { ProbeMetricInType, ProbeMetricOutType } from 'janus/types/metrics'
 
 export interface MainState {
     streamSources: Array<Member>
@@ -11,4 +12,5 @@ export interface MainState {
     isScreenShareWhiteboardEnabled: boolean
     isPresentationWhiteboardEnabled: boolean
     isImageWhiteboardEnabled: boolean
+    metricsReport: ProbeMetricInType | ProbeMetricOutType | undefined
 }

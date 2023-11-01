@@ -48,16 +48,19 @@
         </VcPopover>
       </div>
 
-      <div class="text-white">
+      <div class="text-white" @click="metricsModalOpen = true">
         {{ mainSource.name || mainSource.sender }}
       </div>
     </div>
+    <MetricsModal v-model:modalVisible="metricsModalOpen" />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+import MetricsModal from "./MetricsModal.vue";
 
 /* Composables */
 const { t } = useI18n()
@@ -68,6 +71,8 @@ const {
     isPresentationWhiteboardEnabled,
     isImageWhiteboardEnabled
 } = useJanusPhoneKit()
+
+const metricsModalOpen = ref<boolean>(false)
 </script>
 
 <style scoped>

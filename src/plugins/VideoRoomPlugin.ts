@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { VolumeMeter } from '../util/SoundMeter'
 import { StunServer } from '../types'
 import { StreamMaskPlugin } from './StreamMaskPlugin'
+import { Metrics } from '../util/Metrics'
 
 export class VideoRoomPlugin extends BasePlugin {
     name = 'janus.plugin.videoroomjs'
@@ -18,6 +19,7 @@ export class VideoRoomPlugin extends BasePlugin {
     displayName: string = ''
     rtcConnection: any = null
     clientID: string = ''
+    userID: string = ''
 
     stream: MediaStream
     offerOptions: any = {}
@@ -30,6 +32,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
     streamMask: any = null
     isActiveMask: boolean = false
+
+    private metrics: any = null
 
     constructor (options: any = {}) {
         super()
@@ -44,6 +48,7 @@ export class VideoRoomPlugin extends BasePlugin {
         this.mediaConstraints = options.mediaConstraints
         this.isAudioOn = options.isAudioOn
         this.isVideoOn = options.isVideoOn
+        this.userID = uuidv4()
 
         const config = {
             iceServers: this.stunServers,
@@ -52,6 +57,7 @@ export class VideoRoomPlugin extends BasePlugin {
 
         this.rtcConnection = new RTCPeerConnection(config)
         logger.debug('Init plugin', this)
+        this.setupMetrics()
 
         this.rtcConnection.addEventListener('iceconnectionstatechange', () => {
             console.log('WEBSOCKET EVENT VIDEO_ROOM iceconnectionstatechange', this.rtcConnection.iceConnectionState)
@@ -161,6 +167,17 @@ export class VideoRoomPlugin extends BasePlugin {
         if (pluginData?.videoroom === 'joined') {
             this.onPublisherInitialStateUpdate(msg)
         }
+    }
+
+    setupMetrics () {
+        this.metrics = new Metrics()
+        this.metrics.start(this.rtcConnection)
+        this.metrics.onReport('outbound', (report) => {
+            this.session.emit('metrics:report', {
+                id: this.userID,
+                data: report
+            })
+        })
     }
 
     private onHangup (unpublished) {
@@ -319,7 +336,7 @@ export class VideoRoomPlugin extends BasePlugin {
             name: this.displayName,
             clientID: this.clientID,
             state: {},
-            id: uuidv4(),
+            id: this.userID,
         })
 
         logger.info('Adding local user media to RTCPeerConnection.')
@@ -534,7 +551,6 @@ export class VideoRoomPlugin extends BasePlugin {
             this.rtcConnection.close()
             this.rtcConnection = null
         }
-
         await this.send({ janus: 'hangup' })
     }
 
@@ -545,6 +561,9 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     close () {
+        this.metrics.stop()
+        this.session.emit('metrics:stop', this.userID)
+
         if (this.rtcConnection) {
             this.rtcConnection.close()
             this.rtcConnection = null

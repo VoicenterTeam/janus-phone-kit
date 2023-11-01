@@ -71,6 +71,8 @@ export default class JanusPhoneKit extends EventEmitter {
         'screenShare:start': [],
         webrtcup: [],
         reconnect: [],
+        'metrics:report': [],
+        'metrics:stop': [],
     }
 
     isConnected = false

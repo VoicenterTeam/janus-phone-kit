@@ -23,7 +23,8 @@
     "uuid": "^9.0.1",
     "vue-i18n": "^9.4.1",
     "vue-router": "^4.2.4",
-    "webrtc-adapter": "^8.2.3"
+    "webrtc-adapter": "^8.2.3",
+    "webrtcmetrics": "^5.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.6.2",

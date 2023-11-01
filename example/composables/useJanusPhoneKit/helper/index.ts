@@ -33,6 +33,7 @@ export function initListeners (janusPhoneKit: JanusPhoneKit, state: MainState) {
             console.log('on member:join', data)
             //streamSources.push(data)
             state.streamSources = [ ...state.streamSources, data ]
+            console.log('state.streamSources', state.streamSources)
             playJoinSound()
         }
     )
@@ -79,5 +80,26 @@ export function initListeners (janusPhoneKit: JanusPhoneKit, state: MainState) {
     janusPhoneKit.on(
         'hangup',
         () => afterHangup(state)
+    )
+
+    janusPhoneKit.on(
+        'metrics:report',
+        (report) => {
+            console.log('on metrics:report', report)
+            const { id, data } = report
+            state.metricsReport = {
+                ...state.metricsReport,
+                [id]: data
+            }
+        }
+    )
+
+    janusPhoneKit.on(
+        'metrics:stop',
+        (id) => {
+            const reports = { ...state.metricsReport }
+            delete reports[id]
+            state.metricsReport = { ...reports }
+        }
     )
 }

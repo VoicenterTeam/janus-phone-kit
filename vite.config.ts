@@ -1,8 +1,24 @@
-import { resolve } from 'path'
+import path, { resolve } from 'path'
+import * as fs from 'fs';
 import { defineConfig, loadEnv, BuildOptions, PluginOption } from 'vite'
 import dts from 'vite-plugin-dts'
 import vue from '@vitejs/plugin-vue'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
+
+function mediapipe_workaround() {
+    return {
+        name: 'mediapipe_workaround',
+        load(id) {
+            if (path.basename(id) === 'selfie_segmentation.js') {
+                let code = fs.readFileSync(id, 'utf-8')
+                code += 'exports.SelfieSegmentation = SelfieSegmentation;'
+                return { code }
+            } else {
+                return null
+            }
+        },
+    }
+}
 
 const OUTPUT_DIR = 'library'
 
@@ -45,6 +61,7 @@ export default ({ mode }) => {
             VueI18nPlugin({
                 include: resolve(__dirname, './example/locales/**')
             }),
+            mediapipe_workaround()
         ],
         resolve: {
             alias: {
