@@ -1,6 +1,6 @@
 import type { App, InjectionKey, UnwrapRef } from 'vue'
 import { reactive } from 'vue'
-import { RemovableRef, useStorage } from '@vueuse/core'
+import { RemovableRef, useStorage, useFavicon } from '@vueuse/core'
 
 import { blue } from '@voicenter-team/voicenter-ui-plus/src/theme/themes.json'
 import { overrideElementTheme, appendGlobalCssVariables } from '@voicenter-team/voicenter-ui-plus/src/theme'
@@ -37,6 +37,7 @@ export const configState = useStorage<ConfigState>(
     'voicenterConferenceConfig',
     defaultConfig
 )
+const favicon = useFavicon('')
 
 export default {
     install (app: App) {
@@ -50,6 +51,8 @@ export default {
                 el
             )
 
+            favicon.value = configState.value.appConfig?.FAVICON ?? ''
+
             el.classList.remove('hidden')
         }
 
@@ -59,6 +62,8 @@ export default {
             if (window.parent) {
                 window.parent.postMessage({ type: 'appReady' }, '*')
             }
+
+            window.postMessage({ type: 'appReady' }, '*')
 
             window.addEventListener('message', (event: MessageEvent<AppConfigEvent>) => {
                 if (event.data.type === 'updateConfig') {
