@@ -87,7 +87,6 @@
 
       <div class="flex items-center">
         <RoundButton
-            v-if="!isMobile"
             icon="vc-icon-background-blur-2"
             activeIcon="vc-icon-background-blur-1"
             color="active-elements"

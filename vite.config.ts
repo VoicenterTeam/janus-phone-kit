@@ -10,10 +10,8 @@ function mediapipe_workaround() {
         name: 'mediapipe_workaround',
         load(id) {
             if (path.basename(id) === 'selfie_segmentation.js') {
-                console.log('AAAAAAAAA here');
                 let code = fs.readFileSync(id, 'utf-8')
                 code += 'exports.SelfieSegmentation = SelfieSegmentation;'
-                console.log('AAAAAAAAA', code);
                 return { code }
             } else {
                 return null
