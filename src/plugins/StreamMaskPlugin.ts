@@ -9,6 +9,7 @@ import { setBackendAndEnvFlags } from '../util/tfjsBackendAndEnvFlags'
 import { Camera } from '../util/Camera'
 import { mergeConfig } from '../util/util'
 import { CAMERA_CONFIG, ENV_FLAGS, SEGMENTER_CONFIG, VISUALIZATION_CONFIG } from '../enum/tfjs.config.enum'
+import { base64BackgroundImageFile } from '../util/bgImage'
 
 tfjsWasm.setWasmPaths(`https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`)
 
@@ -118,7 +119,7 @@ export class StreamMaskPlugin {
                         flipHorizontal: false,
                         multiSegmentation: false,
                         segmentBodyParts: true,
-                        segmentationThreshold: this.visualizationConfig.foregroundThreshold
+                        segmentationThreshold: 0.7//this.visualizationConfig.foregroundThreshold
                     })
                 } else {
                     segmentation = await this.segmenter.estimatePoses(
@@ -147,7 +148,7 @@ export class StreamMaskPlugin {
     which shouldn't be rendered. */
 
         if (segmentation && segmentation.length > 0) {
-            const options = this.visualizationConfig
+            /*const options = this.visualizationConfig
 
             await bodySegmentation.drawBokehEffect(
                 this.canvas,
@@ -156,7 +157,43 @@ export class StreamMaskPlugin {
                 options.foregroundThreshold,
                 options.backgroundBlur,
                 options.edgeBlur
-            )
+            )*/
+
+            const base64BackgroundImage = base64BackgroundImageFile
+            const backgroundImage = new Image()
+            backgroundImage.src = base64BackgroundImage
+
+            const ctx = this.canvas.getContext('2d')
+
+            const background = { r: 0,
+                g: 0,
+                b: 0,
+                a: 0 }
+            const mask = await bodySegmentation.toBinaryMask(segmentation, background, { r: 0,
+                g: 0,
+                b: 0,
+                a: 255 })
+
+            if (mask) {
+                ctx.putImageData(mask, 0, 0)
+                ctx.globalCompositeOperation = 'source-in'
+
+                // 3. Drawing the Background
+                if (backgroundImage.complete) {
+                    ctx.drawImage(backgroundImage, 0, 0, this.canvas.width, this.canvas.height)
+                } else {
+                    backgroundImage.onload = () => {
+                        ctx.drawImage(backgroundImage, 0, 0, this.canvas.width, this.canvas.height)
+                    }
+                }
+
+                ctx.globalCompositeOperation = 'destination-over'
+                ctx.drawImage(this.camera.video, 0, 0, this.canvas.width, this.canvas.height)
+                ctx.globalCompositeOperation = 'source-over'
+
+                // Add a delay to control the frame rate (adjust as needed) less CPU intensive
+                // await new Promise((resolve) => setTimeout(resolve, 100));
+            }
         }
         this.camera.drawToCanvas(this.canvas)
     }
