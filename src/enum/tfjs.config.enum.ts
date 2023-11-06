@@ -28,10 +28,19 @@ export const CAMERA_CONFIG = {
     targetFPS: 60
 }
 
+export type VisualizationConfigType = {
+    foregroundThreshold?: number
+    maskOpacity?: number
+    maskBlur?: number
+    pixelCellWidth?: number
+    backgroundBlur?: number
+    edgeBlur?: number
+}
+
 /**
  * Config used for image segmentation and bokeh effect drawing.
  */
-export const VISUALIZATION_CONFIG = {
+export const VISUALIZATION_CONFIG: VisualizationConfigType = {
     foregroundThreshold: 0.5,
     maskOpacity: 0.7,
     maskBlur: 0,

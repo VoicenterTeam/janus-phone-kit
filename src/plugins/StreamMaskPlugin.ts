@@ -15,14 +15,14 @@ import {
     VISUALIZATION_CONFIG,
     MASK_EFFECT_TYPE_CONFIG,
     MaskEffectTypeConfigType,
-    StartMaskEffectOptions
+    StartMaskEffectOptions,
+    VisualizationConfigType
 } from '../enum/tfjs.config.enum'
-import { base64BackgroundImageFile } from '../util/bgImage'
 
 tfjsWasm.setWasmPaths(`https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`)
 
 export class StreamMaskPlugin {
-    private visualizationConfig = {}
+    private visualizationConfig: VisualizationConfigType = {}
     private maskEffectType: MaskEffectTypeConfigType | null = null
     private base64ImageMask: string | null = null
     private rafId: number | null = null
@@ -95,6 +95,10 @@ export class StreamMaskPlugin {
         this.camera = null
         this.canvas = null
         this.ctx = null
+    }
+
+    setupVisualizationConfig (config: VisualizationConfigType) {
+        this.visualizationConfig = mergeConfig(this.visualizationConfig, config)
     }
 
     /**
@@ -203,7 +207,7 @@ export class StreamMaskPlugin {
     }
 
     async applyBackgroundImageEffect (segmentation) {
-        const base64BackgroundImage = this.base64ImageMask //base64BackgroundImageFile //this.base64ImageMask
+        const base64BackgroundImage = this.base64ImageMask
         const backgroundImage = new Image()
         backgroundImage.src = base64BackgroundImage
 

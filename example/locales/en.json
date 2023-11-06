@@ -43,6 +43,10 @@
         "backgroundBlurEffect": "Background blur effect",
         "backgroundImageEffect": "Background image effect"
       }
+    },
+    "maskVisualizationPopover": {
+      "title": "Blur options",
+      "blurAmount": "Blur amount"
     }
   }
 }

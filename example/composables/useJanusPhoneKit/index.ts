@@ -8,6 +8,7 @@ import { CONFERENCING_MODE } from 'janus/enum/conferencing.enum'
 import { DeviceManager } from 'janus/index'
 import { Member } from 'janus/types/events'
 import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from 'janus/types/konvaDrawer'
+import { VisualizationConfigType } from 'janus/enum/tfjs.config.enum'
 
 const janusPhoneKit = new JanusPhoneKit({
     url: 'wss://jnwss.voicenter.co/janus'
@@ -18,7 +19,8 @@ const state = reactive<MainState>({
     mainSource: undefined,
     isMicOn: true,
     isVideoOn: true,
-    isWithMaskEffect: false,
+    isWithBokehMaskEffect: false,
+    isWithBgImgMaskEffect: false,
     isScreenSharing: false,
     isScreenShareWhiteboardEnabled: false,
     isPresentationWhiteboardEnabled: false,
@@ -125,10 +127,10 @@ export default function useJanusPhoneKit () {
         }
 
         try {
-            const newVal = !state.isWithMaskEffect
+            const newVal = !state.isWithBokehMaskEffect
             const stream = await janusPhoneKit.enableBokehEffectMask()
 
-            state.isWithMaskEffect = newVal
+            state.isWithBokehMaskEffect = newVal
 
             updatePublisherStream(stream)
         } catch (e) {
@@ -147,10 +149,10 @@ export default function useJanusPhoneKit () {
         }
 
         try {
-            const newVal = !state.isWithMaskEffect
+            const newVal = !state.isWithBgImgMaskEffect
             const stream = await janusPhoneKit.enableBackgroundImgEffectMask(base64Img)
 
-            state.isWithMaskEffect = newVal
+            state.isWithBgImgMaskEffect = newVal
 
             updatePublisherStream(stream)
         } catch (e) {
@@ -164,15 +166,19 @@ export default function useJanusPhoneKit () {
         }
 
         try {
-            const newVal = !state.isWithMaskEffect
             const stream = await janusPhoneKit.disableMask()
 
-            state.isWithMaskEffect = newVal
+            state.isWithBokehMaskEffect = false
+            state.isWithBgImgMaskEffect = false
 
             updatePublisherStream(stream)
         } catch (e) {
             console.error('Error when disabling mask effect:', e)
         }
+    }
+
+    function setupMaskVisualizationConfig (options: VisualizationConfigType) {
+        janusPhoneKit.setupMaskVisualizationConfig(options)
     }
 
     async function changePublisherStream (audioInput: string, videoInput: string) {
@@ -290,9 +296,11 @@ export default function useJanusPhoneKit () {
         applyBokehMaskEffect,
         applyBackgroundImgMaskEffect,
         disableMaskEffect,
+        setupMaskVisualizationConfig,
         microphoneOnModel,
         videoOnModel,
-        isWithMaskEffect: computed(() => state.isWithMaskEffect),
+        isWithBokehMaskEffect: computed(() => state.isWithBokehMaskEffect),
+        isWithBgImgMaskEffect: computed(() => state.isWithBgImgMaskEffect),
         isScreenSharing: computed(() => state.isScreenSharing),
         mainSource: computed(() => state.mainSource),
         talkingStream: computed(() => state.talkingStream),

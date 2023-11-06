@@ -73,13 +73,20 @@
         </div>
 
 
-        <div>
+        <div class="mx-1">
           <DrawerOptions
               v-if="isScreenShareWhiteboardEnabled || isImageWhiteboardEnabled || isPresentationWhiteboardEnabled"
               :is-extended-options="isPresentationWhiteboardEnabled"
               :isScreenShareWhiteboardEnabled="isScreenShareWhiteboardEnabled"
               :setupDrawerOptions="setupDrawerOptions"
               :setupScreenShareDrawerOptions="setupScreenShareDrawerOptions"
+          />
+        </div>
+
+        <div class="mx-1">
+          <MaskVisualizationOptions
+            v-if="isWithBokehMaskEffect"
+            :setupVisualizationConfig="setupMaskVisualizationConfig"
           />
         </div>
 
@@ -91,7 +98,7 @@
             activeIcon="vc-icon-background-blur-1"
             color="active-elements"
             class="mr-2"
-            :active="isWithMaskEffect"
+            :active="isWithBokehMaskEffect || isWithBgImgMaskEffect"
             :disabled="!videoOnModel"
             @click="toggleMaskEffect"
         />
@@ -129,6 +136,7 @@ import RoundButton from '@/components/Conferencing/RoundButton.vue'
 import DrawerOptions from '@/components/Conferencing/DrawerOptions.vue'
 import { ConfigInjectionKey } from '@/plugins/config'
 import MaskOptionsModal from '@/components/Conferencing/MaskOptionsModal.vue'
+import MaskVisualizationOptions from '@/components/Conferencing/MaskVisualizationOptions.vue'
 
 /* Inject */
 const stateData = inject(ConfigInjectionKey)
@@ -140,10 +148,12 @@ const {
     isPresentationWhiteboardEnabled,
     isImageWhiteboardEnabled,
     isScreenShareWhiteboardEnabled,
-    isWithMaskEffect,
+    isWithBokehMaskEffect,
+    isWithBgImgMaskEffect,
     isScreenSharing,
     hangup,
     disableMaskEffect,
+    setupMaskVisualizationConfig,
     enableScreenShareWhiteboard,
     enablePresentationWhiteboard,
     enableImageWhiteboard,
@@ -173,7 +183,7 @@ const hangupMeeting = () => {
 }
 
 const toggleMaskEffect = () => {
-    if (isWithMaskEffect.value) {
+    if (isWithBokehMaskEffect.value || isWithBgImgMaskEffect.value) {
         disableMaskEffect()
     } else {
         maskOptionsModalOpen.value = true

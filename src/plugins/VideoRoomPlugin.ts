@@ -8,7 +8,11 @@ import { VolumeMeter } from '../util/SoundMeter'
 import { StunServer } from '../types'
 import { StreamMaskPlugin } from './StreamMaskPlugin'
 import { Metrics } from '../util/Metrics'
-import { MaskEffectTypeConfigType, StartMaskEffectOptions } from "../enum/tfjs.config.enum";
+import {
+    MaskEffectTypeConfigType,
+    StartMaskEffectOptions,
+    VisualizationConfigType
+} from '../enum/tfjs.config.enum'
 
 export class VideoRoomPlugin extends BasePlugin {
     name = 'janus.plugin.videoroomjs'
@@ -508,6 +512,13 @@ export class VideoRoomPlugin extends BasePlugin {
         this.overrideSenderTracks(stream)
         this.isActiveMask = false
         return stream
+    }
+
+    setupMaskVisualizationConfig (config: VisualizationConfigType) {
+        if (!this.streamMask) {
+            throw new Error('Mask doesn\'t exist. Enable mask first')
+        }
+        this.streamMask.setupVisualizationConfig(config)
     }
 
     async sendConfigureMessage (options) {

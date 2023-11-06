@@ -7,7 +7,8 @@ export interface MainState {
     mainSource: Member | undefined
     isMicOn: boolean
     isVideoOn: boolean
-    isWithMaskEffect: boolean
+    isWithBokehMaskEffect: boolean
+    isWithBgImgMaskEffect: boolean
     isScreenSharing: boolean
     isScreenShareWhiteboardEnabled: boolean
     isPresentationWhiteboardEnabled: boolean
