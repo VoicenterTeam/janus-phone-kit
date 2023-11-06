@@ -1,30 +1,30 @@
 <template>
   <VcModal
       :visible="modalVisibleModel"
-      :header="t('home.whiteboardModal.header')"
+      :header="t('home.maskEffectModal.header')"
       :breakpoints="{
-                        '1126px': '60vw', '942px': '80vw', '704px': '95vw', '599px': '75vw'
+                        '1316px': '60vw','1126px': '70vw', '942px': '80vw', '824px': '95vw'
                     }"
       width="50vw"
       append-to="body"
       @close="closeModal"
   >
-    <div class="flex w-full h-full justify-between items-center xs:items-start flex-col xs:flex-row">
+    <div class="flex w-full h-full justify-between items-center sm:items-start flex-col sm:flex-row">
       <div class="mt-2">
         <VcButton
             type="default"
             color="primary"
-            icon="vc-icon-edit-pencil"
+            icon="vc-icon-background-blur-1"
             size="large"
-            @click="drawEmptyWhiteboard"
+            @click="applyBokehEffect"
         >
-          {{ t('home.whiteboardModal.form.emptyWhiteboard') }}
+          {{ t('home.maskEffectModal.form.backgroundBlurEffect') }}
         </VcButton>
       </div>
 
       <ImageUploadButton
-        :button-text="t('home.whiteboardModal.form.imageWhiteboard')"
-        @upload="onImageUpload"
+        :button-text="t('home.maskEffectModal.form.backgroundImageEffect')"
+        @upload="applyBackgroundImgEffect"
       />
     </div>
   </VcModal>
@@ -39,9 +39,8 @@ import ImageUploadButton from '@/components/Conferencing/ImageUploadButton.vue'
 /* Composable */
 const { t } = useI18n()
 const {
-    isPresentationWhiteboardEnabled,
-    enablePresentationWhiteboard,
-    enableImageWhiteboard
+    applyBokehMaskEffect,
+    applyBackgroundImgMaskEffect,
 } = useJanusPhoneKit()
 
 /* Props */
@@ -71,13 +70,13 @@ const closeModal = () => {
     modalVisibleModel.value = false
 }
 
-const drawEmptyWhiteboard = () => {
-    enablePresentationWhiteboard(!isPresentationWhiteboardEnabled.value)
+const applyBokehEffect = () => {
+    applyBokehMaskEffect()
     closeModal()
 }
 
-const onImageUpload = (base64: string) => {
-    enableImageWhiteboard(!isPresentationWhiteboardEnabled.value, base64)
+const applyBackgroundImgEffect = (base64: string) => {
+    applyBackgroundImgMaskEffect(base64)
     closeModal()
 }
 

@@ -9,6 +9,7 @@ import { StunServer } from './types'
 import { CONFERENCING_MODE, ConferencingModeType } from './enum/conferencing.enum'
 import { EventCallbackByEventName, EventName, EventPayloads } from 'janus/types/events'
 import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from './types/konvaDrawer'
+import { MASK_EFFECT_TYPE_CONFIG, MaskEffectTypeConfigType, StartMaskEffectOptions } from "./enum/tfjs.config.enum";
 
 export type JanusPhoneKitOptions = {
   roomId?: number,
@@ -173,8 +174,19 @@ export default class JanusPhoneKit extends EventEmitter {
         this.videoRoomPlugin?.stopVideo()
     }
 
-    public enableMask (state: boolean) {
-        return this.videoRoomPlugin?.enableMask(state)
+    public enableBokehEffectMask () {
+        return this.videoRoomPlugin?.enableMask(MASK_EFFECT_TYPE_CONFIG.bokehEffect)
+    }
+
+    public enableBackgroundImgEffectMask (base64Image) {
+        const options: StartMaskEffectOptions = {
+            base64Image
+        }
+        return this.videoRoomPlugin?.enableMask(MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect, options)
+    }
+
+    public disableMask () {
+        return this.videoRoomPlugin?.disableMask()
     }
 
     public startAudio () {

@@ -9,8 +9,8 @@
         tag-icon="vc-icon-image"
         button-icon="vc-icon-image"
         :max-length="1"
-        :button-text="t('home.whiteboardModal.form.imageWhiteboard')"
-        :no-data-text="t('home.whiteboardModal.form.noImage')"
+        :button-text="buttonText"
+        :no-data-text="t('home.noImage')"
         accept="image/*"
         @input="onFileChange"
     />
@@ -18,25 +18,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { FileUploaded } from '@voicenter-team/voicenter-ui-plus/library/types/components/VcFileUploader/VcFileUploader.types'
 
-/*export interface Props {
-  modalVisible?: boolean
+export interface Props {
+  buttonText?: string
 }
 
 const props = withDefaults(
     defineProps<Props>(),
     {
-      modalVisible: false
+        buttonText: ''
     }
-)*/
+)
 
 /* Emit */
 const emit = defineEmits<{
   (e: 'upload', payload: string): void
 }>()
+
+/* Computed */
+const buttonText = computed(() => {
+    return props.buttonText ? props.buttonText : t('home.uploadImage')
+})
 
 /* Composables */
 const { t } = useI18n()

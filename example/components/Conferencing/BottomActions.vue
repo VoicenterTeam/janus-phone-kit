@@ -115,6 +115,7 @@
 
     <SettingsModal v-model:modalVisible="settingsModalOpen" />
     <WhiteboardOptionsModal v-model:modalVisible="whiteboardModalOpen" />
+    <MaskOptionsModal v-model:modalVisible="maskOptionsModalOpen" />
   </div>
 </template>
 
@@ -127,6 +128,7 @@ import WhiteboardOptionsModal from '@/components/Conferencing/WhiteboardOptionsM
 import RoundButton from '@/components/Conferencing/RoundButton.vue'
 import DrawerOptions from '@/components/Conferencing/DrawerOptions.vue'
 import { ConfigInjectionKey } from '@/plugins/config'
+import MaskOptionsModal from '@/components/Conferencing/MaskOptionsModal.vue'
 
 /* Inject */
 const stateData = inject(ConfigInjectionKey)
@@ -141,7 +143,7 @@ const {
     isWithMaskEffect,
     isScreenSharing,
     hangup,
-    toggleMaskEffect,
+    disableMaskEffect,
     enableScreenShareWhiteboard,
     enablePresentationWhiteboard,
     enableImageWhiteboard,
@@ -162,11 +164,20 @@ const emit = defineEmits<Emit>()
 /* Data */
 const settingsModalOpen = ref(false)
 const whiteboardModalOpen = ref(false)
+const maskOptionsModalOpen = ref(false)
 
 /* Methods */
 const hangupMeeting = () => {
     emit('hangup')
     hangup()
+}
+
+const toggleMaskEffect = () => {
+    if (isWithMaskEffect.value) {
+        disableMaskEffect()
+    } else {
+        maskOptionsModalOpen.value = true
+    }
 }
 </script>
 
