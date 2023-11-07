@@ -73,13 +73,20 @@
         </div>
 
 
-        <div>
+        <div class="mx-1">
           <DrawerOptions
               v-if="isScreenShareWhiteboardEnabled || isImageWhiteboardEnabled || isPresentationWhiteboardEnabled"
               :is-extended-options="isPresentationWhiteboardEnabled"
               :isScreenShareWhiteboardEnabled="isScreenShareWhiteboardEnabled"
               :setupDrawerOptions="setupDrawerOptions"
               :setupScreenShareDrawerOptions="setupScreenShareDrawerOptions"
+          />
+        </div>
+
+        <div class="mx-1">
+          <MaskVisualizationOptions
+            v-if="isWithBokehMaskEffect"
+            :setupVisualizationConfig="setupMaskVisualizationConfig"
           />
         </div>
 
@@ -91,7 +98,7 @@
             activeIcon="vc-icon-background-blur-1"
             color="active-elements"
             class="mr-2"
-            :active="isWithMaskEffect"
+            :active="isWithBokehMaskEffect || isWithBgImgMaskEffect"
             :disabled="!videoOnModel"
             @click="toggleMaskEffect"
         />
@@ -115,6 +122,7 @@
 
     <SettingsModal v-model:modalVisible="settingsModalOpen" />
     <WhiteboardOptionsModal v-model:modalVisible="whiteboardModalOpen" />
+    <MaskOptionsModal v-model:modalVisible="maskOptionsModalOpen" />
   </div>
 </template>
 
@@ -127,6 +135,8 @@ import WhiteboardOptionsModal from '@/components/Conferencing/WhiteboardOptionsM
 import RoundButton from '@/components/Conferencing/RoundButton.vue'
 import DrawerOptions from '@/components/Conferencing/DrawerOptions.vue'
 import { ConfigInjectionKey } from '@/plugins/config'
+import MaskOptionsModal from '@/components/Conferencing/MaskOptionsModal.vue'
+import MaskVisualizationOptions from '@/components/Conferencing/MaskVisualizationOptions.vue'
 
 /* Inject */
 const stateData = inject(ConfigInjectionKey)
@@ -138,10 +148,12 @@ const {
     isPresentationWhiteboardEnabled,
     isImageWhiteboardEnabled,
     isScreenShareWhiteboardEnabled,
-    isWithMaskEffect,
+    isWithBokehMaskEffect,
+    isWithBgImgMaskEffect,
     isScreenSharing,
     hangup,
-    toggleMaskEffect,
+    disableMaskEffect,
+    setupMaskVisualizationConfig,
     enableScreenShareWhiteboard,
     enablePresentationWhiteboard,
     enableImageWhiteboard,
@@ -162,11 +174,20 @@ const emit = defineEmits<Emit>()
 /* Data */
 const settingsModalOpen = ref(false)
 const whiteboardModalOpen = ref(false)
+const maskOptionsModalOpen = ref(false)
 
 /* Methods */
 const hangupMeeting = () => {
     emit('hangup')
     hangup()
+}
+
+const toggleMaskEffect = () => {
+    if (isWithBokehMaskEffect.value || isWithBgImgMaskEffect.value) {
+        disableMaskEffect()
+    } else {
+        maskOptionsModalOpen.value = true
+    }
 }
 </script>
 

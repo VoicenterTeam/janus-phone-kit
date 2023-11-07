@@ -22,6 +22,7 @@ module.exports = {
             body: [ 'Montserrat', 'system-ui', 'sans-serif' ]
         },
         screens: {
+            xs: '600px',
             sm: '680px',
             md: '960px',
             lg: '1264px',

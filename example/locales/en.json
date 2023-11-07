@@ -18,6 +18,8 @@
   "home": {
     "enterConference": "Enter Conference",
     "roomDetails": "Room Details",
+    "uploadImage": "Upload image",
+    "noImage": "No image",
     "joinRoomModal": {
       "header": "Room Details",
       "form": {
@@ -29,12 +31,22 @@
       "header": "Whiteboard options",
       "form": {
         "emptyWhiteboard": "Empty whiteboard",
-        "imageWhiteboard": "Image whiteboard",
-        "noImage": "No image"
+        "imageWhiteboard": "Image whiteboard"
       }
     },
     "metricsModal": {
       "header": "WebRTC Metrics"
+    },
+    "maskEffectModal": {
+      "header": "Mask effect options",
+      "form": {
+        "backgroundBlurEffect": "Background blur effect",
+        "backgroundImageEffect": "Background image effect"
+      }
+    },
+    "maskVisualizationPopover": {
+      "title": "Blur options",
+      "blurAmount": "Blur amount"
     }
   }
 }

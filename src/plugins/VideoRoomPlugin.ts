@@ -8,6 +8,11 @@ import { VolumeMeter } from '../util/SoundMeter'
 import { StunServer } from '../types'
 import { StreamMaskPlugin } from './StreamMaskPlugin'
 import { Metrics } from '../util/Metrics'
+import {
+    MaskEffectTypeConfigType,
+    StartMaskEffectOptions,
+    VisualizationConfigType
+} from '../enum/tfjs.config.enum'
 
 export class VideoRoomPlugin extends BasePlugin {
     name = 'janus.plugin.videoroomjs'
@@ -467,39 +472,53 @@ export class VideoRoomPlugin extends BasePlugin {
     /**
    * Enables or disables video stream mask.
    * @param {boolean} enable - defines if mask should be applied
+   * @param {'bokehEffect' | 'backgroundImageEffect'} effect - defines the mask effect type
+   * @param {object} options - additional mask effect options
    * @return {MediaStream} processed stream with mask effect in case enabled === true
    * or clean stream without mask effect if enabled === false
    */
-    async enableMask (enable: boolean) {
-        if (enable && this.isActiveMask || !enable && !this.isActiveMask) {
+    async enableMask (effect: MaskEffectTypeConfigType, options?: StartMaskEffectOptions) {
+        if (this.isActiveMask) {
             return
         }
 
-        if (enable) {
-            if (!this.streamMask) {
-                this.streamMask = new StreamMaskPlugin()
-            }
-
-            const { stream } = await this.loadStream()
-            const canvasStream = await this.streamMask.start(stream)
-
-            this.overrideSenderTracks(canvasStream)
-            this.isActiveMask = true
-            this.stream = canvasStream
-
-            return canvasStream
-        } else {
-            if (!this.streamMask) {
-                throw new Error('Mask doesn\'t exist. Create a mask first')
-            }
-
-            this.streamMask.stop()
-
-            const { stream } = await this.loadStream()
-            this.overrideSenderTracks(stream)
-            this.isActiveMask = false
-            return stream
+        if (!this.streamMask) {
+            this.streamMask = new StreamMaskPlugin()
         }
+
+        const { stream } = await this.loadStream()
+        const canvasStream = await this.streamMask.start(stream, effect, options)
+
+        this.overrideSenderTracks(canvasStream)
+        this.isActiveMask = true
+        this.stream = canvasStream
+
+        return canvasStream
+    }
+
+
+    async disableMask () {
+        if (!this.isActiveMask) {
+            return
+        }
+
+        if (!this.streamMask) {
+            throw new Error('Mask doesn\'t exist. Create a mask first')
+        }
+
+        this.streamMask.stop()
+
+        const { stream } = await this.loadStream()
+        this.overrideSenderTracks(stream)
+        this.isActiveMask = false
+        return stream
+    }
+
+    setupMaskVisualizationConfig (config: VisualizationConfigType) {
+        if (!this.streamMask) {
+            throw new Error('Mask doesn\'t exist. Enable mask first')
+        }
+        this.streamMask.setupVisualizationConfig(config)
     }
 
     async sendConfigureMessage (options) {
