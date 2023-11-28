@@ -14,6 +14,7 @@ const janusPhoneKit = new JanusPhoneKit({
     url: 'wss://jnwss.voicenter.co/janus'
 })
 const state = reactive<MainState>({
+    created: undefined,
     streamSources: [],
     talkingStream: undefined,
     mainSource: undefined,
@@ -299,6 +300,7 @@ export default function useJanusPhoneKit () {
         setupMaskVisualizationConfig,
         microphoneOnModel,
         videoOnModel,
+        created: computed(() => state.created),
         isWithBokehMaskEffect: computed(() => state.isWithBokehMaskEffect),
         isWithBgImgMaskEffect: computed(() => state.isWithBgImgMaskEffect),
         isScreenSharing: computed(() => state.isScreenSharing),

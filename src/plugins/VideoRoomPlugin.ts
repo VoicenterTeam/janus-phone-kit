@@ -25,6 +25,7 @@ export class VideoRoomPlugin extends BasePlugin {
     rtcConnection: any = null
     clientID: string = ''
     userID: string = ''
+    created: number | null = null
 
     stream: MediaStream
     offerOptions: any = {}
@@ -167,6 +168,11 @@ export class VideoRoomPlugin extends BasePlugin {
 
         if (pluginData?.publishers) {
             this.onReceivePublishers(msg)
+        }
+
+        if (pluginData?.created) {
+            this.created = pluginData.created
+            this.session.emit('created', this.created)
         }
 
         if (pluginData?.videoroom === 'joined') {

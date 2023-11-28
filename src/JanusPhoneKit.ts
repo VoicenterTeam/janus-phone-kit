@@ -70,6 +70,7 @@ export default class JanusPhoneKit extends EventEmitter {
         plugin_attached: [],
         output: [],
         attached: [],
+        created: [],
         detached: [],
         keepalive_timout: [],
         'screenShare:stop': [],

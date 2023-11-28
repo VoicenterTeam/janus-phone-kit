@@ -37,7 +37,7 @@ const stateData = inject(ConfigInjectionKey)
 /* Data */
 const modalOpen = ref(false)
 const roomDetailsModel = ref<JoinRoomData>({
-    roomId: 4545,
+    roomId: 6556,
     displayName: 'User'
 })
 
