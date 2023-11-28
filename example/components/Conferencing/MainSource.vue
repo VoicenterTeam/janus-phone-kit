@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import MetricsModal from './MetricsModal.vue'
@@ -80,7 +80,7 @@ const {
 const metricsModalOpen = ref<boolean>(false)
 const callDuration = ref('')
 
-
+/* Methods */
 const calculateTimeFromNow = () => {
     if (created.value && created.value > 0) {
         const currentTime = Date.now()

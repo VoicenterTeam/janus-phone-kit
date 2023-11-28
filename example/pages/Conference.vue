@@ -39,7 +39,7 @@ const roomJoined = ref(false)
 const initializingData = ref(false)
 const roomDetailsModalOpened = ref(false)
 const roomDetailsModel = ref<JoinRoomData>({
-    roomId: 6556,
+    roomId: 4545,
     displayName: 'User'
 })
 
