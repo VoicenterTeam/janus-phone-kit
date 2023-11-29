@@ -53,6 +53,7 @@ export interface EventPayloads {
     'plugin_attached': PluginAttachedPayload
     'output': OutputPayload
     'attached': number
+    'created': number
     'detached': null
     'keepalive_timout': null
     'screenShare:stop': null
