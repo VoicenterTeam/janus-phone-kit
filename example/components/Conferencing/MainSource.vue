@@ -52,19 +52,24 @@
         {{ mainSource.name || mainSource.sender }}
       </div>
     </div>
+    <div
+      class="fixed bottom-20 left-0 px-4 bg-default-text rounded-tr text-xl">
+      {{ callDuration }}
+    </div>
     <MetricsModal v-model:modalVisible="metricsModalOpen" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
-import MetricsModal from "./MetricsModal.vue";
+import MetricsModal from './MetricsModal.vue'
 
 /* Composables */
 const { t } = useI18n()
 const {
+    created,
     mainSource,
     isWhiteboardEnabled,
     isScreenShareWhiteboardEnabled,
@@ -73,6 +78,45 @@ const {
 } = useJanusPhoneKit()
 
 const metricsModalOpen = ref<boolean>(false)
+const callDuration = ref('')
+
+/* Methods */
+const calculateTimeFromNow = () => {
+    if (created.value && created.value > 0) {
+        const currentTime = Date.now()
+        const differenceInMilliseconds = currentTime - created.value
+        const differenceInSeconds = Math.floor(differenceInMilliseconds / 1000)
+
+        const hours = Math.floor(differenceInSeconds / 3600)
+        const minutes = Math.floor((differenceInSeconds % 3600) / 60)
+        const seconds = differenceInSeconds % 60
+
+        const formattedHours = hours.toString().padStart(2, '0')
+        const formattedMinutes = minutes.toString().padStart(2, '0')
+        const formattedSeconds = seconds.toString().padStart(2, '0')
+
+        callDuration.value = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`
+    } else {
+        callDuration.value = '00:00:00'
+    }
+}
+
+const startTimer = () => {
+    calculateTimeFromNow()
+
+    const timerInterval = setInterval(() => {
+        calculateTimeFromNow()
+    }, 1000)
+
+    onBeforeUnmount(() => {
+        clearInterval(timerInterval)
+    })
+}
+
+onMounted(() => {
+    startTimer()
+})
+
 </script>
 
 <style scoped>

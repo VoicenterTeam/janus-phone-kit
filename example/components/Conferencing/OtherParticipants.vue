@@ -11,7 +11,7 @@
           :id="source.id"
           :controls="false"
           :volume="0.9"
-          width="200"
+          :width="videoWidth"
           height="150"
           autoplay
       >
@@ -21,8 +21,9 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+import useDeviceType from '@/composables/useDeviceType'
 
 /* Composables */
 const {
@@ -33,9 +34,17 @@ const {
     isImageWhiteboardEnabled
 } = useJanusPhoneKit()
 
+const { isMobile } = useDeviceType()
+
 watch(sourcesExceptMain,(val) => {
     console.log('watch sourcesExceptMain', val)
 })
+
+/* Computed */
+const videoWidth = computed(() => {
+    return isMobile.value ? '130' : '200'
+})
+
 /* Methods */
 const selectParticipant = (source) => {
     if (isScreenShareWhiteboardEnabled.value || isPresentationWhiteboardEnabled.value || isImageWhiteboardEnabled.value) {

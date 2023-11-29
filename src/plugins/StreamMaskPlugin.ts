@@ -8,12 +8,23 @@ import * as bodySegmentation from '@tensorflow-models/body-segmentation'
 import { setBackendAndEnvFlags } from '../util/tfjsBackendAndEnvFlags'
 import { Camera } from '../util/Camera'
 import { mergeConfig } from '../util/util'
-import { CAMERA_CONFIG, ENV_FLAGS, SEGMENTER_CONFIG, VISUALIZATION_CONFIG } from '../enum/tfjs.config.enum'
+import {
+    CAMERA_CONFIG,
+    ENV_FLAGS,
+    SEGMENTER_CONFIG,
+    VISUALIZATION_CONFIG,
+    MASK_EFFECT_TYPE_CONFIG,
+    MaskEffectTypeConfigType,
+    StartMaskEffectOptions,
+    VisualizationConfigType
+} from '../enum/tfjs.config.enum'
 
 tfjsWasm.setWasmPaths(`https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`)
 
 export class StreamMaskPlugin {
-    private visualizationConfig = {}
+    private visualizationConfig: VisualizationConfigType = {}
+    private maskEffectType: MaskEffectTypeConfigType | null = null
+    private base64ImageMask: string | null = null
     private rafId: number | null = null
     private segmenter: BodySegmenter = null
     private camera
@@ -27,9 +38,22 @@ export class StreamMaskPlugin {
     /**
    * Starts stream processing to add mask effect for it
    * @param {MediaStream} stream
+   * @param {'bokehEffect' | 'backgroundImageEffect'} effect - defines the mask effect type
+   * @param {object} options - additional mask effect options
    * @return {MediaStream} processed stream with mask effect
    */
-    async start (stream) {
+    async start (stream, effect: MaskEffectTypeConfigType, options?: StartMaskEffectOptions) {
+        if (effect === MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect && !options?.base64Image) {
+            console.error('Error when starting mask effect: base64Image option is required ' +
+              'for backgroundImageEffect effect type')
+        }
+
+        if (options?.base64Image) {
+            this.base64ImageMask = options.base64Image
+        }
+
+        this.maskEffectType = effect
+
         this.canvas = document.createElement('canvas')
         this.ctx = this.canvas.getContext('2d')
 
@@ -65,10 +89,16 @@ export class StreamMaskPlugin {
         }
 
         this.rafId = null
+        this.maskEffectType = null
+        this.base64ImageMask = null
         this.segmenter = null
         this.camera = null
         this.canvas = null
         this.ctx = null
+    }
+
+    setupVisualizationConfig (config: VisualizationConfigType) {
+        this.visualizationConfig = mergeConfig(this.visualizationConfig, config)
     }
 
     /**
@@ -147,17 +177,70 @@ export class StreamMaskPlugin {
     which shouldn't be rendered. */
 
         if (segmentation && segmentation.length > 0) {
-            const options = this.visualizationConfig
-
-            await bodySegmentation.drawBokehEffect(
-                this.canvas,
-                this.camera.video,
-                segmentation,
-                options.foregroundThreshold,
-                options.backgroundBlur,
-                options.edgeBlur
-            )
+            switch (this.maskEffectType) {
+                case MASK_EFFECT_TYPE_CONFIG.bokehEffect:
+                    await this.applyBokehEffect(segmentation)
+                    break
+                case MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect:
+                    await this.applyBackgroundImageEffect(segmentation)
+                    break
+                default:
+                    console.error('Error when applying mask effect: such mask effect doesn\'t exist')
+            }
+            //await this.applyBokehEffect(segmentation)
+            //await this.applyBackgroundImageEffect(segmentation)
         }
         this.camera.drawToCanvas(this.canvas)
+    }
+
+    async applyBokehEffect (segmentation) {
+        const options = this.visualizationConfig
+
+        await bodySegmentation.drawBokehEffect(
+            this.canvas,
+            this.camera.video,
+            segmentation,
+            options.foregroundThreshold,
+            options.backgroundBlur,
+            options.edgeBlur
+        )
+    }
+
+    async applyBackgroundImageEffect (segmentation) {
+        const base64BackgroundImage = this.base64ImageMask
+        const backgroundImage = new Image()
+        backgroundImage.src = base64BackgroundImage
+
+        const ctx = this.canvas.getContext('2d')
+
+        const background = { r: 0,
+            g: 0,
+            b: 0,
+            a: 0 }
+        const mask = await bodySegmentation.toBinaryMask(segmentation, background, { r: 0,
+            g: 0,
+            b: 0,
+            a: 255 })
+
+        if (mask) {
+            ctx.putImageData(mask, 0, 0)
+            ctx.globalCompositeOperation = 'source-in'
+
+            // 3. Drawing the Background
+            if (backgroundImage.complete) {
+                ctx.drawImage(backgroundImage, 0, 0, this.canvas.width, this.canvas.height)
+            } else {
+                backgroundImage.onload = () => {
+                    ctx.drawImage(backgroundImage, 0, 0, this.canvas.width, this.canvas.height)
+                }
+            }
+
+            ctx.globalCompositeOperation = 'destination-over'
+            ctx.drawImage(this.camera.video, 0, 0, this.canvas.width, this.canvas.height)
+            ctx.globalCompositeOperation = 'source-over'
+
+            // Add a delay to control the frame rate (adjust as needed) less CPU intensive
+            // await new Promise((resolve) => setTimeout(resolve, 100));
+        }
     }
 }
