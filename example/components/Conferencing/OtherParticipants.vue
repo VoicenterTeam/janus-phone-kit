@@ -10,7 +10,8 @@
           :srcObject.prop="source.stream"
           :id="source.id"
           :controls="false"
-          :volume="0.9"
+          :muted="source.type === 'publisher'"
+          :volume="source.type === 'publisher' ? 0: 0.9"
           :width="videoWidth"
           height="150"
           autoplay
