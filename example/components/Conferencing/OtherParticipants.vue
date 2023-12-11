@@ -14,6 +14,7 @@
           :width="videoWidth"
           height="150"
           autoplay
+          playsinline
       >
       </video>
     </div>

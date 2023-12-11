@@ -12,6 +12,7 @@
                  :muted="mainSource.type === 'publisher'"
                  :volume="mainSource.type === 'publisher' ? 0: 0.9"
                  autoplay
+                 playsinline
           >
           </video>
 <!--        </div>-->
@@ -92,6 +93,7 @@
                width="200"
                height="150"
                autoplay
+               playsinline
         >
         </video>
         <div class="absolute top-0 left-0 flex justify-center items-center bg-opacity-25 bg-gray-700 rounded-br px-4 text-xl font-semibold z-10">
