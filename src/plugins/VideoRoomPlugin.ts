@@ -15,7 +15,7 @@ import {
 } from '../enum/tfjs.config.enum'
 
 export class VideoRoomPlugin extends BasePlugin {
-    name = 'janus.plugin.videoroomjs'
+    name = 'janus.plugin.videoroom'
     memberList: any = {}
     room_id = 1234
     stunServers: StunServer[]

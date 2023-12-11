@@ -11,6 +11,7 @@
         :volume="mainSource.type === 'publisher' ? 0: 0.9"
         playsinline
         autoplay
+        playsinline
     >
     </video>
 
