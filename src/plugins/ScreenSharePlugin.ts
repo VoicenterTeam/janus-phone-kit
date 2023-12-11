@@ -7,7 +7,7 @@ import Konva from 'konva'
 import { ConferencingBasePlugin } from './ConferencingBasePlugin'
 
 export class ScreenSharePlugin extends ConferencingBasePlugin {
-    name = 'janus.plugin.videoroomjs'
+    name = 'janus.plugin.videoroom'
     memberList = {}
     videoElement = null
     //room_id = 1234

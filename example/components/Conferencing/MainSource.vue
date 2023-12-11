@@ -10,6 +10,7 @@
         :muted="mainSource.type === 'publisher'"
         :volume="mainSource.type === 'publisher' ? 0: 0.9"
         autoplay
+        playsinline
     >
     </video>
 

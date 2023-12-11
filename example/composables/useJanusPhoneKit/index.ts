@@ -11,7 +11,7 @@ import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from 'janus/types/k
 import { VisualizationConfigType } from 'janus/enum/tfjs.config.enum'
 
 const janusPhoneKit = new JanusPhoneKit({
-    url: 'wss://jnwss.voicenter.co/janus'
+    url: /*'wss://janus.conf.meetecho.com/ws'*/'wss://jnwss.voicenter.co/janus'
 })
 const state = reactive<MainState>({
     created: undefined,

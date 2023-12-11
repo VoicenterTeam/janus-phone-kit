@@ -27,7 +27,7 @@ export class Member {
         const attachResult = await this.plugin.send({
             janus: 'attach',
             opaque_id: this.plugin.opaqueId,
-            plugin: 'janus.plugin.videoroomjs'
+            plugin: 'janus.plugin.videoroom'
         })
         this.handleId = attachResult.data.id
 
