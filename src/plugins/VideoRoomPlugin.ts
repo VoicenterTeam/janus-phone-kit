@@ -530,7 +530,7 @@ export class VideoRoomPlugin extends BasePlugin {
     async sendConfigureMessage (options) {
         console.log('this.offerOptions', this.offerOptions)
 
-        const jsepOffer = await this.rtcConnection.createOffer({
+        const offerParams = {
             // We want bidirectional audio and video, plus data channels
             tracks: [
                 {
@@ -562,7 +562,11 @@ export class VideoRoomPlugin extends BasePlugin {
             // }
             // },
             ...this.offerOptions,
-        })
+        }
+
+        console.log('offerParams', offerParams)
+
+        const jsepOffer = await this.rtcConnection.createOffer(offerParams)
 
         await this.rtcConnection.setLocalDescription(jsepOffer)
 
