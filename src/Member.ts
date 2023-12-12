@@ -1,6 +1,6 @@
 import { logger } from './util/logger'
 import { BasePlugin } from './plugins/BasePlugin'
-import { Metrics } from "./util/Metrics";
+import { Metrics } from './util/Metrics'
 
 export class Member {
 
@@ -27,7 +27,7 @@ export class Member {
         const attachResult = await this.plugin.send({
             janus: 'attach',
             opaque_id: this.plugin.opaqueId,
-            plugin: 'janus.plugin.videoroom'
+            plugin: 'janus.plugin.videoroomjs'
         })
         this.handleId = attachResult.data.id
 
