@@ -528,7 +528,42 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     async sendConfigureMessage (options) {
-        const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions)
+        console.log('this.offerOptions', this.offerOptions)
+
+        const jsepOffer = await this.rtcConnection.createOffer({
+            // We want bidirectional audio and video, plus data channels
+            tracks: [
+                {
+                    type: 'audio',
+                    capture: true,
+                    recv: true
+                },
+                {
+                    type: 'video',
+                    capture: true,
+                    recv: true,
+                    // We may need to enable simulcast or SVC on the video track
+                    simulcast: true,
+                    // We only support SVC for VP9 and (still WIP) AV1
+                    // svc: ((vcodec === 'vp9' || vcodec === 'av1') && doSvc) ? doSvc : null
+                },
+                { type: 'data' },
+            ],
+            // customizeSdp: function (jsep) {
+            // If DTX is enabled, munge the SDP
+            // if (doDtx) {
+            //     jsep.sdp = jsep.sdp
+            //         .replace('useinbandfec=1', 'useinbandfec=1;usedtx=1')
+            // }
+
+            // if (stereo && jsep.sdp.indexOf('stereo=1') == -1) {
+            //     // Make sure that our offer contains stereo too
+            //     jsep.sdp = jsep.sdp.replace('useinbandfec=1', 'useinbandfec=1;stereo=1')
+            // }
+            // },
+            ...this.offerOptions,
+        })
+
         await this.rtcConnection.setLocalDescription(jsepOffer)
 
         const confResult = await this.sendMessage({
