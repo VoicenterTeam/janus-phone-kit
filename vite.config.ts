@@ -1,14 +1,14 @@
 import path, { resolve } from 'path'
-import * as fs from 'fs';
+import * as fs from 'fs'
 import { defineConfig, loadEnv, BuildOptions, PluginOption } from 'vite'
 import dts from 'vite-plugin-dts'
 import vue from '@vitejs/plugin-vue'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 
-function mediapipe_workaround() {
+function mediapipe_workaround () {
     return {
         name: 'mediapipe_workaround',
-        load(id) {
+        load (id) {
             if (path.basename(id) === 'selfie_segmentation.js') {
                 let code = fs.readFileSync(id, 'utf-8')
                 code += 'exports.SelfieSegmentation = SelfieSegmentation;'
@@ -23,7 +23,9 @@ function mediapipe_workaround() {
 const OUTPUT_DIR = 'library'
 
 const build: BuildOptions = process.env.TARGET === 'doc'
-    ? {}
+    ? {
+        minify: false
+    }
     : {
         outDir: OUTPUT_DIR,
         sourcemap: true,
