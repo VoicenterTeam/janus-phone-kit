@@ -53,8 +53,28 @@ export default function useJanusPhoneKit () {
             initListeners(janusPhoneKit, state)
 
             const session = janusPhoneKit.joinRoom(options)
+        })
+    }
+    function joinEchoTest (options: MediaStreamConstraints) {
+        return new Promise((resolve) => {
+            janusPhoneKit.on(
+                'member:join',
+                () => {
+                    resolve(session)
+                }
+            )
 
+            janusPhoneKit.on(
+                'reconnect',
+                () => {
+                    console.log('RESET streamSources', JSON.parse(JSON.stringify(state.streamSources)))
+                    state.streamSources = []
+                }
+            )
 
+            initListeners(janusPhoneKit, state)
+
+            const session = janusPhoneKit.joinEchoTest(options)
         })
     }
 
@@ -285,6 +305,7 @@ export default function useJanusPhoneKit () {
 
     return {
         joinRoom,
+        joinEchoTest,
         enableScreenShareWhiteboard,
         enablePresentationWhiteboard,
         enableImageWhiteboard,
@@ -317,6 +338,7 @@ export default function useJanusPhoneKit () {
 
             return state.streamSources.filter(s => s.id !== state.mainSource.id)
         }),
+        sources: computed(() => state.streamSources),
         metricsReport: computed(() => state.metricsReport),
     }
 }

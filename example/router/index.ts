@@ -13,6 +13,11 @@ export const CONFERENCE_PAGE_ROUTE: RouteRecordRequired = {
     component: () => import('@/pages/Conference.vue'),
     path: '/conference',
 }
+export const ECHOTEST_PAGE_ROUTE: RouteRecordRequired = {
+    name: 'EchoTestPage',
+    component: () => import('@/pages/EchoTestPage.vue'),
+    path: '/echotest',
+}
 
 const router = createRouter({
     history: createWebHistory(),
@@ -20,6 +25,7 @@ const router = createRouter({
     routes: [
         HOME_PAGE_ROUTE,
         CONFERENCE_PAGE_ROUTE,
+        ECHOTEST_PAGE_ROUTE,
         {
             path: '/:pathMatch(.*)*',
             redirect: '/'

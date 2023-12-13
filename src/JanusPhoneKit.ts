@@ -2,6 +2,7 @@ import 'webrtc-adapter'
 import Session from './Session'
 import { logger } from './util/logger'
 import { VideoRoomPlugin } from './plugins/VideoRoomPlugin'
+import { EchoTestPlugin } from './plugins/EchoTestPlugin'
 import { ScreenSharePlugin } from './plugins/ScreenSharePlugin'
 import { WhiteBoardPlugin } from './plugins/WhiteBoardPlugin'
 import EventEmitter from './util/EventEmitter'
@@ -52,6 +53,8 @@ export default class JanusPhoneKit extends EventEmitter {
    * @type {VideoRoomPlugin}
    */
     private videoRoomPlugin = null
+
+    private echoTestPlugin: EchoTestPlugin = null
     /**
    * Screen share plugin
    * @type {ScreenSharePlugin}
@@ -105,7 +108,7 @@ export default class JanusPhoneKit extends EventEmitter {
         this.session?.emit.apply(this, params)
     }
 
-    private connectToServer () {
+    private connectToServer (echoTest = false) {
         this.reconnectAttempt++
         this.session = new Session()
 
@@ -119,8 +122,12 @@ export default class JanusPhoneKit extends EventEmitter {
             this.session.receive(JSON.parse(event.data))
         })
 
-        this.registerSocketOpenHandler() // displayName, mediaConstraints
-        this.registerSocketCloseHandler()
+        if (echoTest) {
+            this.registerSocketOpenHandlerEcho()
+        } else {
+            this.registerSocketOpenHandler() // displayName, mediaConstraints
+            this.registerSocketCloseHandler()
+        }
 
         this.applySessionListeners()
     }
@@ -155,6 +162,24 @@ export default class JanusPhoneKit extends EventEmitter {
         this.mediaConstraints = mediaConstraints
 
         this.connectToServer()
+
+        return this.session
+    }
+
+    public joinEchoTest (mediaConstraints: MediaStreamConstraints) {
+        if (!this.options.url) {
+            throw new Error('Could not create websocket connection because url parameter is missing')
+        }
+        this.options.roomId = 1234
+
+        if (!this.options.roomId) {
+            throw new Error('A roomId is required in order to join a room')
+        }
+
+        this.displayName = 'displayName'
+        this.mediaConstraints = mediaConstraints
+
+        this.connectToServer(true)
 
         return this.session
     }
@@ -343,6 +368,46 @@ export default class JanusPhoneKit extends EventEmitter {
                 this.isConnected = true
                 await this.syncParticipants()
                 logger.info(`Echotest plugin attached with handle/ID ${this.videoRoomPlugin.id}`)
+            } catch (err) {
+                logger.error('Error during attaching of plugin', err)
+            }
+        })
+    }
+
+    private registerSocketOpenHandlerEcho () {
+        const displayName = this.displayName
+        const mediaConstraints = this.mediaConstraints
+        this.websocket.addEventListener('open', async () => {
+            try {
+                this.reconnectAttempt = 0
+                await this.session.create()
+                logger.info(`Session with ID ${this.session.id} created.`)
+            } catch (err) {
+                logger.error('Error during creation of session', err)
+                return
+            }
+
+            this.echoTestPlugin = new EchoTestPlugin({
+                displayName: displayName,
+                roomId: this.options.roomId,
+                stunServers: this.options.stunServers,
+                isAudioOn: this.options.isAudioOn,
+                isVideoOn: this.options.isVideoOn,
+                mediaConstraints,
+            })
+
+            this.echoTestPlugin.rtcConnection?.addEventListener('connectionstatechange', () => {
+                if (this.echoTestPlugin.rtcConnection.connectionState === 'failed') {
+                    this.websocket.close()
+                    this.reconnect()
+                }
+            })
+
+            try {
+                await this.session.attachPlugin(this.echoTestPlugin)
+                this.isConnected = true
+                await this.syncParticipants()
+                logger.info(`Echotest plugin attached with handle/ID ${this.echoTestPlugin.id}`)
             } catch (err) {
                 logger.error('Error during attaching of plugin', err)
             }
