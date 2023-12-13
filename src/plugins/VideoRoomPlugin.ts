@@ -356,6 +356,14 @@ export class VideoRoomPlugin extends BasePlugin {
         this.addTracks(this.stream.getVideoTracks())
         this.addTracks(this.volumeMeter.getOutputStream().getTracks())
 
+        console.log('SLEEPING')
+
+        await new Promise((resolve) => {
+            setTimeout(resolve, 2000)
+        })
+
+        console.log('WAKING UP')
+
         await this.sendConfigureMessage({
             audio: true,
             video: true,
@@ -601,6 +609,8 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     addTracks (tracks: MediaStreamTrack[]) {
+        console.log('WILL ADD TRACKS', tracks)
+
         tracks.forEach((track) => {
             this.rtcConnection.addTrack(track)
         })
