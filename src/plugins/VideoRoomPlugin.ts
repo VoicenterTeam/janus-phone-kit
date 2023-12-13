@@ -15,7 +15,7 @@ import {
 } from '../enum/tfjs.config.enum'
 
 export class VideoRoomPlugin extends BasePlugin {
-    name = 'janus.plugin.videoroom'
+    name = 'janus.plugin.videoroomjs'
     memberList: any = {}
     room_id = 1234
     stunServers: StunServer[]
@@ -202,6 +202,7 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     private async onTrickle (message) {
+        console.log('ON TRICKLE', message)
         const candidate = message?.candidate?.completed ? null : message?.candidate
         if (this.rtcConnection.remoteDescription) {
             await this.rtcConnection.addIceCandidate(candidate)
@@ -528,7 +529,46 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     async sendConfigureMessage (options) {
-        const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions)
+        const offerParams = {
+            // We want bidirectional audio and video, plus data channels
+            tracks: [
+                {
+                    type: 'audio',
+                    capture: true,
+                    recv: true
+                },
+                {
+                    type: 'video',
+                    capture: true,
+                    recv: true,
+                    // We may need to enable simulcast or SVC on the video track
+                    simulcast: true,
+                    // We only support SVC for VP9 and (still WIP) AV1
+                    // svc: ((vcodec === 'vp9' || vcodec === 'av1') && doSvc) ? doSvc : null
+                },
+                { type: 'data' },
+            ],
+            // customizeSdp: function (jsep) {
+            // If DTX is enabled, munge the SDP
+            // if (doDtx) {
+            //     jsep.sdp = jsep.sdp
+            //         .replace('useinbandfec=1', 'useinbandfec=1;usedtx=1')
+            // }
+
+            // if (stereo && jsep.sdp.indexOf('stereo=1') == -1) {
+            //     // Make sure that our offer contains stereo too
+            //     jsep.sdp = jsep.sdp.replace('useinbandfec=1', 'useinbandfec=1;stereo=1')
+            // }
+            // },
+            ...this.offerOptions,
+        }
+
+        console.log('############################### OFFER PARAMS ###############################', offerParams)
+
+        const jsepOffer = await this.rtcConnection.createOffer(offerParams)
+
+        console.log('############################### OFFER JSEP ###############################', offerParams)
+
         await this.rtcConnection.setLocalDescription(jsepOffer)
 
         const confResult = await this.sendMessage({
