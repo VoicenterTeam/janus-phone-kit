@@ -22,7 +22,7 @@ export class WhiteBoardPlugin extends ConferencingBasePlugin {
     private konvaDrawer: KonvaDrawer | null = null
     public mode: ConferencingModeType = undefined
     //rtcConnection: any = null
-    name = 'janus.plugin.videoroomjs'
+    name = 'janus.plugin.videoroom'
     //stunServers: StunServer[]
 
     //VideoRoomPlugin = null
