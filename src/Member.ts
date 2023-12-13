@@ -43,10 +43,12 @@ export class Member {
 
     async answerAttachedStream (attachedStreamInfo) {
         const RTCPeerOnAddStream = async (event) => {
+            console.log('echo msg RTCPeerOnAddStream')
             if (!this.rtcpPeer) {
                 return
             }
             logger.debug('on add stream Member', event)
+            console.log('on add stream Member', event)
             const options: any = {
                 audio: true,
                 video: true,
@@ -59,27 +61,34 @@ export class Member {
                 room: this.plugin.room_id
             }, answerSdp, { handle_id: this.handleId })
 
-            const aTracks = event.streams[0].getAudioTracks()
+            /*const aTracks = event.streams[0].getAudioTracks()
             const vTracks = event.streams[0].getVideoTracks()
+            const mediaStream = new MediaStream([ aTracks[0], vTracks[0] ])*/
 
-            const mediaStream = new MediaStream([ aTracks[0], vTracks[0] ])
-            this.stream = mediaStream
+            if (event.track.kind === 'video') {
+                const mediaStream = new MediaStream([ event.track ])
+                this.stream = mediaStream
 
-            //this.stream = event.stream
+                //this.stream = event.stream
 
-            console.log('answerAttachedStream member:join', this.memberInfo)
-            this.plugin?.session.emit('member:join', this.memberInfo)
+                console.log('answerAttachedStream member:join', this.memberInfo)
+                this.plugin?.session.emit('member:join', this.memberInfo)
+            }
+
         }
 
         // Send ICE events to Janus.
         const RTCPeerOnIceCandidate = (event) => {
+            console.log('echo msg RTCPeerOnIceCandidate')
             if (this.rtcpPeer.signalingState !== 'stable') return
             this.plugin.sendTrickle(event.candidate || null)
         }
 
+
         this.rtcpPeer = new RTCPeerConnection()
-        console.log('answerAttachedStream this.rtcpPeer', this.rtcpPeer)
-        //this.rtcpPeer.onaddstream = RTCPeerOnAddStream;
+        console.log('echo msg answerAttachedStream this.rtcpPeer', this.rtcpPeer)
+        console.log('echo msg answerAttachedStream attachedStreamInfo', attachedStreamInfo)
+        // this.rtcpPeer.onaddstream = RTCPeerOnAddEntireStream
         this.rtcpPeer.ontrack  = RTCPeerOnAddStream
         this.rtcpPeer.onicecandidate = RTCPeerOnIceCandidate
         this.rtcpPeer.sender = attachedStreamInfo.sender

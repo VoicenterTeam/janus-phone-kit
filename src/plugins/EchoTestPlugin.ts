@@ -26,6 +26,7 @@ export class EchoTestPlugin extends BasePlugin {
     clientID: string = ''
     userID: string = ''
     created: number | null = null
+    jsep: any = null
 
     stream: MediaStream
     offerOptions: any = {}
@@ -143,6 +144,8 @@ export class EchoTestPlugin extends BasePlugin {
             return
         }
 
+        console.log('echo msg', msg)
+
         if (msg.janus === 'trickle') {
             await this.onTrickle(msg)
         }
@@ -156,10 +159,17 @@ export class EchoTestPlugin extends BasePlugin {
             return
         }
 
-        if (pluginData?.videoroom === 'attached') {
+        console.log('echo msg 1')
+        if (msg?.type === 'video') {
+            console.log('echo msg 2')
             this.onVideoRoomAttached(msg)
             return
         }
+
+        /*if (pluginData?.videoroom === 'attached') {
+            this.onVideoRoomAttached(msg)
+            return
+        }*/
 
         if (pluginData?.unpublished) {
             this.onHangup(pluginData.unpublished)
@@ -219,9 +229,19 @@ export class EchoTestPlugin extends BasePlugin {
     }
 
     private onVideoRoomAttached (message) {
-        if (this.memberList[message?.plugindata?.data?.id]) {
+        console.log('echo msg onVideoRoomAttached 1', message)
+        const id = message?.mid || '3276487326'
+        this.memberList[id] = new Member({
+            id: id,
+            display: 'temp'
+        }, this)
+        console.log('echo msg onVideoRoomAttached 2', id, this.memberList[id])
+        message.jsep = this.jsep
+        this.memberList[id].answerAttachedStream(message)
+
+        /*if (this.memberList[message?.plugindata?.data?.id]) {
             this.memberList[message?.plugindata?.data?.id].answerAttachedStream(message)
-        }
+        }*/
     }
 
     private onPublisherStateUpdate (message) {
@@ -305,12 +325,14 @@ export class EchoTestPlugin extends BasePlugin {
         const { options } = await this.requestAudioAndVideoPermissions()
 
         const joinResult = await this.sendMessage({
-            request: 'join',
+            /*request: 'join',
             room: this.room_id,
             ptype: 'publisher',
             display: this.displayName,
             clientID: this.clientID,
-            opaque_id: this.opaqueId,
+            opaque_id: this.opaqueId,*/
+            audio: true,
+            video: true
         })
 
         /*// Add an audio transceiver.
@@ -550,7 +572,7 @@ export class EchoTestPlugin extends BasePlugin {
                     capture: true,
                     recv: true,
                     // We may need to enable simulcast or SVC on the video track
-                    simulcast: true,
+                    simulcast: false,
                     // We only support SVC for VP9 and (still WIP) AV1
                     // svc: ((vcodec === 'vp9' || vcodec === 'av1') && doSvc) ? doSvc : null
                 },
@@ -574,15 +596,21 @@ export class EchoTestPlugin extends BasePlugin {
         console.log('############################### OFFER PARAMS ###############################', offerParams)
 
         const jsepOffer = await this.rtcConnection.createOffer(offerParams)
+        console.log('echo msg jsepOffer', jsepOffer)
 
         console.log('############################### OFFER JSEP ###############################', jsepOffer)
 
         await this.rtcConnection.setLocalDescription(jsepOffer)
+        //console.log('jsepOffer', jsepOffer)
 
         const confResult = await this.sendMessage({
             request: 'configure',
             ...options,
         }, jsepOffer)
+
+        console.log('confResult', confResult)
+
+        this.jsep = jsepOffer //confResult.jsep
 
         await this.rtcConnection.setRemoteDescription(confResult.jsep)
         await this.processIceCandidates()
