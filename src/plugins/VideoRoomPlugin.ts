@@ -15,7 +15,7 @@ import {
 } from '../enum/tfjs.config.enum'
 
 export class VideoRoomPlugin extends BasePlugin {
-    name = 'janus.plugin.videoroomjs'
+    name = 'janus.plugin.videoroom'
     memberList: any = {}
     room_id = 1234
     stunServers: StunServer[]
@@ -202,6 +202,7 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     private async onTrickle (message) {
+        console.log('ON TRICKLE', message)
         const candidate = message?.candidate?.completed ? null : message?.candidate
         if (this.rtcConnection.remoteDescription) {
             await this.rtcConnection.addIceCandidate(candidate)
@@ -528,8 +529,6 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     async sendConfigureMessage (options) {
-        console.log('this.offerOptions', this.offerOptions)
-
         const offerParams = {
             // We want bidirectional audio and video, plus data channels
             tracks: [
@@ -564,9 +563,11 @@ export class VideoRoomPlugin extends BasePlugin {
             ...this.offerOptions,
         }
 
-        console.log('offerParams', offerParams)
+        console.log('############################### OFFER PARAMS ###############################', offerParams)
 
         const jsepOffer = await this.rtcConnection.createOffer(offerParams)
+
+        console.log('############################### OFFER JSEP ###############################', offerParams)
 
         await this.rtcConnection.setLocalDescription(jsepOffer)
 
