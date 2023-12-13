@@ -22,7 +22,7 @@ export class VideoRoomPlugin extends BasePlugin {
     iceCandidates: any[] = []
     publishers = null
     displayName: string = ''
-    rtcConnection: any = null
+    rtcConnection: RTCPeerConnection = null
     clientID: string = ''
     userID: string = ''
     created: number | null = null
@@ -575,7 +575,7 @@ export class VideoRoomPlugin extends BasePlugin {
 
         const jsepOffer = await this.rtcConnection.createOffer(offerParams)
 
-        console.log('############################### OFFER JSEP ###############################', offerParams)
+        console.log('############################### OFFER JSEP ###############################', jsepOffer)
 
         await this.rtcConnection.setLocalDescription(jsepOffer)
 
