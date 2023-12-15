@@ -29,35 +29,35 @@ export class Metrics {
     }
 
     public start (connection: RTCPeerConnection) {
-        this.probe = this.metrics.createProbe(connection, {
-            cid: this.generateUniqueID()
-        })
-
-        this.metrics.startAllProbes()
+        // this.probe = this.metrics.createProbe(connection, {
+        //     cid: this.generateUniqueID()
+        // })
+        //
+        // this.metrics.startAllProbes()
     }
 
     public stop () {
-        this.metrics.stopAllProbes()
+        // this.metrics.stopAllProbes()
     }
 
     public onReport (direction: ProbeDirectionType ,cb) {
-        const inboundKeys: Array<string> = []
-        let inboundAudio: string
-
-        this.probe.onreport = (report: ProbReportType) => {
-            Object.entries(report.audio).forEach(([ key, value ]) => {
-                if (value.direction === direction && !inboundKeys.includes(key)) {
-                    inboundKeys.push(key)
-                    inboundAudio = key
-                }
-            })
-
-            const inboundAudioMetric = report.audio[inboundAudio] as ProbeMetricInType | ProbeMetricOutType
-
-            if (inboundAudioMetric) {
-                cb(inboundAudioMetric)
-            }
-        }
+        // const inboundKeys: Array<string> = []
+        // let inboundAudio: string
+        //
+        // this.probe.onreport = (report: ProbReportType) => {
+        //     Object.entries(report.audio).forEach(([ key, value ]) => {
+        //         if (value.direction === direction && !inboundKeys.includes(key)) {
+        //             inboundKeys.push(key)
+        //             inboundAudio = key
+        //         }
+        //     })
+        //
+        //     const inboundAudioMetric = report.audio[inboundAudio] as ProbeMetricInType | ProbeMetricOutType
+        //
+        //     if (inboundAudioMetric) {
+        //         cb(inboundAudioMetric)
+        //     }
+        // }
     }
 
     private generateUniqueID () {

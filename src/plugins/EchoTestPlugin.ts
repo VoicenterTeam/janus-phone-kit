@@ -138,26 +138,26 @@ export class EchoTestPlugin extends BasePlugin {
    */
     async receive (msg) {
 
-        const pluginData = msg?.plugindata?.data
-
-        if (pluginData?.error_code) {
-            return
-        }
-
-        console.log('echo msg', msg)
-
-        if (msg.janus === 'trickle') {
-            await this.onTrickle(msg)
-        }
-
-        if(msg.janus === 'webrtcup') {
-            this.session.emit('webrtcup')
-        }
-
-        if (pluginData?.event === 'PublisherStateUpdate') {
-            this.onPublisherStateUpdate(msg)
-            return
-        }
+        // const pluginData = msg?.plugindata?.data
+        //
+        // if (pluginData?.error_code) {
+        //     return
+        // }
+        //
+        // console.log('echo msg', msg)
+        //
+        // if (msg.janus === 'trickle') {
+        //     await this.onTrickle(msg)
+        // }
+        //
+        // if(msg.janus === 'webrtcup') {
+        //     this.session.emit('webrtcup')
+        // }
+        //
+        // if (pluginData?.event === 'PublisherStateUpdate') {
+        //     this.onPublisherStateUpdate(msg)
+        //     return
+        // }
 
         console.log('echo msg 1')
         if (msg?.type === 'video') {
@@ -171,23 +171,23 @@ export class EchoTestPlugin extends BasePlugin {
             return
         }*/
 
-        if (pluginData?.unpublished) {
-            this.onHangup(pluginData.unpublished)
-            return
-        }
-
-        if (pluginData?.publishers) {
-            this.onReceivePublishers(msg)
-        }
-
-        if (pluginData?.created) {
-            this.created = pluginData.created
-            this.session.emit('created', this.created)
-        }
-
-        if (pluginData?.videoroom === 'joined') {
-            this.onPublisherInitialStateUpdate(msg)
-        }
+        // if (pluginData?.unpublished) {
+        //     this.onHangup(pluginData.unpublished)
+        //     return
+        // }
+        //
+        // if (pluginData?.publishers) {
+        //     this.onReceivePublishers(msg)
+        // }
+        //
+        // if (pluginData?.created) {
+        //     this.created = pluginData.created
+        //     this.session.emit('created', this.created)
+        // }
+        //
+        // if (pluginData?.videoroom === 'joined') {
+        //     this.onPublisherInitialStateUpdate(msg)
+        // }
     }
 
     setupMetrics () {
@@ -378,14 +378,6 @@ export class EchoTestPlugin extends BasePlugin {
         this.addTracks(this.stream.getVideoTracks())
         this.addTracks(this.volumeMeter.getOutputStream().getTracks())
 
-        console.log('SLEEPING')
-
-        await new Promise((resolve) => {
-            setTimeout(resolve, 2000)
-        })
-
-        console.log('WAKING UP')
-
         await this.sendConfigureMessage({
             audio: true,
             video: true,
@@ -403,17 +395,17 @@ export class EchoTestPlugin extends BasePlugin {
 
     trackMicrophoneVolume () {
         const volumeMeter = new VolumeMeter(this.stream)
-        volumeMeter.onAudioProcess(async (newValue, oldValue) => {
-            if (newValue >= 20 && oldValue < 20) {
-                this.isNoiseFilterOn && volumeMeter.unmute()
-                this.isTalking = true
-                await this.sendStateMessage({ isTalking: true })
-            } else if (newValue <= 20 && oldValue > 20) {
-                this.isNoiseFilterOn && volumeMeter.mute()
-                this.isTalking = false
-                await this.sendStateMessage({ isTalking: false })
-            }
-        })
+        // volumeMeter.onAudioProcess(async (newValue, oldValue) => {
+        //     if (newValue >= 20 && oldValue < 20) {
+        //         this.isNoiseFilterOn && volumeMeter.unmute()
+        //         this.isTalking = true
+        //         await this.sendStateMessage({ isTalking: true })
+        //     } else if (newValue <= 20 && oldValue > 20) {
+        //         this.isNoiseFilterOn && volumeMeter.mute()
+        //         this.isTalking = false
+        //         await this.sendStateMessage({ isTalking: false })
+        //     }
+        // })
         this.volumeMeter = volumeMeter
     }
 

@@ -49,17 +49,18 @@ export class Member {
             }
             logger.debug('on add stream Member', event)
             console.log('on add stream Member', event)
-            const options: any = {
-                audio: true,
-                video: true,
-            }
-            const answerSdp = await this.rtcpPeer.createAnswer(options)
-            await this.rtcpPeer.setLocalDescription(answerSdp)
+            // const options: any = {
+            //     audio: true,
+            //     video: true,
+            // }
+            // const answerSdp = await this.rtcpPeer.createAnswer(options)
+            // console.log('echo msg answerAttachedStream answerSdp', answerSdp)
+            // await this.rtcpPeer.setLocalDescription(answerSdp)
             // Send the answer to the remote peer through the signaling server.
-            await this.plugin.sendMessage({
-                request: 'start',
-                room: this.plugin.room_id
-            }, answerSdp, { handle_id: this.handleId })
+            // await this.plugin.sendMessage({
+            //     request: 'start',
+            //     room: this.plugin.room_id
+            // }, answerSdp, { handle_id: this.handleId })
 
             /*const aTracks = event.streams[0].getAudioTracks()
             const vTracks = event.streams[0].getVideoTracks()
