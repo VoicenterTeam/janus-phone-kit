@@ -15,7 +15,7 @@ import {
 } from '../enum/tfjs.config.enum'
 
 export class VideoRoomPlugin extends BasePlugin {
-    name = 'janus.plugin.videoroom'
+    name = 'janus.plugin.videoroomjs'
     memberList: any = {}
     room_id = 1234
     stunServers: StunServer[]
@@ -528,7 +528,10 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     async sendConfigureMessage (options) {
+        console.log('CCCC video rtcConnection.createOffer params', this.offerOptions)
         const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions)
+        console.log('CCCC video rtcConnection.createOffer offer', jsepOffer)
+        console.log('CCCC video rtcConnection.setLocalDescription offer', jsepOffer)
         await this.rtcConnection.setLocalDescription(jsepOffer)
 
         const confResult = await this.sendMessage({
@@ -536,6 +539,8 @@ export class VideoRoomPlugin extends BasePlugin {
             ...options,
         }, jsepOffer)
 
+        //console.log('CCCC confResult', confResult)
+        console.log('CCCC video rtcConnection.setRemoteDescription jsep', confResult.jsep)
         await this.rtcConnection.setRemoteDescription(confResult.jsep)
         await this.processIceCandidates()
 

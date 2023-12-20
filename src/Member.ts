@@ -27,7 +27,7 @@ export class Member {
         const attachResult = await this.plugin.send({
             janus: 'attach',
             opaque_id: this.plugin.opaqueId,
-            plugin: 'janus.plugin.videoroom'
+            plugin: 'janus.plugin.videoroomjs'
         })
         this.handleId = attachResult.data.id
 
@@ -51,7 +51,10 @@ export class Member {
                 audio: true,
                 video: true,
             }
-            const answerSdp = await this.rtcpPeer.createAnswer(options)
+            console.log('CCCC member rtcpPeer.createAnswer params', options)
+            const answerSdp = await this.rtcpPeer.createAnswer(options) // TODO: gateway don't have passed params
+            console.log('CCCC member rtcpPeer.createAnswer answerSdp', answerSdp)
+            console.log('CCCC member rtcpPeer.setLocalDescription sdp', answerSdp)
             await this.rtcpPeer.setLocalDescription(answerSdp)
             // Send the answer to the remote peer through the signaling server.
             await this.plugin.sendMessage({
@@ -83,6 +86,7 @@ export class Member {
         this.rtcpPeer.ontrack  = RTCPeerOnAddStream
         this.rtcpPeer.onicecandidate = RTCPeerOnIceCandidate
         this.rtcpPeer.sender = attachedStreamInfo.sender
+        console.log('CCCC member rtcpPeer.setRemoteDescription jsep', attachedStreamInfo.jsep)
         await this.rtcpPeer.setRemoteDescription(attachedStreamInfo.jsep)
         this.setupMetrics()
     }
