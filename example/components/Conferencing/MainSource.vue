@@ -53,10 +53,11 @@
         {{ mainSource.name || mainSource.sender }}
       </div>
     </div>
-    <div
+<!--  TODO: temporary removed because of videoroom plugin  -->
+<!--    <div
       class="fixed bottom-20 left-0 px-4 bg-default-text rounded-tr text-xl">
       {{ callDuration }}
-    </div>
+    </div>-->
     <MetricsModal v-model:modalVisible="metricsModalOpen" />
   </div>
 </template>
@@ -114,9 +115,10 @@ const startTimer = () => {
     })
 }
 
-onMounted(() => {
+// TODO: temporary removed because of videoroom plugin
+/*onMounted(() => {
     startTimer()
-})
+})*/
 
 </script>
 
