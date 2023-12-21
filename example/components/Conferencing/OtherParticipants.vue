@@ -6,10 +6,6 @@
         class="mr-2 mb-2 relative border-2 border-default-text rounded cursor-pointer"
         @click="selectParticipant(source)"
     >
-      <div class="text-white">
-        {{ videoWidth }}
-      </div>
-
       <video
           :srcObject.prop="source.stream"
           :id="source.id"
