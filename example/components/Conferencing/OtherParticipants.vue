@@ -3,7 +3,7 @@
     <div
         v-for="source in sourcesExceptMain"
         :key="source.id"
-        class="mr-2 mb-2 relative border-2 border-default-text rounded cursor-pointer"
+        class="mr-2 ml-2 mb-2 relative border-2 border-default-text rounded cursor-pointer"
         @click="selectParticipant(source)"
     >
       <video
