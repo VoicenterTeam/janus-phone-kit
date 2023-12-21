@@ -8,5 +8,10 @@
 <body style="touch-action: manipulation">
 <div id="app"></div>
 <script type="module" src="/example/main.ts"></script>
+<script>
+  document.addEventListener('gesturestart', function (e) {
+    e.preventDefault()
+  })
+</script>
 </body>
 </html>
