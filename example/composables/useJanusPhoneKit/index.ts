@@ -1,5 +1,5 @@
 import { computed, watch, reactive, nextTick } from 'vue'
-
+import {parse} from 'qs'
 import type { JoinRoomOptions } from 'janus/JanusPhoneKit'
 import JanusPhoneKit from 'janus/JanusPhoneKit'
 import { MainState } from '@/composables/useJanusPhoneKit/types'
@@ -9,10 +9,7 @@ import { DeviceManager } from 'janus/index'
 import { Member } from 'janus/types/events'
 import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from 'janus/types/konvaDrawer'
 import { VisualizationConfigType } from 'janus/enum/tfjs.config.enum'
-
-const janusPhoneKit = new JanusPhoneKit({
-    url: /*'wss://janus.conf.meetecho.com/ws'*/'wss://jnwss.voicenter.co/janus'
-})
+let janusPhoneKit ;
 const state = reactive<MainState>({
     created: undefined,
     streamSources: [],
@@ -30,6 +27,11 @@ const state = reactive<MainState>({
 })
 
 export default function useJanusPhoneKit () {
+    const qsConfig =parse(window.location.search.replaceAll('?',''))
+    console.log('useJanusPhoneKit',qsConfig)
+    janusPhoneKit = new JanusPhoneKit({
+        url: `ws://127.0.0.1:8188/janus?room=${qsConfig.roomId||'default'}`
+    })
     if (!janusPhoneKit) {
         throw new Error('JanusPhoneKit is not registered, call registerJanusPhoneKit first')
     }

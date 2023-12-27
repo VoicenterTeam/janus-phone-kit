@@ -79,7 +79,8 @@ export class VideoRoomPlugin extends BasePlugin {
         // Send ICE events to Janus.
         this.rtcConnection.onicecandidate = (event) => {
 
-            if (this.rtcConnection.signalingState !== 'stable') {
+            if (this.rtcConnection.signalingState !== 'stable' && this.rtcConnection.signalingState !== 'have-local-offer') {
+                console.log('skipining icecandidate event',this.rtcConnection.signalingState,event)
                 return
             }
             if (!event.candidate) {
@@ -244,6 +245,7 @@ export class VideoRoomPlugin extends BasePlugin {
 
             delete unprocessedMembers[publisher.id]
             if (!this.memberList[publisher.id] && !this.myFeedList.includes(publisher.id) &&  publisher.clientID !==this.clientID ) {
+
                 console.log('onReceivePublishers publisher',publisher)
                 this.memberList[publisher.id] = new Member(publisher, this)
                 this.memberList[publisher.id].attachMember()
@@ -528,6 +530,8 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     async sendConfigureMessage (options) {
+        this.offerOptions.offerToReceiveAudio = false
+        this.offerOptions.offerToReceiveVideo = false
         const jsepOffer = await this.rtcConnection.createOffer(this.offerOptions)
         await this.rtcConnection.setLocalDescription(jsepOffer)
 

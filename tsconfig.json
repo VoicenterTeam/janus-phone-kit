@@ -5,7 +5,8 @@
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "lib": [
-      "dom"
+      "dom",
+      "es2015.promise"
     ],
     "types": [
       "vite/client",

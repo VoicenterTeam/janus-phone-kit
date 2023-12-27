@@ -1,6 +1,6 @@
 import { logger } from './util/logger'
 import { BasePlugin } from './plugins/BasePlugin'
-import { Metrics } from "./util/Metrics";
+import { Metrics } from './util/Metrics'
 
 export class Member {
 
@@ -12,6 +12,10 @@ export class Member {
     private state = {}
     private stream = null
     private metrics: any = null
+    private loaded = false
+    private aTracks = []
+    private vTracks = []
+
 
     constructor (memberInfo, plugin: BasePlugin) {
         this.info = memberInfo
@@ -43,26 +47,41 @@ export class Member {
 
     async answerAttachedStream (attachedStreamInfo) {
         const RTCPeerOnAddStream = async (event) => {
-            if (!this.rtcpPeer) {
+            console.log('RTCPeerOnAddStream',this.memberInfo.id,event)
+           // if(event.track.kind!=='video')return
+            if (!this.rtcpPeer  ) {
+                console.log('Skipping attachment media because allredy load ',event,this.memberInfo.id)
                 return
             }
-            logger.debug('on add stream Member', event)
-            const options: any = {
-                audio: true,
-                video: true,
+            if( this.loaded) {
+                return;
+                await new Promise((resolve) => {setTimeout(resolve,100)})
+            }else {
+                this.loaded=true
+                const options: any = {
+                    audio: true,
+                    video: true,
+                }
+
+                await new Promise((resolve) => {setTimeout(resolve,100)})
+                const answerSdp = await this.rtcpPeer.createAnswer(options)
+                await this.plugin.sendMessage({
+                    request: 'start',
+                    room: this.plugin.room_id
+                }, answerSdp, { handle_id: this.handleId })
+                await this.rtcpPeer.setLocalDescription(answerSdp)
+                // Send the answer to the remote peer through the signaling server.
+
             }
-            const answerSdp = await this.rtcpPeer.createAnswer(options)
-            await this.rtcpPeer.setLocalDescription(answerSdp)
-            // Send the answer to the remote peer through the signaling server.
-            await this.plugin.sendMessage({
-                request: 'start',
-                room: this.plugin.room_id
-            }, answerSdp, { handle_id: this.handleId })
+
+            logger.debug('on add stream Member', event)
+
+
 
             const aTracks = event.streams[0].getAudioTracks()
-            const vTracks = event.streams[0].getVideoTracks()
+            const  vTracks = event.streams[0].getVideoTracks()
 
-            const mediaStream = new MediaStream([ aTracks[0], vTracks[0] ])
+            const mediaStream = new MediaStream([ aTracks[0],vTracks[0] ])
             this.stream = mediaStream
 
             //this.stream = event.stream
@@ -73,7 +92,7 @@ export class Member {
 
         // Send ICE events to Janus.
         const RTCPeerOnIceCandidate = (event) => {
-            if (this.rtcpPeer.signalingState !== 'stable') return
+            if (this.rtcpPeer.signalingState !== 'stable' && this.rtcpPeer.signalingState !== 'have-local-offer') return
             this.plugin.sendTrickle(event.candidate || null)
         }
 
