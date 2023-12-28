@@ -2,7 +2,6 @@ import { Member } from 'janus/types/events'
 import { ProbeMetricInType, ProbeMetricOutType } from 'janus/types/metrics'
 
 export interface MainState {
-    created: number | undefined,
     streamSources: Array<Member>
     talkingStream: Member | undefined
     mainSource: Member | undefined

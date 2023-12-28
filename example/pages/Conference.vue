@@ -10,12 +10,12 @@
             @submit="setRoomDetailsData"
         />
 
-        <Conferencing v-if="roomJoined" @hangup="redirectToHomePage" />
+        <Conferencing v-if="roomJoined" :room-id="roomId" @hangup="redirectToHomePage" />
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, inject } from 'vue'
+import { ref, inject } from "vue";
 import { useRoute, useRouter } from 'vue-router'
 import { CONFERENCE_PAGE_ROUTE, HOME_PAGE_ROUTE } from '@/router'
 import { generateConferenceQueryParameters, getConferenceQueryParameters } from '@/helper/router.helper'
@@ -42,6 +42,8 @@ const roomDetailsModel = ref<JoinRoomData>({
     roomId: 4545,
     displayName: 'User'
 })
+
+const roomId = ref<number | undefined>(undefined)
 
 /* Methods */
 function redirectToHomePage () {
@@ -85,6 +87,7 @@ function tryInitializeByQueryParameters () {
     const data = getConferenceQueryParameters(route)
 
     if (data.roomId !== undefined && data.displayName !== undefined) {
+        roomId.value = data.roomId
         joinConference(data.roomId, data.displayName)
 
         return

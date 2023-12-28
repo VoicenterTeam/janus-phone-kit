@@ -11,7 +11,6 @@ import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from 'janus/types/k
 import { VisualizationConfigType } from 'janus/enum/tfjs.config.enum'
 let janusPhoneKit ;
 const state = reactive<MainState>({
-    created: undefined,
     streamSources: [],
     talkingStream: undefined,
     mainSource: undefined,
@@ -302,7 +301,6 @@ export default function useJanusPhoneKit () {
         setupMaskVisualizationConfig,
         microphoneOnModel,
         videoOnModel,
-        created: computed(() => state.created),
         isWithBokehMaskEffect: computed(() => state.isWithBokehMaskEffect),
         isWithBgImgMaskEffect: computed(() => state.isWithBgImgMaskEffect),
         isScreenSharing: computed(() => state.isScreenSharing),

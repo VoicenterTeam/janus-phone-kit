@@ -39,13 +39,6 @@ export function initListeners (janusPhoneKit: JanusPhoneKit, state: MainState) {
     )
 
     janusPhoneKit.on(
-        'created',
-        (value) => {
-            state.created = value
-        }
-    )
-
-    janusPhoneKit.on(
         'member:hangup',
         (info) => {
             console.log('member:hangup', info)

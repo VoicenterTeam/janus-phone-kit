@@ -1,6 +1,6 @@
 <template>
     <div :class="{'conference-content fixed top-0 left-0 w-screen z-50 bg-black': isMainSource}">
-      <MainSource v-if="isMainSource" />
+      <MainSource v-if="isMainSource" :room-id="props.roomId" />
       <OtherParticipants />
       <BottomActions v-if="isMainSource" @hangup="onHangup" />
     </div>
@@ -15,6 +15,17 @@ import OtherParticipants from '@/components/Conferencing/OtherParticipants.vue'
 
 /* Composables */
 const { mainSource } = useJanusPhoneKit()
+
+/* Props */
+export interface Props {
+  roomId: number | undefined
+}
+const props = withDefaults(
+    defineProps<Props>(),
+    {
+        roomId: undefined
+    }
+)
 
 /* Computed */
 const isMainSource = computed(() =>{
