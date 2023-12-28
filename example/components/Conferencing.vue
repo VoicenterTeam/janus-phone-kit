@@ -7,11 +7,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+import { computed, inject } from 'vue'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import MainSource from '@/components/Conferencing/MainSource.vue'
 import BottomActions from '@/components/Conferencing/BottomActions.vue'
 import OtherParticipants from '@/components/Conferencing/OtherParticipants.vue'
+
+const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Composables */
 const { mainSource } = useJanusPhoneKit()

@@ -23,9 +23,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+import { computed, inject, watch } from 'vue'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import useDeviceType from '@/composables/useDeviceType'
+
+const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Composables */
 const {

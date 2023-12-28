@@ -63,12 +63,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import MetricsModal from './MetricsModal.vue'
 import { getCreatedTime } from '@/helper/create.time.helper'
 
+const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Props */
 export interface Props {
@@ -130,6 +131,7 @@ const startTimer = () => {
 // TODO: temporary removed because of videoroom plugin
 onMounted(async () => {
     const data = await getCreatedTime(props.roomId)
+  console.log('heerereee');
     created.value = data?.created || Date.now()
     startTimer(data.created)
 })

@@ -3,6 +3,8 @@ import { createApp } from 'vue'
 import '@/assets/index.scss'
 
 import App from '@/App.vue'
+import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+const janusProvider = useJanusPhoneKit()
 
 import voicenterUI from '@/plugins/voicenterUI'
 import i18n from '@/plugins/i18n'
@@ -34,4 +36,5 @@ createApp(App)
     .use(config)
     .use(i18n)
     .use(voicenterUI)
+    .provide('useJanusPhoneKit', () => janusProvider)
     .mount('#app')

@@ -62,15 +62,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { inject, ref } from "vue";
 import { useI18n } from 'vue-i18n'
 import { useVModel } from '@vueuse/core'
 import { VcForm } from '@voicenter-team/voicenter-ui-plus'
 import { DeviceManager } from 'janus/index'
 import useValidationRules from '@/composables/useValidationRules'
 import useVcFormValidation from '@/composables/useVcFormValidation'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import { EntityConfigType } from '@/types/extend'
+
+const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Types */
 interface SettingsModel {

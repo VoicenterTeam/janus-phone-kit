@@ -19,7 +19,7 @@ import { ref, inject } from 'vue'
 import { RouteLocationNormalizedLoaded, useRoute, useRouter } from 'vue-router'
 import { VIDEO_ROOM_CONFERENCE_PAGE_ROUTE, VIDEO_ROOM_ROUTE } from '@/router'
 //import { generateConferenceQueryParameters, getConferenceQueryParameters } from '@/helper/router.helper'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import Conferencing from '@/components/Conferencing.vue'
 import JoinRoomModal from '@/components/JoinRoomModal.vue'
 import { JoinRoomData } from '@/types/forms'
@@ -30,6 +30,7 @@ import { CONFERENCE_PAGE_QUERY_PARAMETERS } from '@/enum/router.enum'
 
 /* Inject */
 const stateData = inject(ConfigInjectionKey)
+const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Composables */
 const route = useRoute()

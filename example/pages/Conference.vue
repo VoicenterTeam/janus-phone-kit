@@ -19,12 +19,14 @@ import { ref, inject } from "vue";
 import { useRoute, useRouter } from 'vue-router'
 import { CONFERENCE_PAGE_ROUTE, HOME_PAGE_ROUTE } from '@/router'
 import { generateConferenceQueryParameters, getConferenceQueryParameters } from '@/helper/router.helper'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import Conferencing from '@/components/Conferencing.vue'
 import JoinRoomModal from '@/components/JoinRoomModal.vue'
 import { JoinRoomData } from '@/types/forms'
 import { ParametersMissingBehaviorType } from '@/config/app.config'
 import { ConfigInjectionKey } from '@/plugins/config'
+
+const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Inject */
 const stateData = inject(ConfigInjectionKey)
