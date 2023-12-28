@@ -30,7 +30,7 @@ export default function useJanusPhoneKit () {
     const qsConfig =parse(window.location.search.replaceAll('?',''))
     console.log('useJanusPhoneKit',qsConfig)
     janusPhoneKit = new JanusPhoneKit({
-        url: `ws://127.0.0.1:8188/janus?room=${qsConfig.roomId||'default'}`
+        url: `wss://jnwss.voicenter.co/janus?room=${qsConfig.roomId||'1234'}`
     })
     if (!janusPhoneKit) {
         throw new Error('JanusPhoneKit is not registered, call registerJanusPhoneKit first')
