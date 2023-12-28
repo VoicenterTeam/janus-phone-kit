@@ -9,7 +9,13 @@ import { DeviceManager } from 'janus/index'
 import { Member } from 'janus/types/events'
 import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from 'janus/types/konvaDrawer'
 import { VisualizationConfigType } from 'janus/enum/tfjs.config.enum'
-let janusPhoneKit ;
+
+const qsConfig =parse(window.location.search.replaceAll('?',''))
+console.log('useJanusPhoneKit',qsConfig)
+const janusPhoneKit = new JanusPhoneKit({
+    url: `wss://jnwss.voicenter.co/janus?room=${qsConfig.roomId||'1234'}`
+})
+
 const state = reactive<MainState>({
     streamSources: [],
     talkingStream: undefined,
@@ -26,11 +32,6 @@ const state = reactive<MainState>({
 })
 
 export default function useJanusPhoneKit () {
-    const qsConfig =parse(window.location.search.replaceAll('?',''))
-    console.log('useJanusPhoneKit',qsConfig)
-    janusPhoneKit = new JanusPhoneKit({
-        url: `wss://jnwss.voicenter.co/janus?room=${qsConfig.roomId||'1234'}`
-    })
     if (!janusPhoneKit) {
         throw new Error('JanusPhoneKit is not registered, call registerJanusPhoneKit first')
     }
