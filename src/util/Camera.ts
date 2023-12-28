@@ -42,6 +42,7 @@ export class Camera {
   static async setupCamera (stream) {
     const camera = new Camera()
     camera.video.srcObject = stream
+    camera.video.volume = 0
 
     await new Promise((resolve) => {
       camera.video.onloadedmetadata = () => {
