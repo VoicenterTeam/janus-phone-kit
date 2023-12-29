@@ -8,6 +8,8 @@
     "lint": "eslint --ext .ts,.js,.vue src"
   },
   "dependencies": {
+    "@fastify/http-proxy": "^9.3.0",
+    "@fastify/websocket": "^8.3.1",
     "@intlify/unplugin-vue-i18n": "^1.4.0",
     "@mediapipe/selfie_segmentation": "^0.1.1675465747",
     "@tensorflow-models/body-segmentation": "^1.0.2",
@@ -17,8 +19,11 @@
     "@tensorflow/tfjs-converter": "^4.10.0",
     "@tensorflow/tfjs-core": "^4.10.0",
     "@vueuse/core": "^10.4.1",
+    "axios": "^1.6.3",
+    "fastify": "^4.25.2",
     "konva": "^9.2.0",
     "loglevel": "^1.8.1",
+    "qs": "^6.11.2",
     "scatter-gl": "^0.0.13",
     "uuid": "^9.0.1",
     "vue-i18n": "^9.4.1",
@@ -28,6 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.6.2",
+    "@types/qs": "^6.9.11",
     "@types/uuid": "^9.0.4",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
@@ -58,7 +64,7 @@
     "src"
   ],
   "engines": {
-    "node": ">=16.19.0",
+    "node": ">=16.1.0",
     "npm": "please use yarn instead of npm",
     "yarn": ">=1.22.4"
   },

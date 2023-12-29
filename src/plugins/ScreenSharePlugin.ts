@@ -34,7 +34,8 @@ export class ScreenSharePlugin extends ConferencingBasePlugin {
         // Send ICE events to Janus.
         this.rtcConnection.onicecandidate = (event) => {
 
-            if (this.rtcConnection.signalingState !== 'stable') {
+            if (this.rtcConnection.signalingState !== 'stable' && this.rtcConnection.signalingState !== 'have-local-offer') {
+                console.log('skipining icecandidate event screensharing ',this.rtcConnection.signalingState,event)
                 return
             }
             this.sendTrickle(event.candidate || null)

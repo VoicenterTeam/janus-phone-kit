@@ -128,7 +128,7 @@
 
 <script setup lang="ts">
 import { ref, inject } from 'vue'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import useDeviceType from '@/composables/useDeviceType'
 import SettingsModal from '@/components/Conferencing/SettingsModal.vue'
 import WhiteboardOptionsModal from '@/components/Conferencing/WhiteboardOptionsModal.vue'
@@ -137,6 +137,8 @@ import DrawerOptions from '@/components/Conferencing/DrawerOptions.vue'
 import { ConfigInjectionKey } from '@/plugins/config'
 import MaskOptionsModal from '@/components/Conferencing/MaskOptionsModal.vue'
 import MaskVisualizationOptions from '@/components/Conferencing/MaskVisualizationOptions.vue'
+
+const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Inject */
 const stateData = inject(ConfigInjectionKey)

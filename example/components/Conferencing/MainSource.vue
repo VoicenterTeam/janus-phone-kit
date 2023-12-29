@@ -53,6 +53,7 @@
         {{ mainSource.name || mainSource.sender }}
       </div>
     </div>
+<!--  TODO: temporary removed because of videoroom plugin  -->
     <div
       class="fixed bottom-20 left-0 px-4 bg-default-text rounded-tr text-xl">
       {{ callDuration }}
@@ -62,15 +63,27 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import MetricsModal from './MetricsModal.vue'
+import { getCreatedTime } from '@/helper/create.time.helper'
 
+const useJanusPhoneKit = inject('useJanusPhoneKit')
+
+/* Props */
+export interface Props {
+  roomId: number | undefined
+}
+const props = withDefaults(
+    defineProps<Props>(),
+    {
+        roomId: undefined
+    }
+)
 /* Composables */
 const { t } = useI18n()
 const {
-    created,
     mainSource,
     isWhiteboardEnabled,
     isScreenShareWhiteboardEnabled,
@@ -80,6 +93,7 @@ const {
 
 const metricsModalOpen = ref<boolean>(false)
 const callDuration = ref('')
+const created = ref<number | undefined>(undefined)
 
 /* Methods */
 const calculateTimeFromNow = () => {
@@ -114,8 +128,12 @@ const startTimer = () => {
     })
 }
 
-onMounted(() => {
-    startTimer()
+// TODO: temporary removed because of videoroom plugin
+onMounted(async () => {
+    const data = await getCreatedTime(props.roomId)
+  console.log('heerereee');
+    created.value = data?.created || Date.now()
+    startTimer(data.created)
 })
 
 </script>

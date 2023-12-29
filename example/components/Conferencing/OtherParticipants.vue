@@ -3,7 +3,7 @@
     <div
         v-for="source in sourcesExceptMain"
         :key="source.id"
-        class="mr-2 mb-2 relative border-2 border-default-text rounded cursor-pointer"
+        class="mr-2 ml-2 mb-2 relative border-2 border-default-text rounded cursor-pointer"
         @click="selectParticipant(source)"
     >
       <video
@@ -23,9 +23,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+import { computed, inject, watch } from 'vue'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import useDeviceType from '@/composables/useDeviceType'
+
+const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Composables */
 const {

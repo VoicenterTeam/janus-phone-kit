@@ -33,8 +33,11 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useVModel } from '@vueuse/core'
-import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
+//import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import ImageUploadButton from '@/components/Conferencing/ImageUploadButton.vue'
+import { inject } from 'vue'
+
+const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Composable */
 const { t } = useI18n()

@@ -33,6 +33,7 @@ const defaultOptions: JanusPhoneKitOptions = {
     isAudioOn: true,
     isVideoOn: true,
     stunServers: [ { urls: 'stun:stun.l.google.com:19302' } ]
+
 }
 
 export default class JanusPhoneKit extends EventEmitter {

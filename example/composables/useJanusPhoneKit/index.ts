@@ -1,5 +1,5 @@
 import { computed, watch, reactive, nextTick } from 'vue'
-
+import {parse} from 'qs'
 import type { JoinRoomOptions } from 'janus/JanusPhoneKit'
 import JanusPhoneKit from 'janus/JanusPhoneKit'
 import { MainState } from '@/composables/useJanusPhoneKit/types'
@@ -9,12 +9,9 @@ import { DeviceManager } from 'janus/index'
 import { Member } from 'janus/types/events'
 import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from 'janus/types/konvaDrawer'
 import { VisualizationConfigType } from 'janus/enum/tfjs.config.enum'
+let janusPhoneKit
 
-const janusPhoneKit = new JanusPhoneKit({
-    url: /*'wss://janus.conf.meetecho.com/ws'*/'wss://jnwss.voicenter.co/janus'
-})
 const state = reactive<MainState>({
-    created: undefined,
     streamSources: [],
     talkingStream: undefined,
     mainSource: undefined,
@@ -30,10 +27,17 @@ const state = reactive<MainState>({
 })
 
 export default function useJanusPhoneKit () {
-    if (!janusPhoneKit) {
-        throw new Error('JanusPhoneKit is not registered, call registerJanusPhoneKit first')
-    }
     function joinRoom (options: JoinRoomOptions) {
+        const qsConfig =parse(window.location.search.replaceAll('?',''))
+        console.log('useJanusPhoneKit',qsConfig)
+        janusPhoneKit = new JanusPhoneKit({
+            url: `wss://jnwss.voicenter.co/janus?room=${qsConfig.roomId||'1234'}`
+        })
+
+        if (!janusPhoneKit) {
+            throw new Error('JanusPhoneKit is not registered, call registerJanusPhoneKit first')
+        }
+
         return new Promise((resolve) => {
             janusPhoneKit.on(
                 'member:join',
@@ -300,7 +304,6 @@ export default function useJanusPhoneKit () {
         setupMaskVisualizationConfig,
         microphoneOnModel,
         videoOnModel,
-        created: computed(() => state.created),
         isWithBokehMaskEffect: computed(() => state.isWithBokehMaskEffect),
         isWithBgImgMaskEffect: computed(() => state.isWithBgImgMaskEffect),
         isScreenSharing: computed(() => state.isScreenSharing),

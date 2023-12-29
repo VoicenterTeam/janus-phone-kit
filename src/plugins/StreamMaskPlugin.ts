@@ -39,10 +39,11 @@ export class StreamMaskPlugin {
    * Starts stream processing to add mask effect for it
    * @param {MediaStream} stream
    * @param {'bokehEffect' | 'backgroundImageEffect'} effect - defines the mask effect type
-   * @param {object} options - additional mask effect options
+   * @param {MediaStreamConstraints} options - media stream constraints
+   * @param {object} options - (optional) additional mask effect options
    * @return {MediaStream} processed stream with mask effect
    */
-    async start (stream, effect: MaskEffectTypeConfigType, options?: StartMaskEffectOptions) {
+    async start (stream, effect: MaskEffectTypeConfigType, mediaConstraints: MediaStreamConstraints, options?: StartMaskEffectOptions) {
         if (effect === MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect && !options?.base64Image) {
             console.error('Error when starting mask effect: base64Image option is required ' +
               'for backgroundImageEffect effect type')
@@ -70,7 +71,33 @@ export class StreamMaskPlugin {
 
         this.renderPrediction()
 
-        return this.canvas.captureStream(CAMERA_CONFIG.targetFPS)
+        const videoOnlyStream = this.canvas.captureStream(CAMERA_CONFIG.targetFPS)
+
+        return await this.populateWithAudioTracks(videoOnlyStream, mediaConstraints)
+    }
+
+    /**
+     * Adds audio tracks to MediaStream which contains only video tracks
+     * @param {MediaStream} stream - stream with only video tracks
+     * @param {MediaStreamConstraints} options - media stream constraints
+     * @return {MediaStream} combined stream with both audio and video tracks
+     */
+    async populateWithAudioTracks (videoOnlyStream: MediaStream, mediaConstraints: MediaStreamConstraints) {
+        const mediaConstraintsOptions = { ...mediaConstraints }
+        mediaConstraintsOptions.video = false
+
+        const audioOnlyStream = await navigator.mediaDevices.getUserMedia(mediaConstraintsOptions)
+        const combinedStream = new MediaStream()
+
+        videoOnlyStream.getVideoTracks().forEach(track => {
+            combinedStream.addTrack(track)
+        })
+
+        audioOnlyStream.getAudioTracks().forEach(track => {
+            combinedStream.addTrack(track)
+        })
+
+        return combinedStream
     }
 
     /**
