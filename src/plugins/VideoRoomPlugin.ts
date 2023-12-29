@@ -495,7 +495,7 @@ export class VideoRoomPlugin extends BasePlugin {
         }
 
         const { stream } = await this.loadStream()
-        const canvasStream = await this.streamMask.start(stream, effect, options)
+        const canvasStream = await this.streamMask.start(stream, effect, this.mediaConstraints, options)
 
         this.overrideSenderTracks(canvasStream)
         this.isActiveMask = true
