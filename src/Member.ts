@@ -86,7 +86,11 @@ export class Member {
 
             //this.stream = event.stream
 
-            console.log('answerAttachedStream member:join', this.memberInfo)
+            //console.log('answerAttachedStream member:join', this.memberInfo)
+            if (this.plugin) {
+                console.log('MEMBER:JOIN VIDEOROOMPLUGIN', this.memberInfo)
+            }
+
             this.plugin?.session.emit('member:join', this.memberInfo)
         }
 

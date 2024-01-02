@@ -11,6 +11,7 @@ import { EventCallbackByEventName, EventName, EventPayloads } from 'janus/types/
 import { KonvaDrawerOptions, KonvaScreenShareDrawerOptions } from './types/konvaDrawer'
 import {
     MASK_EFFECT_TYPE_CONFIG,
+    MaskEffectTypeConfigType,
     StartMaskEffectOptions,
     VisualizationConfigType
 } from './enum/tfjs.config.enum'
@@ -62,6 +63,10 @@ export default class JanusPhoneKit extends EventEmitter {
     private whiteboardPlugin = null
 
     private reconnectAttempt = 0
+
+    private maskEffectType: MaskEffectTypeConfigType | null = null
+
+    private base64BackgroundImgEffect: string | null = null
 
     private eventListeners: { [K in EventName]: Array<EventCallbackByEventName<K>> } = {
         'member:join': [],
@@ -181,10 +186,14 @@ export default class JanusPhoneKit extends EventEmitter {
     }
 
     public enableBokehEffectMask () {
+        this.maskEffectType = MASK_EFFECT_TYPE_CONFIG.bokehEffect
         return this.videoRoomPlugin?.enableMask(MASK_EFFECT_TYPE_CONFIG.bokehEffect)
     }
 
     public enableBackgroundImgEffectMask (base64Image) {
+        this.maskEffectType = MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect
+        this.base64BackgroundImgEffect = base64Image
+
         const options: StartMaskEffectOptions = {
             base64Image
         }
@@ -192,6 +201,8 @@ export default class JanusPhoneKit extends EventEmitter {
     }
 
     public disableMask () {
+        this.maskEffectType = null
+        this.base64BackgroundImgEffect = null
         return this.videoRoomPlugin?.disableMask()
     }
 
@@ -329,6 +340,8 @@ export default class JanusPhoneKit extends EventEmitter {
                 stunServers: this.options.stunServers,
                 isAudioOn: this.options.isAudioOn,
                 isVideoOn: this.options.isVideoOn,
+                maskEffectType: this.maskEffectType,
+                base64BackgroundImgEffect: this.base64BackgroundImgEffect,
                 mediaConstraints,
             })
 
@@ -360,6 +373,7 @@ export default class JanusPhoneKit extends EventEmitter {
         //this.isConnected = false
         logger.warn('No connection to Janus')
         //this.emit('reconnect')
+        await this.videoRoomPlugin?.disableMask()
         this.session.emit('reconnect')
 
         this.session.stop()

@@ -30,7 +30,8 @@ export function initListeners (janusPhoneKit: JanusPhoneKit, state: MainState) {
     janusPhoneKit.on(
         'member:join',
         (data) => {
-            console.log('on member:join', data)
+            console.log('ON MEMBER:JOIN HELPER', data)
+            console.log('ON MEMBER:JOIN streamSources.length', state.streamSources.length)
             //streamSources.push(data)
             state.streamSources = [ ...state.streamSources, data ]
             console.log('state.streamSources', state.streamSources)

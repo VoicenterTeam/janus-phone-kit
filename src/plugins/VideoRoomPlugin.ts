@@ -10,6 +10,7 @@ import { StreamMaskPlugin } from './StreamMaskPlugin'
 import { Metrics } from '../util/Metrics'
 import {
     MaskEffectTypeConfigType,
+    MASK_EFFECT_TYPE_CONFIG,
     StartMaskEffectOptions,
     VisualizationConfigType
 } from '../enum/tfjs.config.enum'
@@ -38,6 +39,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
     streamMask: any = null
     isActiveMask: boolean = false
+    maskEffectType: MaskEffectTypeConfigType | null = null
+    base64BackgroundImgEffect: string | null = null
 
     private metrics: any = null
 
@@ -55,6 +58,15 @@ export class VideoRoomPlugin extends BasePlugin {
         this.isAudioOn = options.isAudioOn
         this.isVideoOn = options.isVideoOn
         this.userID = uuidv4()
+
+        if (options.maskEffectType) {
+            this.maskEffectType = options.maskEffectType
+            if (options.base64BackgroundImgEffect) {
+                this.base64BackgroundImgEffect = options.base64BackgroundImgEffect
+            }
+        }
+
+        console.log('VIDEOPLUGIN CONSTRUCTOR')
 
         const config = {
             iceServers: this.stunServers,
@@ -341,6 +353,29 @@ export class VideoRoomPlugin extends BasePlugin {
       ],
     })*/
 
+        if (this.maskEffectType) {
+            let maskEffectOptions: StartMaskEffectOptions = {}
+            if (this.maskEffectType === MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect && this.base64BackgroundImgEffect) {
+                maskEffectOptions= {
+                    base64Image: this.base64BackgroundImgEffect
+                }
+            }
+
+            await this.enableMask(this.maskEffectType, maskEffectOptions)
+            this.trackMicrophoneVolume()
+        }
+
+        console.log('MEMBER:JOIN VIDEOROOMPLUGIN', {
+            stream: this.stream,
+            joinResult,
+            sender: 'me',
+            type: 'publisher',
+            name: this.displayName,
+            clientID: this.clientID,
+            state: {},
+            id: this.userID,
+        })
+
         this.session.emit('member:join', {
             stream: this.stream,
             joinResult,
@@ -363,6 +398,7 @@ export class VideoRoomPlugin extends BasePlugin {
         })
         await this.sendInitialState()
 
+        // TODO: rewrite this logic by passing to request media appropriate values
         if (!this.isAudioOn) {
             await this.stopAudio()
         }
@@ -407,7 +443,7 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     async startAudio () {
-        DeviceManager.toggleAudioMute(this.stream)
+        DeviceManager.toggleAudioMute(this.stream, true)
         await this.enableAudio(true)
         this.isAudioOn = true
         await this.sendStateMessage({
@@ -416,7 +452,7 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     async stopAudio () {
-        DeviceManager.toggleAudioMute(this.stream)
+        DeviceManager.toggleAudioMute(this.stream, false)
         await this.enableAudio(false)
         this.isAudioOn = false
         await this.sendStateMessage({
@@ -482,10 +518,9 @@ export class VideoRoomPlugin extends BasePlugin {
    * @param {boolean} enable - defines if mask should be applied
    * @param {'bokehEffect' | 'backgroundImageEffect'} effect - defines the mask effect type
    * @param {object} options - additional mask effect options
-   * @return {MediaStream} processed stream with mask effect in case enabled === true
-   * or clean stream without mask effect if enabled === false
+   * @return {MediaStream} processed stream with mask effect
    */
-    async enableMask (effect: MaskEffectTypeConfigType, options?: StartMaskEffectOptions) {
+    async enableMask (effect: MaskEffectTypeConfigType, options?: StartMaskEffectOptions): Promise<MediaStream> {
         if (this.isActiveMask) {
             return
         }
