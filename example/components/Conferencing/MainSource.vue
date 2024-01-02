@@ -55,7 +55,7 @@
     </div>
 <!--  TODO: temporary removed because of videoroom plugin  -->
     <div
-      class="fixed bottom-20 left-0 px-4 bg-default-text rounded-tr text-xl">
+      class="fixed bottom-20 left-0 px-4 bg-default-text rounded-tr text-xl text-white">
       {{ callDuration }}
     </div>
     <MetricsModal v-model:modalVisible="metricsModalOpen" />

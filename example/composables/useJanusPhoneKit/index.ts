@@ -42,6 +42,7 @@ export default function useJanusPhoneKit () {
             janusPhoneKit.on(
                 'member:join',
                 () => {
+                    console.log('ON MEMBER:JOIN RESOLVE', session)
                     resolve(session)
                 }
             )
@@ -49,8 +50,8 @@ export default function useJanusPhoneKit () {
             janusPhoneKit.on(
                 'reconnect',
                 () => {
-                    console.log('RESET streamSources', JSON.parse(JSON.stringify(state.streamSources)))
                     state.streamSources = []
+                    console.log('MEMBER:JOIN RESET streamSources', state.streamSources.length)
                 }
             )
 
@@ -256,8 +257,6 @@ export default function useJanusPhoneKit () {
     watch(
         () => state.streamSources,
         (newSources, oldSources) => {
-            console.log('watch newSources', JSON.stringify(newSources))
-            console.log('watch oldSources', JSON.stringify(oldSources))
             const newParticipant = newSources.find((newSource) => {
                 if (!oldSources) {
                     return true // If oldSources is undefined, return the first newSource
@@ -265,8 +264,6 @@ export default function useJanusPhoneKit () {
 
                 return !oldSources.some((oldSource) => oldSource.id === newSource.id)
             })
-
-            console.log('newParticipant', newParticipant)
 
             const talkingStream = newSources.find(source => source.state && source.state.isTalking)
 

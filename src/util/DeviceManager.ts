@@ -117,14 +117,14 @@ class DeviceManager {
         }
     }
 
-    static toggleAudioMute (stream) {
+    static toggleAudioMute (stream, value) {
         const audioTracks = stream.getAudioTracks()
         if (audioTracks.length === 0) {
             return
         }
 
         audioTracks.forEach(track => {
-            track.enabled = !track.enabled
+            track.enabled = value//!track.enabled
         })
 
         return audioTracks[0].enabled
