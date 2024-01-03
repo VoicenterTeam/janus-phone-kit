@@ -1,7 +1,7 @@
 <template>
     <VcModal
         :visible="modalVisibleModel"
-        :header="t('home.joinRoomModal.header')"
+        :header="t('conference.settings.header')"
         :breakpoints="{
                         '960px': '80vw', '680px': '95vw'
                     }"
@@ -14,7 +14,7 @@
             :model="settingsModel"
         >
             <VcFormItem
-                :label="t('home.joinRoomModal.form.roomId')"
+                :label="t('conference.settings.form.microphonesList')"
                 prop="audioInput"
                 :rules="[required]"
             >
@@ -25,7 +25,7 @@
                 />
             </VcFormItem>
             <VcFormItem
-                :label="t('home.joinRoomModal.form.displayName')"
+                :label="t('conference.settings.form.speakersList')"
                 prop="audioOutput"
                 :rules="[required]"
             >
@@ -36,7 +36,7 @@
               />
             </VcFormItem>
           <VcFormItem
-              :label="t('home.joinRoomModal.form.displayName')"
+              :label="t('conference.settings.form.camerasList')"
               prop="audioOutput"
               :rules="[required]"
           >

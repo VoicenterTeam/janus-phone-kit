@@ -12,7 +12,7 @@
       "maxLen": "Cannot be longer than { value } characters"
     },
     "state": {
-      "muted": "Muted",
+      "muted": "Muted"
     }
   },
   "home": {
@@ -24,7 +24,7 @@
       "header": "Room Details",
       "form": {
         "roomId": "Room ID",
-        "displayName": "Display Name",
+        "displayName": "Display Name"
       }
     },
     "whiteboardModal": {
@@ -47,6 +47,19 @@
     "maskVisualizationPopover": {
       "title": "Blur options",
       "blurAmount": "Blur amount"
+    }
+  },
+  "conference": {
+    "settings": {
+      "header": "Device settings",
+      "form": {
+        "speakersList": "Speakers",
+        "camerasList": "Camera",
+        "microphonesList": "Microphone",
+        "speakersList": "Speakers list",
+        "speakersList": "Speakers list",
+        "speakersList": "Speakers list"
+      }
     }
   }
 }

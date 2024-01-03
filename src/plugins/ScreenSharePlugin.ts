@@ -10,6 +10,7 @@ export class ScreenSharePlugin extends ConferencingBasePlugin {
     name = 'janus.plugin.videoroom'
     memberList = {}
     videoElement = null
+    //clientID: string = ''
     //room_id = 1234
     //stunServers: StunServer[]
     //rtcConnection: any = null;
@@ -164,6 +165,7 @@ export class ScreenSharePlugin extends ConferencingBasePlugin {
             room: this.room_id,
             ptype: 'publisher',
             display: 'Screen Share',
+            //clientID: this.clientID,
             opaque_id: this.opaqueId,
         })
 

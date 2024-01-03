@@ -81,7 +81,15 @@ export class Member {
             const aTracks = event.streams[0].getAudioTracks()
             const  vTracks = event.streams[0].getVideoTracks()
 
-            const mediaStream = new MediaStream([ aTracks[0],vTracks[0] ])
+            const tracksToApply = []
+            if (aTracks[0]) {
+                tracksToApply.push(aTracks[0])
+            }
+            if (vTracks[0]) {
+                tracksToApply.push(vTracks[0])
+            }
+
+            const mediaStream = new MediaStream(tracksToApply)
             this.stream = mediaStream
 
             //this.stream = event.stream
