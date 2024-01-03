@@ -83,6 +83,7 @@ export default class JanusPhoneKit extends EventEmitter {
         'screenShare:start': [],
         webrtcup: [],
         reconnect: [],
+        mediaConstraintsChange: [],
         'metrics:report': [],
         'metrics:stop': [],
     }
@@ -116,9 +117,14 @@ export default class JanusPhoneKit extends EventEmitter {
         this.session = new Session()
 
         this.websocket = new WebSocket(this.options.url, 'janus-protocol')
+        //window.websocket = this.websocket
 
         this.session.on('output', (msg) => {
             this.websocket.send(JSON.stringify(msg))
+        })
+
+        this.session.on('mediaConstraintsChange', (mediaConstraints) => {
+            this.mediaConstraints = mediaConstraints
         })
 
         this.websocket.addEventListener('message', (event) => {

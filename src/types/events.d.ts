@@ -60,6 +60,7 @@ export interface EventPayloads {
     'screenShare:start': null
     'webrtcup': null
     'reconnect': null
+    'mediaConstraintsChange': object
     'metrics:report': MetricReportPayload
     'metrics:stop': number | string
 }

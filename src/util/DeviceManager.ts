@@ -22,7 +22,9 @@ class DeviceManager {
             return {
                 ...device,
                 deviceId: device.deviceId,
-                label: device.label || `microphone ${index + 1}`
+                label: device.label || `microphone ${index + 1}`,
+                kind: device.kind,
+                groupId: device.groupId
             }
         })
     }
@@ -34,7 +36,9 @@ class DeviceManager {
             return {
                 ...device,
                 deviceId: device.deviceId,
-                label: device.label || `speaker ${index + 1}`
+                label: device.label || `speaker ${index + 1}`,
+                kind: device.kind,
+                groupId: device.groupId
             }
         })
     }
@@ -46,7 +50,9 @@ class DeviceManager {
             return {
                 ...device,
                 deviceId: device.deviceId,
-                label: device.label || `camera ${index + 1}`
+                label: device.label || `camera ${index + 1}`,
+                kind: device.kind,
+                groupId: device.groupId
             }
         })
     }

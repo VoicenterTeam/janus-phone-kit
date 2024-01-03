@@ -497,6 +497,12 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     async changePublisherStream ({ audioInput, videoInput }) {
+        const isMaskEnabled = this.isActiveMask
+        if (isMaskEnabled) {
+            this.streamMask.stop()
+            this.isActiveMask = false
+        }
+
         if(videoInput) {
             this.mediaConstraints.video = {
                 deviceId: { exact: videoInput },
@@ -508,9 +514,27 @@ export class VideoRoomPlugin extends BasePlugin {
         if(audioInput) {
             this.mediaConstraints.audio = { deviceId: { exact: audioInput } }
         }
-        const { stream } = await this.loadStream()
-        this.overrideSenderTracks(stream)
-        return stream
+
+        this.session.emit('mediaConstraintsChange', this.mediaConstraints)
+
+        let publisherStream
+        if (isMaskEnabled && this.maskEffectType) {
+            let maskEffectOptions: StartMaskEffectOptions = {}
+            if (this.maskEffectType === MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect && this.base64BackgroundImgEffect) {
+                maskEffectOptions= {
+                    base64Image: this.base64BackgroundImgEffect
+                }
+            }
+
+            publisherStream = await this.enableMask(this.maskEffectType, maskEffectOptions)
+            this.trackMicrophoneVolume()
+        } else {
+            const { stream } = await this.loadStream()
+            publisherStream = stream
+        }
+
+        this.overrideSenderTracks(publisherStream)
+        return publisherStream
     }
 
     /**
@@ -527,6 +551,11 @@ export class VideoRoomPlugin extends BasePlugin {
 
         if (!this.streamMask) {
             this.streamMask = new StreamMaskPlugin()
+        }
+
+        this.maskEffectType = effect
+        if (effect === MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect) {
+            this.base64BackgroundImgEffect = options.base64Image
         }
 
         const { stream } = await this.loadStream()
@@ -550,6 +579,8 @@ export class VideoRoomPlugin extends BasePlugin {
         }
 
         this.streamMask.stop()
+        this.maskEffectType = null
+        this.base64BackgroundImgEffect = null
 
         const { stream } = await this.loadStream()
         this.overrideSenderTracks(stream)

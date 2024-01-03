@@ -111,12 +111,12 @@
             class="mr-2"
             @click="enableScreenShare(!isScreenSharing)"
         />
-<!--        <RoundButton
+        <RoundButton
             icon="vc-icon-settings"
             color="active-elements"
             class="mr-2"
             @click="settingsModalOpen = true"
-        />-->
+        />
       </div>
     </div>
 
