@@ -55,10 +55,7 @@
       "form": {
         "speakersList": "Speakers",
         "camerasList": "Camera",
-        "microphonesList": "Microphone",
-        "speakersList": "Speakers list",
-        "speakersList": "Speakers list",
-        "speakersList": "Speakers list"
+        "microphonesList": "Microphone"
       }
     }
   }
