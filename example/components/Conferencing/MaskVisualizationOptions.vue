@@ -60,7 +60,7 @@ const { t } = useI18n()
 
 /* Data */
 const popoverVisibility = ref<boolean>(false)
-const blurAmountModel = ref<number>(3)
+const blurAmountModel = ref<number>(15)
 
 const debouncedFn = debounce((newV: number) => {
     const config: VisualizationConfigType = {

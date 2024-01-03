@@ -45,7 +45,7 @@ export const VISUALIZATION_CONFIG: VisualizationConfigType = {
     maskOpacity: 0.7,
     maskBlur: 0,
     pixelCellWidth: 10,
-    backgroundBlur: 3, // How many pixels in the background blend into each other. Should be between 1 and 20.
+    backgroundBlur: 15, // How many pixels in the background blend into each other. Should be between 1 and 20.
     edgeBlur: 3 // How many pixels to blur on the edge between the person and the background by. Should be between 0 and 20.
 }
 
