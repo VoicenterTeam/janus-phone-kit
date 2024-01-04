@@ -1,4 +1,6 @@
 export const CONFERENCE_PAGE_QUERY_PARAMETERS = {
     ROOM_ID: 'roomId',
-    DISPLAY_NAME: 'displayName'
+    ROOM: 'room',
+    DISPLAY_NAME: 'displayName',
+    NAME: 'name'
 }

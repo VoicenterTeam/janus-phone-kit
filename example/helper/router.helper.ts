@@ -22,7 +22,9 @@ export function getConferenceQueryParameters (route: RouteLocationNormalizedLoad
     }
 
     const roomId = routeQueryParameters[CONFERENCE_PAGE_QUERY_PARAMETERS.ROOM_ID]
+      || routeQueryParameters[CONFERENCE_PAGE_QUERY_PARAMETERS.ROOM]
     const displayName = routeQueryParameters[CONFERENCE_PAGE_QUERY_PARAMETERS.DISPLAY_NAME]
+      || routeQueryParameters[CONFERENCE_PAGE_QUERY_PARAMETERS.NAME]
 
     if (isQueryParameterValid(roomId)) {
         paramsData.roomId = Number(roomId)

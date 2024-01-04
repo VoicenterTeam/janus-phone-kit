@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="fixed bottom-0 h-20 bg-light-bg shadow-lg w-full border-t border-field-borders flex justify-between">
+    <div class="fixed bottom-0 h-20 bg-light-bg shadow-lg w-full border-t border-field-borders flex justify-between overflow-x-auto">
       <div class="flex w-56 p-2 items-center">
         <img
           style="width: 150px; height: auto;"
@@ -111,12 +111,12 @@
             class="mr-2"
             @click="enableScreenShare(!isScreenSharing)"
         />
-<!--        <RoundButton
+        <RoundButton
             icon="vc-icon-settings"
             color="active-elements"
             class="mr-2"
             @click="settingsModalOpen = true"
-        />-->
+        />
       </div>
     </div>
 

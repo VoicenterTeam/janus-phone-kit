@@ -131,7 +131,6 @@ const startTimer = () => {
 // TODO: temporary removed because of videoroom plugin
 onMounted(async () => {
     const data = await getCreatedTime(props.roomId)
-  console.log('heerereee');
     created.value = data?.created || Date.now()
     startTimer(data.created)
 })

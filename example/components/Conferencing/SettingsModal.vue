@@ -37,7 +37,7 @@
             </VcFormItem>
           <VcFormItem
               :label="t('conference.settings.form.camerasList')"
-              prop="audioOutput"
+              prop="videoInput"
               :rules="[required]"
           >
             <VcSelect
@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useVModel } from '@vueuse/core'
 import { VcForm } from '@voicenter-team/voicenter-ui-plus'
@@ -132,6 +132,13 @@ async function submitModal () {
     }
 
     const inputsChanged = settingsModel.value.audioInput !== 'default' || settingsModel.value.videoInput !== 'default'
+
+    const selectedDevices = {
+        videoInput: settingsModel.value.videoInput,
+        audioInput: settingsModel.value.audioInput,
+        audioOutput: settingsModel.value.audioOutput,
+    }
+
     const videoElements = document.querySelectorAll('video')
 
     if (settingsModel.value.audioOutput && videoElements.length) {
@@ -140,6 +147,8 @@ async function submitModal () {
         })
     }
 
+    localStorage.setItem('selectedDevices', JSON.stringify(selectedDevices))
+
     if (!inputsChanged) {
         modalVisibleModel.value = false
 
@@ -147,8 +156,8 @@ async function submitModal () {
     }
 
     await changePublisherStream(
+        settingsModel.value.audioInput,
         settingsModel.value.videoInput,
-        settingsModel.value.audioInput
     )
 
     modalVisibleModel.value = false
@@ -169,9 +178,49 @@ async function setMediaDevices () {
     microphoneList.value = await DeviceManager.getMicrophoneList()
     cameraList.value = await DeviceManager.getCameraList()
 
-    if (cameraList.value.length) {
+    /*if (cameraList.value.length) {
+        settingsModel.value.videoInput = cameraList.value[0].deviceId
         // videoInput.value = cameraList.value[0].deviceId
+    }*/
+
+    const selectedDevices = localStorage.getItem('selectedDevices')
+    const parsed = JSON.parse(selectedDevices)
+    const audioInput = parsed.audioInput || 'default'
+    const audioOutput = parsed.audioOutput || 'default'
+    const videoInput = parsed.videoInput || cameraList.value[0].deviceId
+
+    if (speakerList.value.find((d) => d.deviceId === audioOutput)) {
+        settingsModel.value.audioOutput = audioOutput
     }
+
+    if (microphoneList.value.find((d) => d.deviceId === audioInput)) {
+        settingsModel.value.audioInput = audioInput
+    }
+
+    if (cameraList.value.find((d) => d.deviceId === videoInput)) {
+        settingsModel.value.videoInput = videoInput
+    }
+
+    setTimeout(async () => {
+        await changePublisherStream(
+            settingsModel.value.audioInput,
+            settingsModel.value.videoInput,
+        )
+
+        const videoElements = document.querySelectorAll('video')
+        if (settingsModel.value.audioOutput && videoElements.length) {
+            videoElements.forEach(element => {
+                DeviceManager.changeAudioOutput(element, 'default')
+            })
+
+            await nextTick(() => {
+                videoElements.forEach(element => {
+                    DeviceManager.changeAudioOutput(element, settingsModel.value.audioOutput)
+                })
+            })
+        }
+    }, 1000)
+
 }
 function setListeners () {
     navigator.mediaDevices.addEventListener('devicechange', setMediaDevices)
