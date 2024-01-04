@@ -30,8 +30,9 @@ export default function useJanusPhoneKit () {
     function joinRoom (options: JoinRoomOptions) {
         const qsConfig =parse(window.location.search.replaceAll('?',''))
         console.log('useJanusPhoneKit',qsConfig)
+        const hrefRoomId = qsConfig.roomId || qsConfig.room
         janusPhoneKit = new JanusPhoneKit({
-            url: `wss://jnwss.voicenter.co/janus?room=${qsConfig.roomId||'1234'}`
+            url: `wss://jnwss.voicenter.co/janus?room=${hrefRoomId||'1234'}`
         })
 
         if (!janusPhoneKit) {
