@@ -5,6 +5,7 @@
     "validation": {
       "required": "Field is required",
       "numeric": "The field may only contain numeric characters",
+      "noneNumeric": "The field may only contain none-numeric characters",
       "inRange": "Must be outside the range: { min } - { max }",
       "biggerThan": "Must be bigger than { value }",
       "smallerThan": "Must be smaller than { value }",

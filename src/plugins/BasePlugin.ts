@@ -43,10 +43,10 @@ export class BasePlugin extends EventEmitter {
     memberList = {}
     /**
    * room_id room_id to be connected to
-   * @member {Number}
+   * @member {String}
    * @instance
    */
-    room_id = 1234
+    room_id = 'abcd'
     /**
    * myFeedList my own video feed from other plugin
    * @member {array}

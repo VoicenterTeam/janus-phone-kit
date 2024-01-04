@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import i18n from '@/plugins/i18n'
+import { isNumeric } from '@/helper/validation.helper'
 
 const notZero = (message: string) => (rule: any, value: any, calback: any) => {
     if (value === undefined || value === 0) {
@@ -15,6 +16,16 @@ const isNumber = (message: string) => (rule: any, value: number | string, callba
     }
     const isStringValid = value.split('').every(el => !isNaN(Number(el)))
     if (!isStringValid) {
+        callback(new Error(message))
+    } else {
+        callback()
+    }
+}
+
+
+
+const isNoneNumeric = (message: string) => (rule: any, value: number | string, callback: any) => {
+    if (typeof value === 'number' || isNumeric(value)) {
         callback(new Error(message))
     } else {
         callback()
@@ -46,6 +57,9 @@ export default function () {
         },
         number: {
             validator: isNumber(t('general.validation.numeric'))
+        },
+        noneNumeric: {
+            validator: isNoneNumeric(t('general.validation.noneNumeric'))
         }
     }
 }

@@ -20,7 +20,7 @@ const { mainSource } = useJanusPhoneKit()
 
 /* Props */
 export interface Props {
-  roomId: number | undefined
+  roomId: string | undefined
 }
 const props = withDefaults(
     defineProps<Props>(),

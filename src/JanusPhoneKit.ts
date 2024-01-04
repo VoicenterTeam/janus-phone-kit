@@ -17,14 +17,14 @@ import {
 } from './enum/tfjs.config.enum'
 
 export type JanusPhoneKitOptions = {
-  roomId?: number,
+  roomId?: string,
   url?: string,
     isAudioOn?: boolean,
     isVideoOn?: boolean,
   stunServers?: StunServer[]
 }
 export interface JoinRoomOptions {
-    roomId: number
+    roomId: string
     displayName?: string
     mediaConstraints: MediaStreamConstraints
 }

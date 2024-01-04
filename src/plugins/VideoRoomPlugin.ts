@@ -18,7 +18,7 @@ import {
 export class VideoRoomPlugin extends BasePlugin {
     name = 'janus.plugin.videoroom'
     memberList: any = {}
-    room_id = 1234
+    room_id = 'abcd'
     stunServers: StunServer[]
     iceCandidates: any[] = []
     publishers = null

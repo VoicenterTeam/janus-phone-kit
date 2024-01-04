@@ -32,7 +32,7 @@ export default function useJanusPhoneKit () {
         console.log('useJanusPhoneKit',qsConfig)
         const hrefRoomId = qsConfig.roomId || qsConfig.room
         janusPhoneKit = new JanusPhoneKit({
-            url: `wss://jnwss.voicenter.co/janus?room=${hrefRoomId||'1234'}`
+            url: `wss://jnwss.voicenter.co/janus?room=${hrefRoomId||'abcd'}`
         })
 
         if (!janusPhoneKit) {
@@ -209,8 +209,6 @@ export default function useJanusPhoneKit () {
 
     function updatePublisherStream (newStream: MediaStream) {
         const streamSource = state.streamSources.find(source => source.type === 'publisher' && source.name !== 'Screen Share')
-
-        console.log('onUpdatePublisherStream streamSource', streamSource)
 
         if (!streamSource) {
             return

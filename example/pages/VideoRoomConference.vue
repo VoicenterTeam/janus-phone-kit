@@ -42,7 +42,7 @@ const roomJoined = ref(false)
 const initializingData = ref(false)
 const roomDetailsModalOpened = ref(false)
 const roomDetailsModel = ref<JoinRoomData>({
-    roomId: 1234,
+    roomId: 'abcd',
     displayName: 'User'
 })
 
@@ -66,7 +66,7 @@ function getConferenceQueryParameters (route: RouteLocationNormalizedLoaded): Pa
     /*if (isQueryParameterValid(roomId)) {
         paramsData.roomId = Number(roomId)
     }*/
-    paramsData.roomId = 1234
+    paramsData.roomId = 'abcd'
 
     if (isQueryParameterValid(displayName)) {
         paramsData.displayName = displayName
