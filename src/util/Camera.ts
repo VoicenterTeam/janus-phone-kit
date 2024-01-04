@@ -47,6 +47,7 @@ export class Camera {
 
     const camera = new Camera()
     camera.video.srcObject = stream
+    // TODO: try without camera.video.volume = 0
     camera.video.volume = 0
 
     await new Promise((resolve) => {

@@ -210,24 +210,9 @@ export default function useJanusPhoneKit () {
     function updatePublisherStream (newStream: MediaStream) {
         const streamSource = state.streamSources.find(source => source.type === 'publisher' && source.name !== 'Screen Share')
 
-        console.log('onUpdatePublisherStream streamSource', streamSource)
-
         if (!streamSource) {
             return
         }
-
-        /*streamSource.stream.getTracks().forEach(track => {
-            track.stop()
-            streamSource.stream.removeTrack(track)
-        })*/
-
-        /*const publisherVideoOnlyStream = new MediaStream()
-
-        newStream.getVideoTracks().forEach(track => {
-            publisherVideoOnlyStream.addTrack(track)
-        })
-
-        streamSource.stream = publisherVideoOnlyStream*/
 
         streamSource.stream = newStream
 
