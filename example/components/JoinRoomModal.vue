@@ -17,11 +17,10 @@
                 v-if="showField('roomId')"
                 :label="t('home.joinRoomModal.form.roomId')"
                 prop="roomId"
-                :rules="[required]"
+                :rules="[required, noneNumeric]"
             >
                 <VcInput
                     v-model="roomDetailsModel.roomId"
-                    type="number"
                 />
             </VcFormItem>
             <VcFormItem
@@ -63,7 +62,7 @@ type JoinRoomDataKey = keyof JoinRoomData
 
 /* Composables */
 const { t } = useI18n()
-const { required } = useValidationRules()
+const { required, noneNumeric } = useValidationRules()
 
 /* Props */
 export interface Props {

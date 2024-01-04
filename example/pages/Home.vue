@@ -16,7 +16,6 @@
             <VcButton size="large" @click="openModal">
                 {{ t('home.enterConference') }}
             </VcButton>
-            <h1>V:1</h1>
         </div>
     </div>
     <!-- Conference -->
@@ -62,14 +61,14 @@ const isOnConferencePage = ref(false)
 // Home data
 const modalOpen = ref(false)
 const roomDetailsModel = ref<JoinRoomData>({
-    roomId: 4545,
+    roomId: 'abcd',
     displayName: 'User'
 })
 // Conference data
 const roomJoined = ref(false)
 const initializingData = ref(false)
 const roomDetailsModalOpened = ref(false)
-const roomId = ref<number | undefined>(undefined)
+const roomId = ref<string | undefined>(undefined)
 
 /* Methods */
 async function joinConference () {
@@ -93,7 +92,7 @@ async function redirectToHomePage () {
     await router.push({ name: HOME_PAGE_ROUTE.name })
     tryInitializeByQueryParameters()
 }
-async function joinConferenceRoom (roomId: number, displayName: string) {
+async function joinConferenceRoom (roomId: string, displayName: string) {
     try {
         await joinRoom({
             roomId,

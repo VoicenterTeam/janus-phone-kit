@@ -3,7 +3,7 @@ import { logger } from '../util/logger'
 import { StunServer } from '../types'
 
 export class ConferencingBasePlugin extends BasePlugin {
-    room_id = 1234
+    room_id = 'abcd'
     stunServers: StunServer[]
     rtcConnection: any = null
 

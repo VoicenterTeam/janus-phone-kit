@@ -1,4 +1,4 @@
 export interface JoinRoomData {
-    roomId: number
+    roomId: string
     displayName: string
 }

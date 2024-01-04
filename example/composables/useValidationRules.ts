@@ -21,6 +21,18 @@ const isNumber = (message: string) => (rule: any, value: number | string, callba
     }
 }
 
+function isNumeric (value) {
+    return !isNaN(value) && typeof value !== 'boolean' && value !== '' && !isNaN(parseFloat(value)) && isFinite(value);
+}
+
+const isNoneNumeric = (message: string) => (rule: any, value: number | string, callback: any) => {
+    if (typeof value === 'number' || isNumeric(value)) {
+        callback(new Error(message))
+    } else {
+        callback()
+    }
+}
+
 export default function () {
     const { t } = i18n.global
 
@@ -46,6 +58,9 @@ export default function () {
         },
         number: {
             validator: isNumber(t('general.validation.numeric'))
+        },
+        noneNumeric: {
+            validator: isNoneNumeric(t('general.validation.noneNumeric'))
         }
     }
 }

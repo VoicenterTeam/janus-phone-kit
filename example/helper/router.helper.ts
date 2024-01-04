@@ -6,7 +6,7 @@ export function isQueryParameterValid (queryParameter: string | string[]): query
     return queryParameter && typeof queryParameter === 'string' && queryParameter.length > 0
 }
 
-export function generateConferenceQueryParameters (roomId: number, displayName: string) {
+export function generateConferenceQueryParameters (roomId: string, displayName: string) {
     return {
         [CONFERENCE_PAGE_QUERY_PARAMETERS.ROOM_ID]: roomId,
         [CONFERENCE_PAGE_QUERY_PARAMETERS.DISPLAY_NAME]: displayName
@@ -16,7 +16,7 @@ export function generateConferenceQueryParameters (roomId: number, displayName: 
 export function getConferenceQueryParameters (route: RouteLocationNormalizedLoaded): Partial<JoinRoomData> {
     const routeQueryParameters = route.query
 
-    const paramsData: { roomId: number, displayName: string } = {
+    const paramsData: { roomId: string, displayName: string } = {
         roomId: undefined,
         displayName: undefined
     }
@@ -27,7 +27,7 @@ export function getConferenceQueryParameters (route: RouteLocationNormalizedLoad
       || routeQueryParameters[CONFERENCE_PAGE_QUERY_PARAMETERS.NAME]
 
     if (isQueryParameterValid(roomId)) {
-        paramsData.roomId = Number(roomId)
+        paramsData.roomId = roomId
     }
 
     if (isQueryParameterValid(displayName)) {

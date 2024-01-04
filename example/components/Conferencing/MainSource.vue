@@ -73,7 +73,7 @@ const useJanusPhoneKit = inject('useJanusPhoneKit')
 
 /* Props */
 export interface Props {
-  roomId: number | undefined
+  roomId: string | undefined
 }
 const props = withDefaults(
     defineProps<Props>(),
@@ -95,7 +95,7 @@ const metricsModalOpen = ref<boolean>(false)
 const callDuration = ref('')
 const created = ref<number | undefined>(undefined)
 
-watch(mainSource, (newV) => {
+/*watch(mainSource, (newV) => {
     if (newV && newV.stream) {
         const videoEl = document.getElementById('main-video-id')
         if (videoEl) {
@@ -109,7 +109,7 @@ watch(mainSource, (newV) => {
 
     }
 }, { deep: true,
-    immediate: true })
+    immediate: true })*/
 
 /* Methods */
 const calculateTimeFromNow = () => {
