@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, inject } from 'vue'
+import { onMounted, onBeforeUnmount, ref, inject, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 //import useJanusPhoneKit from '@/composables/useJanusPhoneKit'
 import MetricsModal from './MetricsModal.vue'
@@ -94,6 +94,22 @@ const {
 const metricsModalOpen = ref<boolean>(false)
 const callDuration = ref('')
 const created = ref<number | undefined>(undefined)
+
+watch(mainSource, (newV) => {
+    if (newV && newV.stream) {
+        const videoEl = document.getElementById('main-video-id')
+        if (videoEl) {
+            console.log('videoEl', videoEl)
+            videoEl.addEventListener('play', function () {
+                // Mute the video when it starts playing
+                alert(`Volume is ${videoEl.volume}`)
+                videoEl.volume = 0
+            })
+        }
+
+    }
+}, { deep: true,
+    immediate: true })
 
 /* Methods */
 const calculateTimeFromNow = () => {
