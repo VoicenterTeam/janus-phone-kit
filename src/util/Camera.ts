@@ -40,6 +40,11 @@ export class Camera {
    * @param cameraParam From app `STATE.camera`.
    */
   static async setupCamera (stream) {
+    stream.getAudioTracks().forEach(track => {
+      track.stop()
+      stream.removeTrack(track)
+    })
+
     const camera = new Camera()
     camera.video.srcObject = stream
     camera.video.volume = 0

@@ -383,6 +383,10 @@ export class VideoRoomPlugin extends BasePlugin {
             publisherVideoOnlyStream.addTrack(track)
         })
 
+        /*publisherVideoOnlyStream.getTracks().forEach(track => {
+            console.log('publisherVideoOnlyStream', track)
+        })*/
+
         this.session.emit('member:join', {
             stream: publisherVideoOnlyStream,
             joinResult,
