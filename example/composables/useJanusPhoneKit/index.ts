@@ -221,13 +221,15 @@ export default function useJanusPhoneKit () {
             streamSource.stream.removeTrack(track)
         })*/
 
-        const publisherVideoOnlyStream = new MediaStream()
+        /*const publisherVideoOnlyStream = new MediaStream()
 
         newStream.getVideoTracks().forEach(track => {
             publisherVideoOnlyStream.addTrack(track)
         })
 
-        streamSource.stream = publisherVideoOnlyStream
+        streamSource.stream = publisherVideoOnlyStream*/
+
+        streamSource.stream = newStream
 
         return newStream
     }
