@@ -50,6 +50,12 @@ export class Camera {
       };
     });
 
+    camera.video.addEventListener('play', function() {
+      // Mute the video when it starts playing
+      alert('Volume is', camera.video.volume)
+      camera.video.volume = 0
+    })
+
     camera.video.play()
 
     const videoWidth = camera.video.videoWidth
