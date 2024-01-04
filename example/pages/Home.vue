@@ -16,6 +16,7 @@
             <VcButton size="large" @click="openModal">
                 {{ t('home.enterConference') }}
             </VcButton>
+          <h1>V2</h1>
         </div>
     </div>
     <!-- Conference -->
