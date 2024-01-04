@@ -376,8 +376,15 @@ export class VideoRoomPlugin extends BasePlugin {
             id: this.userID,
         })
 
+        // Send only video stream of publisher to avoid self-echo
+        const publisherVideoOnlyStream = new MediaStream()
+
+        this.stream.getVideoTracks().forEach(track => {
+            publisherVideoOnlyStream.addTrack(track)
+        })
+
         this.session.emit('member:join', {
-            stream: this.stream,
+            stream: publisherVideoOnlyStream,
             joinResult,
             sender: 'me',
             type: 'publisher',

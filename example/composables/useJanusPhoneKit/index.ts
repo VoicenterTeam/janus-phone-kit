@@ -216,7 +216,13 @@ export default function useJanusPhoneKit () {
             return
         }
 
-        streamSource.stream = newStream
+        const publisherVideoOnlyStream = new MediaStream()
+
+        newStream.getVideoTracks().forEach(track => {
+            publisherVideoOnlyStream.addTrack(track)
+        })
+
+        streamSource.stream = publisherVideoOnlyStream
 
         return newStream
     }
