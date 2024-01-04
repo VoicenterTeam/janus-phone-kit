@@ -93,7 +93,6 @@ export class StreamMaskPlugin {
 
         document.addEventListener('visibilitychange', () => {
             this.visibilityState = document.visibilityState
-            //console.log('QQQ visibilitychange', document.visibilityState)
             if (document.visibilityState === 'hidden') {
                 this.renderPrediction()
             }
