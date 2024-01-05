@@ -14,6 +14,7 @@ import {
     StartMaskEffectOptions,
     VisualizationConfigType
 } from '../enum/tfjs.config.enum'
+import { RECORDING_PATH } from '../enum/conferencing.enum'
 
 export class VideoRoomPlugin extends BasePlugin {
     name = 'janus.plugin.videoroom'
@@ -618,7 +619,7 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     getRecordFileName () {
-        return '/opt/recordings/' + this.room_id + stringToBase64(this.displayName) + Date.now()
+        return RECORDING_PATH + this.room_id + stringToBase64(this.displayName) + Date.now()
     }
 
     async sendConfigureMessage (options) {
