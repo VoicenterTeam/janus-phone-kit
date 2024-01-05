@@ -128,6 +128,16 @@ export default function useJanusPhoneKit () {
         state.isScreenSharing = enable
     }
 
+    async function orientationChangeListener () {
+        console.log('screen.orientation change')
+        const stream = await janusPhoneKit.restartMasking()
+        updatePublisherStream(stream)
+    }
+
+    function processOrientationChange () {
+        screen.orientation.addEventListener('change', orientationChangeListener)
+    }
+
     async function applyBokehMaskEffect () {
         if (!state.isVideoOn) {
             return
@@ -140,6 +150,7 @@ export default function useJanusPhoneKit () {
             state.isWithBokehMaskEffect = newVal
 
             updatePublisherStream(stream)
+            processOrientationChange()
         } catch (e) {
             console.error('Error when enabling bokeh mask effect:', e)
         }
@@ -162,6 +173,7 @@ export default function useJanusPhoneKit () {
             state.isWithBgImgMaskEffect = newVal
 
             updatePublisherStream(stream)
+            processOrientationChange()
         } catch (e) {
             console.error('Error when enabling background image mask effect:', e)
         }
@@ -173,6 +185,7 @@ export default function useJanusPhoneKit () {
         }
 
         try {
+            screen.orientation.removeEventListener('change', orientationChangeListener)
             const stream = await janusPhoneKit.disableMask()
 
             state.isWithBokehMaskEffect = false

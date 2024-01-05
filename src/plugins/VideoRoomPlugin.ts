@@ -537,6 +537,26 @@ export class VideoRoomPlugin extends BasePlugin {
         return publisherStream
     }
 
+    async restartMasking () {
+        /*const maskType = this.maskEffectType
+        const base64 = this.base64ImageMask*/
+        this.streamMask.stop()
+
+        const options: StartMaskEffectOptions = {}
+        if (this.maskEffectType === MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect) {
+            this.base64BackgroundImgEffect = options.base64Image
+        }
+
+        const { stream } = await this.loadStream()
+        const canvasStream = await this.streamMask.start(stream, this.maskEffectType, this.mediaConstraints, options)
+
+        this.overrideSenderTracks(canvasStream)
+
+        this.stream = canvasStream
+
+        return canvasStream
+    }
+
     /**
    * Enables or disables video stream mask.
    * @param {boolean} enable - defines if mask should be applied
