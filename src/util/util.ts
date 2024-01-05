@@ -69,3 +69,7 @@ export function loadImage (src) {
         image.src = src
     })
 }
+
+export function requestAnimationFrameTimeout (callback) {
+    return setTimeout(callback, 1000 / 30)
+}

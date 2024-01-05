@@ -7,7 +7,7 @@ import type { BodySegmenter } from '@tensorflow-models/body-segmentation'
 import * as bodySegmentation from '@tensorflow-models/body-segmentation'
 import { setBackendAndEnvFlags } from '../util/tfjsBackendAndEnvFlags'
 import { Camera } from '../util/Camera'
-import { mergeConfig } from '../util/util'
+import { mergeConfig, requestAnimationFrameTimeout } from '../util/util'
 import {
     CAMERA_CONFIG,
     ENV_FLAGS,
@@ -18,6 +18,7 @@ import {
     StartMaskEffectOptions,
     VisualizationConfigType
 } from '../enum/tfjs.config.enum'
+import { TimeoutType, VisibilityStateType } from '../types/streamMask'
 
 tfjsWasm.setWasmPaths(`https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@${tfjsWasm.version_wasm}/dist/`)
 
@@ -26,10 +27,12 @@ export class StreamMaskPlugin {
     private maskEffectType: MaskEffectTypeConfigType | null = null
     private base64ImageMask: string | null = null
     private rafId: number | null = null
+    private timeoutId: TimeoutType | null = null
     private segmenter: BodySegmenter = null
     private camera
     private canvas
     private ctx
+    private visibilityState: VisibilityStateType | null = null
 
     constructor (options: any = {}) {
         this.visualizationConfig = mergeConfig(VISUALIZATION_CONFIG, options.visualizationConfig)
@@ -69,11 +72,31 @@ export class StreamMaskPlugin {
 
         this.segmenter = await this.createSegmenter()
 
+        this.processVisibilityChange()
         this.renderPrediction()
 
         const videoOnlyStream = this.canvas.captureStream(CAMERA_CONFIG.targetFPS)
 
         return await this.populateWithAudioTracks(videoOnlyStream, mediaConstraints)
+    }
+
+    /**
+     * Listens to visibility change (like switching active tab)
+     * and switches between different kinds of requestAnimationFrame
+     */
+    processVisibilityChange () {
+        if (!document) {
+            return
+        }
+
+        this.visibilityState = document.visibilityState
+
+        document.addEventListener('visibilitychange', () => {
+            this.visibilityState = document.visibilityState
+            if (document.visibilityState === 'hidden') {
+                this.renderPrediction()
+            }
+        })
     }
 
     /**
@@ -107,6 +130,9 @@ export class StreamMaskPlugin {
         if (this.rafId) {
             window.cancelAnimationFrame(this.rafId)
         }
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId)
+        }
         if (this.segmenter) {
             this.segmenter.dispose()
         }
@@ -116,6 +142,7 @@ export class StreamMaskPlugin {
         }
 
         this.rafId = null
+        this.timeoutId = null
         this.maskEffectType = null
         this.base64ImageMask = null
         this.segmenter = null
@@ -134,7 +161,18 @@ export class StreamMaskPlugin {
    */
     async renderPrediction () {
         await this.renderResult()
-        this.rafId = requestAnimationFrame(this.renderPrediction.bind(this))
+
+        if (this.visibilityState === 'visible') {
+            if (this.timeoutId) {
+                clearTimeout(this.timeoutId)
+            }
+            this.rafId = requestAnimationFrame(this.renderPrediction.bind(this))
+        } else {
+            if (this.rafId) {
+                window.cancelAnimationFrame(this.rafId)
+            }
+            this.timeoutId = requestAnimationFrameTimeout(this.renderPrediction.bind(this))
+        }
     }
 
     /**
