@@ -537,9 +537,11 @@ export class VideoRoomPlugin extends BasePlugin {
         return publisherStream
     }
 
+    /**
+     * Restarts video stream mask. Usually is used when screen orientation changed
+     * @return {MediaStream} processed stream with mask effect
+     */
     async restartMasking () {
-        /*const maskType = this.maskEffectType
-        const base64 = this.base64ImageMask*/
         this.streamMask.stop()
 
         const options: StartMaskEffectOptions = {}

@@ -129,7 +129,6 @@ export default function useJanusPhoneKit () {
     }
 
     async function orientationChangeListener () {
-        console.log('screen.orientation change')
         const stream = await janusPhoneKit.restartMasking()
         updatePublisherStream(stream)
     }
