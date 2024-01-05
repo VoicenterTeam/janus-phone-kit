@@ -1,5 +1,5 @@
 import { BasePlugin } from './BasePlugin'
-import { randomString } from '../util/util'
+import { randomString, stringToBase64 } from '../util/util'
 import { logger } from '../util/logger'
 import { Member } from '../Member'
 import DeviceManager from '../util/DeviceManager'
@@ -617,6 +617,10 @@ export class VideoRoomPlugin extends BasePlugin {
         this.streamMask.setupVisualizationConfig(config)
     }
 
+    getRecordFileName () {
+        return '/opt/recordings/' + this.room_id + stringToBase64(this.displayName) + Date.now()
+    }
+
     async sendConfigureMessage (options) {
         this.offerOptions.offerToReceiveAudio = false
         this.offerOptions.offerToReceiveVideo = false
@@ -625,6 +629,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
         const confResult = await this.sendMessage({
             request: 'configure',
+            record: true,
+            filename: this.getRecordFileName(),
             ...options,
         }, jsepOffer)
 
