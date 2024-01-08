@@ -206,6 +206,10 @@ export default class JanusPhoneKit extends EventEmitter {
         return this.videoRoomPlugin?.enableMask(MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect, options)
     }
 
+    public restartMasking () {
+        return this.videoRoomPlugin?.restartMasking()
+    }
+
     public disableMask () {
         this.maskEffectType = null
         this.base64BackgroundImgEffect = null

@@ -73,3 +73,7 @@ export function loadImage (src) {
 export function requestAnimationFrameTimeout (callback) {
     return setTimeout(callback, 1000 / 30)
 }
+
+export function stringToBase64 (str: string) {
+    return btoa(unescape(encodeURIComponent(str)))
+}

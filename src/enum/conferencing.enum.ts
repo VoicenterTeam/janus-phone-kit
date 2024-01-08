@@ -1,7 +1,9 @@
 export const CONFERENCING_MODE = {
-  WHITEBOARD: 'whiteboard',
-  IMAGE_WHITEBOARD: 'imageWhiteboard'
+    WHITEBOARD: 'whiteboard',
+    IMAGE_WHITEBOARD: 'imageWhiteboard'
 }
+
+export const RECORDING_PATH = '/opt/recordings/'
 
 //export type ConferencingModeType = keyof typeof CONFERENCING_MODE
 

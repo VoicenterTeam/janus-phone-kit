@@ -1,5 +1,5 @@
 import { BasePlugin } from './BasePlugin'
-import { randomString } from '../util/util'
+import { randomString, stringToBase64 } from '../util/util'
 import { logger } from '../util/logger'
 import { Member } from '../Member'
 import DeviceManager from '../util/DeviceManager'
@@ -14,6 +14,7 @@ import {
     StartMaskEffectOptions,
     VisualizationConfigType
 } from '../enum/tfjs.config.enum'
+import { RECORDING_PATH } from '../enum/conferencing.enum'
 
 export class VideoRoomPlugin extends BasePlugin {
     name = 'janus.plugin.videoroom'
@@ -538,6 +539,28 @@ export class VideoRoomPlugin extends BasePlugin {
     }
 
     /**
+     * Restarts video stream mask. Usually is used when screen orientation changed
+     * @return {MediaStream} processed stream with mask effect
+     */
+    async restartMasking () {
+        this.streamMask.stop()
+
+        const options: StartMaskEffectOptions = {}
+        if (this.maskEffectType === MASK_EFFECT_TYPE_CONFIG.backgroundImageEffect) {
+            this.base64BackgroundImgEffect = options.base64Image
+        }
+
+        const { stream } = await this.loadStream()
+        const canvasStream = await this.streamMask.start(stream, this.maskEffectType, this.mediaConstraints, options)
+
+        this.overrideSenderTracks(canvasStream)
+
+        this.stream = canvasStream
+
+        return canvasStream
+    }
+
+    /**
    * Enables or disables video stream mask.
    * @param {boolean} enable - defines if mask should be applied
    * @param {'bokehEffect' | 'backgroundImageEffect'} effect - defines the mask effect type
@@ -595,6 +618,10 @@ export class VideoRoomPlugin extends BasePlugin {
         this.streamMask.setupVisualizationConfig(config)
     }
 
+    getRecordFileName () {
+        return RECORDING_PATH + this.room_id + stringToBase64(this.displayName) + Date.now()
+    }
+
     async sendConfigureMessage (options) {
         this.offerOptions.offerToReceiveAudio = false
         this.offerOptions.offerToReceiveVideo = false
@@ -603,6 +630,8 @@ export class VideoRoomPlugin extends BasePlugin {
 
         const confResult = await this.sendMessage({
             request: 'configure',
+            record: true,
+            filename: this.getRecordFileName(),
             ...options,
         }, jsepOffer)
 
