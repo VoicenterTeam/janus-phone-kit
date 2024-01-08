@@ -16,6 +16,7 @@
           height="150"
           autoplay
           playsinline
+          webkit-playsinline
       >
       </video>
     </div>
