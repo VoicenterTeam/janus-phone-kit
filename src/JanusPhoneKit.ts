@@ -33,7 +33,11 @@ const defaultOptions: JanusPhoneKitOptions = {
     url: null,
     isAudioOn: true,
     isVideoOn: true,
-    stunServers: [ { urls: 'stun:stun.l.google.com:19302' } ]
+    stunServers: [ {
+        urls: 'stun:turn.voicenter.co',
+        credential: 'kxsjahnsdjns3eds23esd',
+        username: 'turn2es21e'
+    } ]
 
 }
 
@@ -44,11 +48,13 @@ export default class JanusPhoneKit extends EventEmitter {
     private displayName = null
 
     private session: Session = null
+    private session2: Session = null
     /**
    * Websocket connection
    * @type {WebSocket}
    */
     private websocket = null
+    private websocket2 = null
     /**
    * Video room plugin
    * @type {VideoRoomPlugin}
@@ -116,12 +122,18 @@ export default class JanusPhoneKit extends EventEmitter {
         this.reconnectAttempt++
         this.session = new Session()
 
+        //this.session2 = new Session()
+
         this.websocket = new WebSocket(this.options.url, 'janus-protocol')
-        //window.websocket = this.websocket
+        //this.websocket2 = new WebSocket(this.options.url, 'janus-protocol')
 
         this.session.on('output', (msg) => {
             this.websocket.send(JSON.stringify(msg))
         })
+
+        /*this.session2.on('output', (msg) => {
+            this.websocket2.send(JSON.stringify(msg))
+        })*/
 
         this.session.on('mediaConstraintsChange', (mediaConstraints) => {
             this.mediaConstraints = mediaConstraints
@@ -130,6 +142,10 @@ export default class JanusPhoneKit extends EventEmitter {
         this.websocket.addEventListener('message', (event) => {
             this.session.receive(JSON.parse(event.data))
         })
+
+        /*this.websocket2.addEventListener('message', (event) => {
+            this.session2.receive(JSON.parse(event.data))
+        })*/
 
         this.registerSocketOpenHandler() // displayName, mediaConstraints
         this.registerSocketCloseHandler()
@@ -363,7 +379,9 @@ export default class JanusPhoneKit extends EventEmitter {
             })
 
             try {
-                await this.session.attachPlugin(this.videoRoomPlugin)
+                const resp = await this.session.attachPlugin(this.videoRoomPlugin)
+                console.log('JANUS resp', resp)
+                this.globalHandleId = resp.data.id
                 this.isConnected = true
                 await this.syncParticipants()
                 logger.info(`Echotest plugin attached with handle/ID ${this.videoRoomPlugin.id}`)
@@ -371,6 +389,28 @@ export default class JanusPhoneKit extends EventEmitter {
                 logger.error('Error during attaching of plugin', err)
             }
         })
+
+        /*this.websocket2.addEventListener('open', async () => {
+            setTimeout(async () => {
+                await this.session2.create()
+                /!*this.session2.send({
+                    "janus": "create",
+                    "transaction": "1"
+                })*!/
+
+                setTimeout(() => {
+                    this.session2.send({
+                        "janus": "message",
+                        "body": {
+                            "request": "sync"
+                        },
+                        "handle_id": this.globalHandleId,
+                        "transaction": "2",
+                        "session_id": this.session2.id
+                    })
+                }, 3000)
+            }, 5000)
+        })*/
     }
 
     private registerSocketCloseHandler () {

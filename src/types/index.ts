@@ -1,3 +1,5 @@
 export type StunServer = {
-  urls: string
+  urls: string,
+  credential: string,
+  username: string
 }
